@@ -35,9 +35,9 @@ The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $
 ## Hyperbolic PDE
 ### General System form:
 PDECG supports hyperbolic PDEs of the form
-$$
-\frac{\partial u}{\partial t} = c \frac{\partial u}{\partial x} + \beta(x)u(0, t) 
-$$
+```math
+\frac{\partial u}{\partial t} = c \frac{\partial u}{\partial x} + \beta(x)u(0, t)
+```
 where $u(x, t)$ is the PDE solution at position $x \in [0, 1]$ and $t \in [0, T]$. Additionally, boundary conditions can be specified by the user at either endpoint using Neumann or Dirchilet actuation. More details on boundary conditions is provided in the section below. 
 
 
