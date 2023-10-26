@@ -31,7 +31,7 @@ PDECG supports both Neumann and Dirchilet boundary sensing at both endpoints as 
 As with sensing, PDECG supports both Neumann and Dirchilet boundary control that can be colocated with the sensing. However, the environment will throw an error if the sensing and control arguments are exactly the same. As with sensing, provide the {insert argument} when creating the gym and the action will automatically apply the control at that specific boundary position.
 ### Rewards:
 The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the section labeled Tuning Existing PDE Environments. Rewards are specified in the following form 
-```
+```python
 reward = {type: {"custom", "norm"}, 
           args(optional): {
                             "norm"(optional): {"1", "2", "infty"},
@@ -41,7 +41,7 @@ reward = {type: {"custom", "norm"},
          }
 ```
 An example of the $L_\infty$ reward average over the past $5$ timesteps looks like:
-```
+```python
 reward = {type: "norm", 
           args: {
                  "norm": "infty",
