@@ -30,13 +30,34 @@ PDECG supports both Neumann and Dirchilet boundary sensing at both endpoints as 
 ### Control:
 As with sensing, PDECG supports both Neumann and Dirchilet boundary control that can be colocated with the sensing. However, the environment will throw an error if the sensing and control arguments are exactly the same. As with sensing, provide the {insert argument} when creating the gym and the action will automatically apply the control at that specific boundary position.
 ### Rewards:
-The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the section labeled Tuning Existing PDE Environments.
-#### Preimplemented reward functions:
-- $L_2$ norm
+The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the section labeled Tuning Existing PDE Environments. Rewards are specified in the following form 
+```
+reward = {type: {"custom", "norm"}, 
+		  args(optional): {
+		  					"norm"(optional): {"1", "2", "infty"}, 
+							"averaging"(optional): {"temporal", "differential", "t-horizon"},
+	     					"t_avg"(optional): {Integer}
+						  }
+         }
+```
+An example of the $L_\infty$ reward average over the past $5$ timesteps looks like:
+```
+reward = {type: "norm", 
+		  args: {
+			     "norm": "infty", 
+				 "averaging": "t-horizon"
+			     "t_avg": 5
+                }
+         }
+```
+#### Pre-implemented reward functions:
+- $L_k$ norms
     - Additional Args (Given as a tuple): 
-        - `temporal`: Returns at each time $t$, the reward $\|\|u(x, t)\||_{L_2}$
-        - `differential`: Returns at each time $t$, the reward $\|u(x, t) - u(x, t-dt)\|_{L_2}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
-		- `average`: Average requires an additional argument in the form `(average, $t_{avg}$)` where $t_{avg}$ is the number of timesteps to average over. This will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|u(x, \tau)\|_{L_2}$$
+		- `norm`(optional, defaults to $L_2$ if not specified): The type of norm. $1$ specifies the Manhattan distannce, $2$ specifies the Euclidean distance, and $\infty$ specifes the max value.
+        - `averaging`(optional, defaults to temporal if not specified): 
+		    - `temporal`: Returns at each time $t$, the reward $\|\|u(x, t)\|\|_{L_k}$
+            - `differential`: Returns at each time $t$, the reward $\|\|u(x, t) - u(x, t-dt)\|\|_{L_k}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
+		    - `t-horizon`: Requires an additional argument in the form `$t_{avg}$` where $t_{avg}$ is the number of timesteps to average over. If $t_{avg}=1$, this is the same as temporal, but may be slower. For $t_{avg}>1$, this will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|\|u(x, \tau)\|\|_{L_k}$$
 
 ## Hyperbolic PDE
 ### General System form:
