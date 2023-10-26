@@ -30,7 +30,13 @@ PDECG supports both Neumann and Dirchilet boundary sensing at both endpoints as 
 ### Control:
 As with sensing, PDECG supports both Neumann and Dirchilet boundary control that can be colocated with the sensing. However, the environment will throw an error if the sensing and control arguments are exactly the same. As with sensing, provide the {insert argument} when creating the gym and the action will automatically apply the control at that specific boundary position.
 ### Rewards:
-The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the seciont labeled Tuning Existing PDE Environments.
+The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the section labeled Tuning Existing PDE Environments.
+#### Preimplemented reward functions:
+- $L_2$ norm
+    - Additional Args (Given as a tuple): 
+        - `temporal`: Returns at each time $t$, the reward $\|u(x, t)\|_{L_2}$
+        - `differential`: Returns at each time $t$, the reward $\|u(x, t) - u(x, t-dt)\|_{L_2}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
+		- `average`: Average requires an additional argument in the form `(average, $t_{avg}$)` where $t_{avg}$ is the number of timesteps to average over. This will provide the reward at time $t$ as $\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_avg}^t \|u(x, \tau)\|_{L_2}$
 
 ## Hyperbolic PDE
 ### General System form:
