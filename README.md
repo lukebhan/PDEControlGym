@@ -34,9 +34,9 @@ The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $
 #### Preimplemented reward functions:
 - $L_2$ norm
     - Additional Args (Given as a tuple): 
-        - `temporal`: Returns at each time $t$, the reward $\|u(x, t)\|_{L_2}$
+        - `temporal`: Returns at each time $t$, the reward $\|\|u(x, t)\||_{L_2}$
         - `differential`: Returns at each time $t$, the reward $\|u(x, t) - u(x, t-dt)\|_{L_2}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
-		- `average`: Average requires an additional argument in the form `(average, $t_{avg}$)` where $t_{avg}$ is the number of timesteps to average over. This will provide the reward at time $t$ as $$\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_avg}^t \|u(x, \tau)\|_{L_2}$$
+		- `average`: Average requires an additional argument in the form `(average, $t_{avg}$)` where $t_{avg}$ is the number of timesteps to average over. This will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|u(x, \tau)\|_{L_2}$$
 
 ## Hyperbolic PDE
 ### General System form:
