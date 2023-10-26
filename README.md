@@ -43,12 +43,12 @@ reward = {type: {"custom", "norm"},
 An example of the $L_\infty$ reward average over the past $5$ timesteps looks like:
 ```python
 reward = {type: "norm", 
-	args: {
+	 args: {
 		"norm": "infty",
 		"averaging": "t-horizon",
 		"t_avg": 5
-          }
 	}
+}
 ```
 #### Pre-implemented reward functions:
 - $L_k$ norms
