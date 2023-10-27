@@ -57,7 +57,7 @@ reward = {type: "norm",
         - `averaging`(optional, defaults to temporal if not specified): 
 		    - `temporal`: Returns at each time $t$, the reward $\|\|u(x, t)\|\|_{L_k}$
             - `differential`: Returns at each time $t$, the reward $\|\|u(x, t) - u(x, t-dt)\|\|_{L_k}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
-		    - `t-horizon`: Requires an additional argument in the form `t_avg` where $t_{avg}$ is the number of timesteps to average over. If $t_{avg}=1$, this is the same as temporal, but may be slower. For $t_{avg}>1$, this will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|\|u(x, \tau)\|\|_{L_k}$$. If $t<t_avg$, this provides the reward for all $u$ up to t. 
+		    - `t-horizon`: Requires an additional argument in the form `t_avg` where $t_{avg}$ is the number of timesteps to average over. If $t_{avg}=1$, this is the same as temporal, but may be slower. For $t_{avg}>1$, this will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|\|u(x, \tau)\|\|_{L_k}$$. If $t\lt t_{avg}$, this provides the reward for all $u$ up to t. 
 
 ## Hyperbolic PDE
 ### General System form:
