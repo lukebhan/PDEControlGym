@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 # Class for creating reward functions for PDEs
 # All reward functions inherit the general class Reward
 
