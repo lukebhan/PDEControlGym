@@ -36,9 +36,17 @@ class PDECEnv(gym.Env):
     #   Rendering is implemented with the vision for only being of control of a single PDE problem. This will cause LARGE overhead if modified for training.It is called once the episode terminates and has the following arguments that are passed as a dictionary:
     #       'animation_render': boolean. True means a matplotlib animation file with be produced with a step by step rendering. Defaults to False. 
     #       'animation_file_name': string. File name to save animation. Defaults to 'PDECGAnimate'
-    #       'animation_time': int. Number in times in seconds for the entire animation to complete. Defaults to 10.
+    #       'animation_time': int. Amount of time in seconds for the entire animation to complete. Defaults to 10.
     #       'animation_show_error_figure': boolean. Adds a figure with episodes cumulative reward. Defaults to False.
-    #       'animation_reward_func': function. Pass the reward function to be plotted if animation_show_error_figure is True. Defaults to tradition L2 norm.
+    #       'animation_reward_func': function. Pass the reward function to be plotted if animation_show_error_figure is True. Defaults to traditional L2 norm.
+    #       'animation_highlight_control': boolean. The control will be highlighted in red if Dirchilet conditions. Defaults to True. 
+    #       'animation_highlight_sensing': boolean. The sensing will be highlighted in blue if Dirchilet conditions. Defaults to False. 
+    #       'figure_generation': boolean. True means a matplotlib figure will be saved as well. Same exact properties as animations. 
+    #       'figure_file_name': string. File name to save figure. Defaults to 'PDECGFfigure'
+    #       'figure_show_error_figure': boolean. Adds a figure with the episodes cumulative reward. Defaults to False. 
+    #       'figure_reward_func': function. Pass the reward function to be plotted if figure_show_error_figure is True. Defaults to traditional L2 norm.
+    #       'figure_highlight_control': boolean. The control will be highlighted in red if Dirchilet conditions. Defaults to True. 
+    #       'figure_highlight_sensing': boolean. The sensing will be highlighted in blue if Dirchilet conditions. Defaults to False. 
 
     def __init__(self):
         pass

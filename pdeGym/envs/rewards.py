@@ -1,6 +1,7 @@
-from abc import ABC, abstractmethod
 # Class for creating reward functions for PDEs
 # All reward functions inherit the general class Reward
+from abc import ABC, abstractmethod
+import numpy as np
 
 class Reward(ABC):
     @abstractmethod
@@ -19,12 +20,12 @@ class NormReward(Reward):
     def reward(self, uVec):
         match self.horizon:
             case "temporal":
-                return self.mse(uVec, ord=self.norm)
+                return np.linalg.norm(uVec, ord=self.norm)
             case "differential":
-                return self.linalg.norm(uVec[0]-uVec[1], ord=self.norm)
+                return np.linalg.norm(uVec[0]-uVec[1], ord=self.norm)
             case "t-horizon":
                 # t_avg is handled in the env. For cases t<t_avg, take all values up to t
                 result = 0
                 for i in range(1, len(uVec)+1):
-                    result += self.mse(uVec[-1*i], ord=self.norm)
+                    result += np.linalg.norm(uVec[-1*i], ord=self.norm)
                 return result
