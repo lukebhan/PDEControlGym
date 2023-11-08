@@ -59,6 +59,6 @@ class PDECEnv(gym.Env):
     # Includes matplotlib animations as well as point rendering. 
     # args to the __init__ env function call initial set the rendering arguments. They can then be further updated using the render function call here. 
     def render(self):
-
+        pass
 
 
