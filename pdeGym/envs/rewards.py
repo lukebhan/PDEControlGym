@@ -9,6 +9,8 @@ class Reward(ABC):
         pass
 
 class NormReward(Reward):
+    # self.norm is a number: "1", "2", or "inf"
+    # self.horizon can be "temporal", "differential", "t-horizon". See details in Docs website
     def __init__(self, norm, horizon):
         self.norm = norm
         self.horizon = horizon
