@@ -1,37 +1,47 @@
 import numpy as np
 import pygame
-
 import gymnasium as gym
 from gymnasium import spaces
+from base_env import PDECEnv
 
-from util import central_difference_x, central_difference_y, laplace, laplacian_operator
+from util import central_difference_x, central_difference_y, laplace
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
+import os
+
 KINEMATIC_VISCOSITY = 0.1
 DENSITY = 1.0
-N_PRESSURE_POISSON_ITERATIONS = 50
+N_PRESSURE_POISSON_ITERATIONS = 500
 STABILITY_SAFETY_FACTOR = 0.5
 
 
-class NSPDEEnv(gym.Env):
-    def __init__(self, T=1, dt=1e-3, X=1., dx=0.1, Y=1., dy=0.1):
+class NSPDEEnv(PDECEnv):
+    def __init__(self, T=0.2, dt=1e-3, X=1., dx=0.1, Y=1., dy=0.1, plot=False):
+        # PDE Settings (given as a dictionary for the first argument)
+            # u - first dimension in velocity field, shape: (Nx, Ny)
+            # v - second dimension in velocity field, shape: (Nx, Ny)
+            # p - pressure field: shape (Nx, Ny)
+        super(NSPDEEnv, self).__init__()
         self.Nx, self.Ny = int(X / dx + 1), int(Y / dy + 1)
         self.dx, self.dy, self.dt = dx, dy, dt
         self.x = np.linspace(0, X, self.Nx)
         self.y = np.linspace(0, Y, self.Ny)
-        self.X, self.Y = np.meshgrid(self.x, self.y[::-1])
-        self.u_prev = np.zeros_like(self.X)
-        self.v_prev = np.zeros_like(self.X)
-        self.p_prev = np.zeros_like(self.X)
-        max_t = (0.5 * min(dx,dy)**2 / KINEMATIC_VISCOSITY)
-        self.lo = laplacian_operator(self.Nx, self.Ny, dx, dy)
+        self.X, self.Y = np.meshgrid(self.x, self.y)
+        max_t = (0.5 * min(self.dx, self.dy)**2 / KINEMATIC_VISCOSITY)
         if dt > STABILITY_SAFETY_FACTOR * max_t:
             raise RuntimeError("Stability is not guarenteed")
+        self.t, self.T = 0., T
+        self.reset()
+        # TODO: 
+        self.action_space = spaces.Box(low=-10.0, high=10.0, shape=(2,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-100., high=100., shape=(self.Nx, self.Nx, 2), dtype=np.float32)
+        if plot:
+            self.fig, self.ax = plt.subplots(figsize=(5,5))
     
-    def step(self):
+    def step(self, action):
         u_prev, v_prev, p_prev = self.u_prev, self.v_prev, self.p_prev
         dx, dy, dt = self.dx, self.dy, self.dt
         dudx = central_difference_x(u_prev, dx)
@@ -44,25 +54,40 @@ class NSPDEEnv(gym.Env):
         u_pred = u_prev + dt * (- u_prev * dudx - v_prev * dudy + KINEMATIC_VISCOSITY * laplace_u_prev)
         v_pred = v_prev + dt * (- u_prev * dvdx - v_prev * dvdy + KINEMATIC_VISCOSITY * laplace_v_prev)
         # apply boundary conditions
-        u_pred, v_pred = self.apply_boundary(u_pred, v_pred)
+        u_pred, v_pred = self.apply_boundary(u_pred, v_pred, action)
         # solve for pressure
         pressure = self.solve_pressure(u_pred, v_pred, p_prev)
         dpdx, dpdy = central_difference_x(pressure, dx), central_difference_y(pressure, dy)
         u_next = u_pred - dt / DENSITY * dpdx
         v_next = v_pred - dt / DENSITY * dpdy
-        u_next, v_next = self.apply_boundary(u_next, v_next)
+        u_next, v_next = self.apply_boundary(u_next, v_next, action)
+        # TODO: wait reward function
+        reward = - np.linalg.norm(v_next)
         self.u_prev, self.v_prev = u_next, v_next
-        return u_next, v_next
+        obs = np.stack([self.u_prev, self.v_prev], axis=-1)
+        self.t += self.dt
+        done = self.t >= self.T
+        truncated = False
+        info = {}
+        return obs, reward, done, truncated, info
 
-    def apply_boundary(self, u, v):
-        u[0, :] = 0.0
-        u[:, 0] = 0.0
-        u[:, -1] = 0.0
-        u[-1, :] = 0.
-        v[0, :] = 1.0
-        v[:, 0] = 0.0
-        v[:, -1] = 0.0
-        v[-1, :] = 0.
+    def reset(self, seed=0):
+        self.u_prev = np.zeros_like(self.X)
+        self.v_prev = np.zeros_like(self.X)
+        self.p_prev = np.zeros_like(self.X)
+        obs = np.stack([self.u_prev, self.v_prev], axis=-1)
+        return obs, None
+
+    def apply_boundary(self, u, v, action):
+        #TODO: pass boundary control conditions
+        u[0, :] = 0.0 # lower
+        u[:, 0] = action[0]  # left 
+        u[:, -1] = 0.0 # right
+        u[-1, :] = 0.0 # upper
+        v[0, :] = 1.0 # lower
+        v[:, 0] = action[1] # left
+        v[:, -1] = 0.0 # right
+        v[-1, :] = 0.0 # upper
         return u, v 
     
     def solve_pressure(self, u, v, p_prev):
@@ -92,17 +117,40 @@ class NSPDEEnv(gym.Env):
             p_prev = p_next
         self.p = p_prev
         return p_prev
+    
+    def render(self):
+        self.ax.clear()
+        self.ax.contourf(self.X, self.Y, self.p, cmap="coolwarm")
+        self.ax.quiver(self.X, self.Y, self.u_prev, self.v_prev, color="black")
+        self.ax.set_ylim((0, np.max(self.x)))
+        self.ax.set_ylim((0, np.max(self.y)))
+        self.ax.set_title(f't = {np.round(self.t, 5)}')
+        plt.savefig(f'frames/frame_{int(self.t*1000)}.png', dpi=300)
+        plt.pause(0.01)
+        
 
+
+
+from gym.envs.registration import register
+register(
+    id='NSPDEEnv-v0',
+    entry_point='NavierStokes:NSPDEEnv',
+)
 
 if __name__ == "__main__":
-    env = NSPDEEnv()
-    for i in range(1000):
-        env.step()
-    plt.style.use("dark_background")
-    plt.figure()
-    plt.contourf(env.X, env.Y, env.p, cmap="coolwarm")
-    plt.colorbar()
-    plt.quiver(env.X, env.Y, env.u_prev, env.v_prev, color="black")
-    plt.xlim((0, 1))
-    plt.ylim((0, 1))
-    plt.show()
+    import imageio
+    if not os.path.exists('frames'):
+        os.makedirs('frames')
+    env = NSPDEEnv(T=0.1, dt=0.001, plot=True)
+    rewards = 0.
+    for i in range(100):
+        a = [2.0, -2.]
+        obs, reward, done, t, info = env.step(a)
+        env.render()
+        rewards += reward
+    print('rewards', rewards)
+    frame_files = [f'frames/frame_{t}.png' for t in range(1,100)]
+    frames = [imageio.imread(f) for f in frame_files]
+    imageio.mimsave('../../examples/NavierStokes/animation.gif', frames, fps=10)
+    import shutil
+    shutil.rmtree('frames')
