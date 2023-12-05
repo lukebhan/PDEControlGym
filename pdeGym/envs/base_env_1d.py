@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from abc import abstractmethod
 
-class PDECEnv(gym.Env):
+class PDEEnv1D(gym.Env):
     # The entire enviornment and PDE problem gets specified here, so after initialization of the environment each step size is extremely quick
     # PDE Settings (given as a dictionary for the first argument)
     #   T - time horizon. Defaults to 1.
@@ -26,11 +26,13 @@ class PDECEnv(gym.Env):
     #               'Neumann': sensing is given for the point at du/dx|_{x=X}
     #               'Dirchilet': sensing is given for the point at x=X
     #               Defaults to Dirchilet.
-    #       sensing_noise_func - function to be called as the sample noise. It takes no parameters can can be invoked additively or multiplicatively according to sensing_noise_mode. Defaults to None. 
-    #       sensing_noise_mode:
-    #           "additive": sensing is computed as u_measurement+sensing_noise_func()
-    #           "multiplicative": sensing is computed as u_measurement*sensing_noise_func() 
-    #           Defaults to additive.
+    #   sensing_noise_func - function to be called as the sample noise. It takes no parameters can can be invoked additively or multiplicatively according to sensing_noise_mode. Defaults to None. 
+    #   sensing_noise_mode:
+    #       "additive": sensing is computed as u_measurement+sensing_noise_func()
+    #       "multiplicative": sensing is computed as u_measurement*sensing_noise_func() 
+    #       Defaults to additive.
+    #   limit_pde_state_size: Used to end the epsidoe early if a PDE state is above a certain value specified by max_state_value (See below). Defaults to True.
+    #   max_state_value: Only used if limit_pde_state_size is set to True. Sets the maximum value for the PDE at a time step to continue the environment. If over the max value, the episode ends and the reward is given as remaining time steps * max value. Default is 1e10
     #           
     # Rendering Modes (Given as a dicitonary for the second argument):
     #   Rendering is implemented with the vision for only being of control of a single PDE problem. This will cause LARGE overhead if modified for training.It is called once the episode terminates and has the following arguments that are passed as a dictionary:
@@ -49,7 +51,7 @@ class PDECEnv(gym.Env):
     #       'figure_highlight_sensing': boolean. The sensing will be highlighted in blue if Dirchilet conditions. Defaults to False. 
 
     def __init__(self):
-        pass
+        super(PDEEnv1D, self).__init__()
 
     @abstractmethod
     def step(self):
