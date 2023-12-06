@@ -124,15 +124,18 @@ class PDEEnv1D(gym.Env):
         self.action_space = spaces.Box(
             np.full(1, -1, dtype="float32"), np.full(1, 1, dtype="float32")
         )
-        self.normalize = lambda action, max_value : (action + 1)*max_value - max_value
+        if self.parameters["normalize"]:
+            self.normalize = lambda action, max_value : (action + 1)*max_value - max_value
+        else:
+            self.normalize = lambda action, max_value : action
         # Holds entire system state
         self.u = np.zeros((self.parameters["nt"], self.parameters["nx"]))
         self.time_index = 0
 
         # Setup reward function
-        self.reward = NormReward(
-            self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"]
-        )
+        self.reward = NormReward(self.parameters["nt"],
+            self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"])
+        
 
     @abstractmethod
     def step(self, action):

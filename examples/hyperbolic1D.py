@@ -29,7 +29,7 @@ def solveControl(kernel, u):
     res = 0
     for i in range(len(u)):
         res += kernel[i]*u[i]
-    return res*1e-3
+    return res*1e-2
 
 def getInitialCondition(nx):
     return np.ones(nx)*5
@@ -39,7 +39,7 @@ def getBetaFunction(nx, X, gamma):
 
 T = 5
 dt = 1e-4
-dx = 1e-3
+dx = 1e-2
 X = 1
 
 hyperbolicParameters = {
@@ -52,16 +52,17 @@ hyperbolicParameters = {
         "sensing_type": None,
         "sensing_noise_func": lambda state: state,
         "limit_pde_state_size": True,
-        "max_state_value": 100, 
-        "max_control_value": 25,
+        "max_state_value": 500,
+        "max_control_value": 10,
         "reward_norm": 2, 
-        "reward_horizon": "t-horizon",
+        "reward_horizon": "temporal",
         "reward_average_length": 10,
-        "truncate_penalty": -10000, 
-        "terminate_reward": 1e2, 
+        "truncate_penalty": -1e3, 
+        "terminate_reward": 1e3, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
-        "reset_recirculation_param": 3,
+        "reset_recirculation_param": 7.35,
+        "normalize": True,
 }
 
 env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
@@ -72,8 +73,8 @@ nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
 uStorage = []
 
-model = PPO("MlpPolicy", env, verbose=1)
-# model.learn(total_timesteps=250000)
+model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./tb/")
+model.learn(total_timesteps=1e8)
 
 model.save("firstTest")
 
@@ -84,18 +85,17 @@ obs,__ = env.reset()
 uStorage.append(obs)
 
 spatial = np.linspace(dx, X, int(round(X/dx)))
-kernel = solveKernelFunction(solveBetaFunction(spatial, 3))
+kernel = solveKernelFunction(solveBetaFunction(spatial, 7.35))
 i = 0
+rew = 0
 while not truncate and not terminate:
-    # action, _state = model.predict(obs)
-    action = solveControl(kernel, obs)
-    print(action)
-    print(obs)
-    i+=1
-    if i > 2:
-        break
+    action, _state = model.predict(obs)
+    #action = solveControl(kernel, obs)
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
+    rew += rewards 
+print(rew)
+print(len(uStorage))
 
 
 res = 1
@@ -116,11 +116,11 @@ for axis in [axes.xaxis, axes.yaxis, axes.zaxis]:
     axis._axinfo['grid']['linewidth'] = 0.2
     axis._axinfo['grid']['linestyle'] = "--"
     axis._axinfo['grid']['color'] = "#d1d1d1"
-    axis.set_pane_color((0, 0, 0))
+    axis.set_pane_color((1,1,1))
     
 meshx, mesht = np.meshgrid(spatial, temporal)
                      
-axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=500, cstride=40, 
+axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=10, 
                         alpha=1, color="white", shade=False, rasterized=True, antialiased=True)
 axes.view_init(10, 15)
 axes.set_xlabel("x")

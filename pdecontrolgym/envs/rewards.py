@@ -13,12 +13,13 @@ class Reward(ABC):
 class NormReward(Reward):
     # self.norm is a number: "1", "2", or "inf"
     # self.horizon can be "temporal", "differential", "t-horizon". See details in Docs website
-    def __init__(self, norm=2, horizon="temporal", reward_average_length=5, truncate_penalty=-1e4, terminate_reward=1e2):
+    def __init__(self, nt, norm=2, horizon="temporal", reward_average_length=5, truncate_penalty=-1e4, terminate_reward=1e2):
         self.norm = norm
         self.horizon = horizon
         self.reward_average_length = reward_average_length
         self.truncate_penalty = truncate_penalty
         self.terminate_reward = terminate_reward
+        self.nt = nt
 
     # uVec is in the form
     # temporal: u(t, x)
@@ -28,17 +29,18 @@ class NormReward(Reward):
         if terminate:
             return self.terminate_reward
         if truncate:
-            return self.truncate_penalty
+            return self.truncate_penalty*(self.nt-time_index)
+        norm_coeff = len(uVec[time_index])
         match self.horizon:
             case "temporal":
-                return -np.linalg.norm(uVec[time_index], ord=self.norm)
+                return -np.linalg.norm(uVec[time_index], ord=self.norm) / norm_coeff
             case "differential":
                 if time_index > 0:
                     return np.linalg.norm(
                         uVec[time_index] - uVec[time_index - 1], ord=self.norm
-                    ) 
+                    )  / norm_coeff
                 else:
-                    return -np.linalg.norm(uVec[time_index], ord=self.norm) 
+                    return -np.linalg.norm(uVec[time_index], ord=self.norm) / norm_coeff
             case "t-horizon":
                 result = 0
                 if time_index > self.reward_average_length:
@@ -49,4 +51,4 @@ class NormReward(Reward):
                     for i in range(0, time_index):
                         result += np.linalg.norm(uVec[time_index-1 * i], ord=self.norm)
                     result /= time_index
-                return -result
+                return -result / norm_coeff
