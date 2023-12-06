@@ -17,7 +17,7 @@ STABILITY_SAFETY_FACTOR = 0.5
 
 
 class NSPDEEnv(gym.Env):
-    def __init__(self, T=1, dt=1e-3, X=1., dx=0.1, Y=1., dy=0.1):
+    def __init__(self, T=1, dt=1e-3, X=1.0, dx=0.1, Y=1.0, dy=0.1):
         self.Nx, self.Ny = int(X / dx + 1), int(Y / dy + 1)
         self.dx, self.dy, self.dt = dx, dy, dt
         self.x = np.linspace(0, X, self.Nx)
@@ -26,11 +26,11 @@ class NSPDEEnv(gym.Env):
         self.u_prev = np.zeros_like(self.X)
         self.v_prev = np.zeros_like(self.X)
         self.p_prev = np.zeros_like(self.X)
-        max_t = (0.5 * min(dx,dy)**2 / KINEMATIC_VISCOSITY)
+        max_t = 0.5 * min(dx, dy) ** 2 / KINEMATIC_VISCOSITY
         self.lo = laplacian_operator(self.Nx, self.Ny, dx, dy)
         if dt > STABILITY_SAFETY_FACTOR * max_t:
             raise RuntimeError("Stability is not guarenteed")
-    
+
     def step(self):
         u_prev, v_prev, p_prev = self.u_prev, self.v_prev, self.p_prev
         dx, dy, dt = self.dx, self.dy, self.dt
@@ -41,13 +41,19 @@ class NSPDEEnv(gym.Env):
         laplace_u_prev = laplace(u_prev, dx)
         laplace_v_prev = laplace(v_prev, dy)
         # predictor step
-        u_pred = u_prev + dt * (- u_prev * dudx - v_prev * dudy + KINEMATIC_VISCOSITY * laplace_u_prev)
-        v_pred = v_prev + dt * (- u_prev * dvdx - v_prev * dvdy + KINEMATIC_VISCOSITY * laplace_v_prev)
+        u_pred = u_prev + dt * (
+            -u_prev * dudx - v_prev * dudy + KINEMATIC_VISCOSITY * laplace_u_prev
+        )
+        v_pred = v_prev + dt * (
+            -u_prev * dvdx - v_prev * dvdy + KINEMATIC_VISCOSITY * laplace_v_prev
+        )
         # apply boundary conditions
         u_pred, v_pred = self.apply_boundary(u_pred, v_pred)
         # solve for pressure
         pressure = self.solve_pressure(u_pred, v_pred, p_prev)
-        dpdx, dpdy = central_difference_x(pressure, dx), central_difference_y(pressure, dy)
+        dpdx, dpdy = central_difference_x(pressure, dx), central_difference_y(
+            pressure, dy
+        )
         u_next = u_pred - dt / DENSITY * dpdx
         v_next = v_pred - dt / DENSITY * dpdy
         u_next, v_next = self.apply_boundary(u_next, v_next)
@@ -58,36 +64,33 @@ class NSPDEEnv(gym.Env):
         u[0, :] = 0.0
         u[:, 0] = 0.0
         u[:, -1] = 0.0
-        u[-1, :] = 0.
+        u[-1, :] = 0.0
         v[0, :] = 1.0
         v[:, 0] = 0.0
         v[:, -1] = 0.0
-        v[-1, :] = 0.
-        return u, v 
-    
+        v[-1, :] = 0.0
+        return u, v
+
     def solve_pressure(self, u, v, p_prev):
         dudx = central_difference_x(u, self.dx)
         dvdy = central_difference_y(v, self.dy)
         rhs = DENSITY / self.dt * (dudx + dvdy)
         for _ in range(N_PRESSURE_POISSON_ITERATIONS):
             p_next = np.zeros_like(p_prev)
-            p_next[1:-1, 1:-1] = 1/4 * (
-                +
-                p_prev[1:-1, 0:-2]
-                +
-                p_prev[0:-2, 1:-1]
-                +
-                p_prev[1:-1, 2:  ]
-                +
-                p_prev[2:  , 1:-1]
-                -
-                self.dx * self.dy
-                *
-                rhs[1:-1, 1:-1]
+            p_next[1:-1, 1:-1] = (
+                1
+                / 4
+                * (
+                    +p_prev[1:-1, 0:-2]
+                    + p_prev[0:-2, 1:-1]
+                    + p_prev[1:-1, 2:]
+                    + p_prev[2:, 1:-1]
+                    - self.dx * self.dy * rhs[1:-1, 1:-1]
+                )
             )
             p_next[:, -1] = p_next[:, -2]
-            p_next[0,  :] = p_next[1,  :]
-            p_next[:,  0] = p_next[:,  1]
+            p_next[0, :] = p_next[1, :]
+            p_next[:, 0] = p_next[:, 1]
             p_next[-1, :] = p_next[-2, :]
             p_prev = p_next
         self.p = p_prev
