@@ -14,8 +14,10 @@ class HyperbolicPDE1D(PDEEnv1D):
         Nx = self.parameters["nx"]
         dx = self.parameters["dx"]
         dt = self.parameters["dt"]
+        sample_rate = int(round(self.parameters["control_sample_rate"]/dt))
         i = 0
-        while i < 10 and self.time_index < self.parameters["nt"]-1:
+        # Actions are applied at a slower rate then the PDE is simulated at
+        while i < sample_rate and self.time_index < self.parameters["nt"]-1:
             self.time_index += 1
             # Explicit update of u according to finite difference derivation
             self.u[self.time_index][-1] = self.normalize(self.control_update(
@@ -40,7 +42,7 @@ class HyperbolicPDE1D(PDEEnv1D):
                 self.parameters["dx"],
                 self.parameters["sensing_noise_func"],
             ),
-            self.reward.reward(self.u, self.time_index, terminate, truncate),
+            self.reward.simpleReward(self.u, self.time_index, terminate, truncate),
             terminate,
             truncate, 
             {},

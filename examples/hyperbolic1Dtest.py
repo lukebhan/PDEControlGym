@@ -4,8 +4,6 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.callbacks import CheckpointCallback
 
 def noiseFunc(state):
     return state
@@ -33,7 +31,7 @@ def solveControl(kernel, u):
     return res*1e-2
 
 def getInitialCondition(nx):
-    return np.ones(nx)*np.random.uniform(5, 10)
+    return np.ones(nx)*5
 
 def getBetaFunction(nx, X, gamma):
     return solveBetaFunction(np.linspace(0, X, nx), gamma)
@@ -75,18 +73,7 @@ nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
 uStorage = []
 
-# Save a checkpoint every 1000 steps
-checkpoint_callback = CheckpointCallback(
-  save_freq=100000,
-  save_path="./logs5/",
-  name_prefix="rl_model",
-  save_replay_buffer=True,
-  save_vecnormalize=True,
-)
-
-model = PPO("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
-model.set_env(env)
-model.learn(total_timesteps=3e6, callback=checkpoint_callback)
+model = PPO.load("./logs3/rl_model_600000_steps.zip")
 
 obs,__ = env.reset()
 uStorage.append(obs)
@@ -127,7 +114,7 @@ for axis in [axes.xaxis, axes.yaxis, axes.zaxis]:
     
 meshx, mesht = np.meshgrid(spatial, temporal)
                      
-axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=10, 
+axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=1, 
                         alpha=1, color="white", shade=False, rasterized=True, antialiased=True)
 axes.view_init(10, 15)
 axes.set_xlabel("x")

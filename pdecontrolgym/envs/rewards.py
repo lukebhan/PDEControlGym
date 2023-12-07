@@ -26,11 +26,11 @@ class NormReward(Reward):
     # differential: (u(t, x), u(t-dt, x))
     # t-horizon: (u(t-t_avg*dt, x), u(t-(t_avg-1)*dt, x), ..., u(t, x))
     def reward(self, uVec, time_index, terminate, truncate):
-        if terminate:
+        norm_coeff = len(uVec[time_index])
+        if terminate and np.linalg.norm(uVec[time_index])/norm_coeff < 0.1:
             return self.terminate_reward
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)
-        norm_coeff = len(uVec[time_index])
         match self.horizon:
             case "temporal":
                 return -np.linalg.norm(uVec[time_index], ord=self.norm) / norm_coeff
@@ -52,3 +52,11 @@ class NormReward(Reward):
                         result += np.linalg.norm(uVec[time_index-1 * i], ord=self.norm)
                     result /= time_index
                 return -result / norm_coeff
+
+    def simpleReward(self, uVec, time_index, terminate, truncate):
+        norm_coeff = len(uVec[time_index])
+        if terminate and np.linalg.norm(uVec[time_index])/norm_coeff < 0.1:
+            return self.terminate_reward
+        if truncate:
+            return self.truncate_penalty*(self.nt-time_index)
+        return -1*(np.linalg.norm(uVec[time_index])- np.linalg.norm(uVec[time_index-100]))

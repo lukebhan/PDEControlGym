@@ -3,9 +3,8 @@ import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.callbacks import CheckpointCallback
+
+# THIS EXAMPLE SOLVES THE HYPERBOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
 
 def noiseFunc(state):
     return state
@@ -63,8 +62,8 @@ hyperbolicParameters = {
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "reset_recirculation_param": 7.35,
-        "normalize": True,
-        "control_sample_rate": 0.01
+        "control_sample_rate": 0.01,
+        "normalize": False,
 }
 
 env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
@@ -75,19 +74,6 @@ nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
 uStorage = []
 
-# Save a checkpoint every 1000 steps
-checkpoint_callback = CheckpointCallback(
-  save_freq=100000,
-  save_path="./logs5/",
-  name_prefix="rl_model",
-  save_replay_buffer=True,
-  save_vecnormalize=True,
-)
-
-model = PPO("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
-model.set_env(env)
-model.learn(total_timesteps=3e6, callback=checkpoint_callback)
-
 obs,__ = env.reset()
 uStorage.append(obs)
 
@@ -96,8 +82,7 @@ kernel = solveKernelFunction(solveBetaFunction(spatial, 7.35))
 i = 0
 rew = 0
 while not truncate and not terminate:
-    action, _state = model.predict(obs)
-    #action = solveControl(kernel, obs)
+    action = solveControl(kernel, obs)
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
     rew += rewards 
@@ -127,7 +112,7 @@ for axis in [axes.xaxis, axes.yaxis, axes.zaxis]:
     
 meshx, mesht = np.meshgrid(spatial, temporal)
                      
-axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=10, 
+axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=1, 
                         alpha=1, color="white", shade=False, rasterized=True, antialiased=True)
 axes.view_init(10, 15)
 axes.set_xlabel("x")
