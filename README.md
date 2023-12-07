@@ -2,9 +2,6 @@
   <a href="#"><img alt="PDE ContRoL Gym" src="PDEGymLogo.png" width="100%"/></a>
 </h1>
 
-
-# PDECG: Partial-Differential-Equation Control Gym
-
 Link Website | Link Paper 
 
 ## About this repository
