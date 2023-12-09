@@ -1,4 +1,4 @@
-# PDECG: Partial-Differential-Equation Control Gym
+ <a href="#"><img alt="PDE ContRoL Gym" src="PDEGymLogo.png" width="100%"/></a>
 
 Link Website | Link Paper 
 
