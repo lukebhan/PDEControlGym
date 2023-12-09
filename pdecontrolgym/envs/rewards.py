@@ -13,19 +13,20 @@ class Reward(ABC):
 class NormReward(Reward):
     # self.norm is a number: "1", "2", or "inf"
     # self.horizon can be "temporal", "differential", "t-horizon". See details in Docs website
-    def __init__(self, nt, norm=2, horizon="temporal", reward_average_length=5, truncate_penalty=-1e4, terminate_reward=1e2):
+    def __init__(self, nt, norm=2, horizon="temporal", max_state_value=1e3, reward_average_length=5, truncate_penalty=-1e4, terminate_reward=1e2):
         self.norm = norm
         self.horizon = horizon
         self.reward_average_length = reward_average_length
         self.truncate_penalty = truncate_penalty
         self.terminate_reward = terminate_reward
         self.nt = nt
+        self.max_state_value = max_state_value
 
     # uVec is in the form
     # temporal: u(t, x)
     # differential: (u(t, x), u(t-dt, x))
     # t-horizon: (u(t-t_avg*dt, x), u(t-(t_avg-1)*dt, x), ..., u(t, x))
-    def reward(self, uVec, time_index, terminate, truncate):
+    def reward(self, uVec, time_index, terminate, truncate, _):
         norm_coeff = len(uVec[time_index])
         if terminate and np.linalg.norm(uVec[time_index])/norm_coeff < 0.1:
             return self.terminate_reward
@@ -53,10 +54,10 @@ class NormReward(Reward):
                     result /= time_index
                 return -result / norm_coeff
 
-    def simpleReward(self, uVec, time_index, terminate, truncate):
+    def simpleReward(self, uVec, time_index, terminate, truncate, action):
         norm_coeff = len(uVec[time_index])
-        if terminate and np.linalg.norm(uVec[time_index])/norm_coeff < 0.1:
-            return self.terminate_reward
+        if terminate and np.linalg.norm(uVec[time_index]) < 20:
+            return (self.terminate_reward - np.sum(abs(uVec[:, -1]))/1000 - np.linalg.norm(uVec[time_index]))
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)
-        return -1*(np.linalg.norm(uVec[time_index])- np.linalg.norm(uVec[time_index-100]))
+        return np.linalg.norm(uVec[time_index-100])-np.linalg.norm(uVec[time_index])

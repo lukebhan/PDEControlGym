@@ -42,7 +42,7 @@ class HyperbolicPDE1D(PDEEnv1D):
                 self.parameters["dx"],
                 self.parameters["sensing_noise_func"],
             ),
-            self.reward.simpleReward(self.u, self.time_index, terminate, truncate),
+            self.reward.simpleReward(self.u, self.time_index, terminate, truncate, self.u[self.time_index][-1]),
             terminate,
             truncate, 
             {},
@@ -55,13 +55,13 @@ class HyperbolicPDE1D(PDEEnv1D):
             return False
 
     def truncate(self):
-        if (
-            self.parameters["limit_pde_state_size"]
-            and np.linalg.norm(self.u[self.time_index], 2)  >= self.parameters["max_state_value"]
-        ):
-            return True
-        else:
-            return False
+        #if (
+        #    self.parameters["limit_pde_state_size"]
+        #    and np.linalg.norm(self.u[self.time_index], 2)  >= self.parameters["max_state_value"]
+        #):
+        #    return True
+        #else:
+        return False
          
 
     # Resets the system state

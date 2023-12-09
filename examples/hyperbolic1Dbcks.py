@@ -32,12 +32,12 @@ def solveControl(kernel, u):
     return res*1e-2
 
 def getInitialCondition(nx):
-    return np.ones(nx)*np.random.uniform(5, 10)
+    return np.ones(nx)*6
 
 def getBetaFunction(nx, X, gamma):
     return solveBetaFunction(np.linspace(0, X, nx), gamma)
 
-T = 5
+T = 10
 dt = 1e-4
 dx = 1e-2
 X = 1
@@ -58,11 +58,11 @@ hyperbolicParameters = {
         "reward_horizon": "temporal",
         "reward_average_length": 10,
         "truncate_penalty": -1e3, 
-        "terminate_reward": 1e3, 
+        "terminate_reward": 2e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "reset_recirculation_param": 7.35,
-        "control_sample_rate": 0.01,
+        "control_sample_rate": 0.1,
         "normalize": False,
 }
 
@@ -86,9 +86,9 @@ while not truncate and not terminate:
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
     rew += rewards 
-print(rew)
-print(len(uStorage))
-
+u = np.array(uStorage)
+print("total reward", rew)
+np.savetxt("UBCK6.txt", u)
 
 res = 1
 fig = plt.figure()

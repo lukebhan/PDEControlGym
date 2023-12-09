@@ -57,7 +57,7 @@ hyperbolicParameters = {
         "reward_horizon": "temporal",
         "reward_average_length": 10,
         "truncate_penalty": -1e3, 
-        "terminate_reward": 1e3, 
+        "terminate_reward": 2e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "reset_recirculation_param": 7.35,
@@ -73,7 +73,7 @@ nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
 uStorage = []
 
-model = PPO.load("./logs3/rl_model_600000_steps.zip")
+model = PPO.load("./logsLong2/rl_model_200000_steps.zip")
 
 obs,__ = env.reset()
 uStorage.append(obs)
@@ -88,8 +88,7 @@ while not truncate and not terminate:
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
     rew += rewards 
-print(rew)
-print(len(uStorage))
+print("total reward", rew)
 
 
 res = 1
@@ -97,6 +96,7 @@ fig = plt.figure()
 spatial = np.linspace(dx, X, int(round(X/dx)))
 temporal = np.linspace(0, T, len(uStorage))
 u = np.array(uStorage)
+# np.savetxt("uPPO5.txt", u)
 
 subfigs = fig.subfigures(nrows=1, ncols=1, hspace=0)
 
@@ -122,4 +122,9 @@ axes.set_ylabel("Time")
 axes.set_zlabel(r"$u(x, t)$", rotation=90)
 axes.zaxis.set_rotate_label(False)
 axes.set_xticks([0, 0.5, 1])
+test = np.ones(len(temporal))
+vals = (u.transpose())[-1] 
+print(vals.shape)
+print(temporal[1:].shape)
+axes.plot(test[1:], temporal[1:], vals[1:], color="red", lw=1.3, antialiased=False, rasterized=False)
 plt.show()

@@ -134,7 +134,7 @@ class PDEEnv1D(gym.Env):
 
         # Setup reward function
         self.reward = NormReward(self.parameters["nt"],
-            self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"])
+            self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["max_state_value"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"])
         
 
     @abstractmethod

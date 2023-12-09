@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import CheckpointCallback
+import argparse
+parser = argparse.ArgumentParser(description="filename for saving")
+parser.add_argument('integers', metavar='N', type=int)
 
 def noiseFunc(state):
     return state
@@ -33,7 +36,7 @@ def solveControl(kernel, u):
     return res*1e-2
 
 def getInitialCondition(nx):
-    return np.ones(nx)*np.random.uniform(5, 10)
+    return np.ones(nx)*np.random.uniform(5, 6)
 
 def getBetaFunction(nx, X, gamma):
     return solveBetaFunction(np.linspace(0, X, nx), gamma)
@@ -59,12 +62,12 @@ hyperbolicParameters = {
         "reward_horizon": "temporal",
         "reward_average_length": 10,
         "truncate_penalty": -1e3, 
-        "terminate_reward": 1e3, 
+        "terminate_reward": 2e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "reset_recirculation_param": 7.35,
         "normalize": True,
-        "control_sample_rate": 0.01
+        "control_sample_rate": 0.1
 }
 
 env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
@@ -74,11 +77,11 @@ truncate = False
 nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
 uStorage = []
-
+strVal = parser.parse_args().integers
 # Save a checkpoint every 1000 steps
 checkpoint_callback = CheckpointCallback(
   save_freq=100000,
-  save_path="./logs5/",
+  save_path="./logsLong" + str(strVal) + "/",
   name_prefix="rl_model",
   save_replay_buffer=True,
   save_vecnormalize=True,
@@ -86,7 +89,7 @@ checkpoint_callback = CheckpointCallback(
 
 model = PPO("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
 model.set_env(env)
-model.learn(total_timesteps=3e6, callback=checkpoint_callback)
+model.learn(total_timesteps=1e6, callback=checkpoint_callback)
 
 obs,__ = env.reset()
 uStorage.append(obs)
