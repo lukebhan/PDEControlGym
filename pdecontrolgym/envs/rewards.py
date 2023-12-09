@@ -54,9 +54,11 @@ class NormReward(Reward):
                     result /= time_index
                 return -result / norm_coeff
 
-    def simpleReward(self, uVec, time_index, terminate, truncate, action):
-        norm_coeff = len(uVec[time_index])
-        if terminate and np.linalg.norm(uVec[time_index]) < 20:
+    def shapedReward(self, uVec, time_index, terminate, truncate, action):
+        # THIS REWARD WAS SPECIFICALLY SHAPED FOR THIS TASK
+        # SEE DOCUMENTATION FOR DETAILS
+        # If L2 norm when episode ends is <20, begin shaping control costs
+        if terminate and np.linalg.norm(uVec[time_index]) < 1:
             return (self.terminate_reward - np.sum(abs(uVec[:, -1]))/1000 - np.linalg.norm(uVec[time_index]))
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)
