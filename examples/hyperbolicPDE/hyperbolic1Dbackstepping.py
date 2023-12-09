@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 # THIS EXAMPLE SOLVES THE HYPERBOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
 
+# NO NOISE
 def noiseFunc(state):
     return state
 
@@ -16,6 +17,7 @@ def solveBetaFunction(x, gamma):
         beta[idx] = 5*math.cos(gamma*math.acos(val))
     return beta
 
+# Kernel function solver for backstepping
 def solveKernelFunction(theta):
     kappa = np.zeros(len(theta))
     for i in range(0, len(theta)):
@@ -25,19 +27,24 @@ def solveKernelFunction(theta):
         kappa[i] = kernelIntegral  - theta[i]
     return np.flip(kappa)
 
+# Control convolution solver
 def solveControl(kernel, u):
     res = 0
     for i in range(len(u)):
         res += kernel[i]*u[i]
     return res*1e-2
 
+# Set initial condition function here
 def getInitialCondition(nx):
-    return np.ones(nx)*6
+    return np.ones(nx)*np.random.uniform(1, 10)
 
-def getBetaFunction(nx, X, gamma):
-    return solveBetaFunction(np.linspace(0, X, nx), gamma)
+# Returns beta functions passed into PDE environment. Currently gamma is always
+# set to 7.35, but this can be modified for further problesms
+def getBetaFunction(nx, X):
+    return solveBetaFunction(np.linspace(0, X, nx), 7.35)
 
-T = 10
+# Timestep and spatial step for PDE Solver
+T = 5
 dt = 1e-4
 dx = 1e-2
 X = 1
@@ -53,27 +60,31 @@ hyperbolicParameters = {
         "sensing_noise_func": lambda state: state,
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
-        "max_control_value": 10,
+        "max_control_value": 20,
         "reward_norm": 2, 
         "reward_horizon": "temporal",
         "reward_average_length": 10,
         "truncate_penalty": -1e3, 
-        "terminate_reward": 2e2, 
+        "terminate_reward": 3e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
-        "reset_recirculation_param": 7.35,
         "control_sample_rate": 0.1,
         "normalize": False,
 }
 
+# Make the hyperbolic PDE gym
 env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
 
+# Run a single environment test case for gamma=7.35
 terminate = False
 truncate = False
 nt = int(round(X/dx))
 x = np.linspace(0, 1, nt)
+
+# Holds the resulting states
 uStorage = []
 
+# Reset Environment
 obs,__ = env.reset()
 uStorage.append(obs)
 
@@ -82,14 +93,15 @@ kernel = solveKernelFunction(solveBetaFunction(spatial, 7.35))
 i = 0
 rew = 0
 while not truncate and not terminate:
+    # use backstepping controller
     action = solveControl(kernel, obs)
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
     rew += rewards 
 u = np.array(uStorage)
-print("total reward", rew)
-np.savetxt("UBCK6.txt", u)
+print("Total Reward", rew)
 
+# Plot the example
 res = 1
 fig = plt.figure()
 spatial = np.linspace(dx, X, int(round(X/dx)))

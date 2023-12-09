@@ -58,7 +58,7 @@ class NormReward(Reward):
         # THIS REWARD WAS SPECIFICALLY SHAPED FOR THIS TASK
         # SEE DOCUMENTATION FOR DETAILS
         # If L2 norm when episode ends is <20, begin shaping control costs
-        if terminate and np.linalg.norm(uVec[time_index]) < 1:
+        if terminate and np.linalg.norm(uVec[time_index]) < 20:
             return (self.terminate_reward - np.sum(abs(uVec[:, -1]))/1000 - np.linalg.norm(uVec[time_index]))
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)

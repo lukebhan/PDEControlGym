@@ -3,8 +3,10 @@ import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from stable_baselines3 import PPO
 
+# THIS EXAMPLE SOLVES THE PARABOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
+
+# NO NOISE
 def noiseFunc(state):
     return state
 
@@ -12,36 +14,45 @@ def noiseFunc(state):
 def solveBetaFunction(x, gamma):
     beta = np.zeros(len(x), dtype=np.float32)
     for idx, val in enumerate(x):
-        beta[idx] = 5*math.cos(gamma*math.acos(val))
+        beta[idx] = 50*math.cos(gamma*math.acos(val))
     return beta
 
-def solveKernelFunction(theta):
-    kappa = np.zeros(len(theta))
-    for i in range(0, len(theta)):
-        kernelIntegral = 0
-        for j in range(0, i):
-            kernelIntegral += (kappa[i-j]*theta[j])*dx
-        kappa[i] = kernelIntegral  - theta[i]
-    return np.flip(kappa)
+# Kernel function solver for backstepping
+def solveKernelFunction(beta):
+    k = np.zeros((len(beta), len(beta)))
+    # First we calculate a at each timestep
+    a = beta
 
+    # FD LOOP
+    k[1][1] = -(a[1] + a[0]) * dx / 4
+    for i in range(1, len(beta)-1):
+        k[i+1][0] = 0
+        k[i+1][i+1] = k[i][i]-dx/4.0*(a[i-1] + a[i])
+        k[i+1][i] = k[i][i] - dx/2 * a[i]
+        for j in range(1, i):
+                k[i+1][j] = -k[i-1][j] + k[i][j+1] + k[i][j-1] + a[j]*(dx**2)*(k[i][j+1]+k[i][j-1])/2
+    return k
+
+# Control convolution solver
 def solveControl(kernel, u):
-    res = 0
-    for i in range(len(u)):
-        res += kernel[i]*u[i]
-    return res*1e-2
+    return sum(kernel[-1][0:len(u)-1]*u[0:len(u)-1])*dx
 
+# Set initial condition function here
 def getInitialCondition(nx):
-    return np.ones(nx)*5
+    return np.ones(nx+1)*np.random.uniform(1, 10)
 
-def getBetaFunction(nx, X, gamma):
-    return solveBetaFunction(np.linspace(0, X, nx), gamma)
+# Returns beta functions passed into PDE environment. Currently gamma is always
+# set to 8, but this can be modified for further problems
+def getBetaFunction(nx, X):
+    return solveBetaFunction(np.linspace(0, X, nx+1), 8)
 
-T = 5
-dt = 1e-4
-dx = 1e-2
+# Timestep and spatial step for PDE Solver
+T = 1
+dt = 1e-5
+dx = 5e-3
 X = 1
 
-hyperbolicParameters = {
+parabolicParameters = {
         "T": T, 
         "dt": dt, 
         "X": X,
@@ -52,51 +63,53 @@ hyperbolicParameters = {
         "sensing_noise_func": lambda state: state,
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
-        "max_control_value": 10,
+        "max_control_value": 20,
         "reward_norm": 2, 
         "reward_horizon": "temporal",
         "reward_average_length": 10,
         "truncate_penalty": -1e3, 
-        "terminate_reward": 2e2, 
+        "terminate_reward": 3e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
-        "reset_recirculation_param": 7.35,
-        "normalize": True,
-        "control_sample_rate": 0.01
+        "control_sample_rate": 0.001,
+        "normalize": False,
 }
 
-env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
+# Make the hyperbolic PDE gym
+env = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParameters)
 
+# Run a single environment test case for gamma=8
 terminate = False
 truncate = False
 nt = int(round(X/dx))
-x = np.linspace(0, 1, nt)
+x = np.linspace(0, 1, nt+1)
+
+# Holds the resulting states
 uStorage = []
 
-model = PPO.load("./logsLong2/rl_model_200000_steps.zip")
-
+# Reset Environment
 obs,__ = env.reset()
 uStorage.append(obs)
 
-spatial = np.linspace(dx, X, int(round(X/dx)))
-kernel = solveKernelFunction(solveBetaFunction(spatial, 7.35))
+spatial = np.linspace(dx, X, int(round(X/dx))+1)
+kernel = solveKernelFunction(solveBetaFunction(spatial, 8))
 i = 0
 rew = 0
 while not truncate and not terminate:
-    action, _state = model.predict(obs)
-    #action = solveControl(kernel, obs)
+    # use backstepping controller
+    action = solveControl(kernel, obs)
     obs, rewards, terminate, truncate, info = env.step(action)
     uStorage.append(obs)
     rew += rewards 
-print("total reward", rew)
+u = np.array(uStorage)
+print("Total Reward", rew)
 
-
+# Plot the example
 res = 1
 fig = plt.figure()
-spatial = np.linspace(dx, X, int(round(X/dx)))
+spatial = np.linspace(0, X, int(round(X/dx))+1)
 temporal = np.linspace(0, T, len(uStorage))
 u = np.array(uStorage)
-# np.savetxt("uPPO5.txt", u)
 
 subfigs = fig.subfigures(nrows=1, ncols=1, hspace=0)
 
@@ -114,7 +127,7 @@ for axis in [axes.xaxis, axes.yaxis, axes.zaxis]:
     
 meshx, mesht = np.meshgrid(spatial, temporal)
                      
-axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=50, cstride=1, 
+axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=500, cstride=5, 
                         alpha=1, color="white", shade=False, rasterized=True, antialiased=True)
 axes.view_init(10, 15)
 axes.set_xlabel("x")
@@ -122,9 +135,4 @@ axes.set_ylabel("Time")
 axes.set_zlabel(r"$u(x, t)$", rotation=90)
 axes.zaxis.set_rotate_label(False)
 axes.set_xticks([0, 0.5, 1])
-test = np.ones(len(temporal))
-vals = (u.transpose())[-1] 
-print(vals.shape)
-print(temporal[1:].shape)
-axes.plot(test[1:], temporal[1:], vals[1:], color="red", lw=1.3, antialiased=False, rasterized=False)
 plt.show()

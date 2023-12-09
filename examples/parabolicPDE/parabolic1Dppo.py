@@ -4,8 +4,13 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
+from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.callbacks import CheckpointCallback
 
-# THIS EXAMPLE SOLVES THE PARABOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
+# THIS EXAMPLE TRAINS A PPO AGENT FOR THE PARABOLIC PDE PROBLEM. 
+# The model is saved every 10k timesteps to the directory ./logsPPO/
+# The tensorboard results are saved to the directory
+# ./tb/
 
 # NO NOISE
 def noiseFunc(state):
@@ -43,11 +48,13 @@ def getInitialCondition(nx):
     return np.ones(nx+1)*np.random.uniform(1, 10)
 
 # Returns beta functions passed into PDE environment. Currently gamma is always
-# set to 8, but this can be modified for further problems
+# set to 8, but this can be modified for further problesms
 def getBetaFunction(nx, X):
     return solveBetaFunction(np.linspace(0, X, nx+1), 8)
 
 # Timestep and spatial step for PDE Solver
+# Needs to be extremely fine resolution for success
+# due to first-order nature of the scheme
 T = 1
 dt = 1e-5
 dx = 5e-3
@@ -79,62 +86,15 @@ parabolicParameters = {
 # Make the hyperbolic PDE gym
 env = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParameters)
 
-# Run a single environment test case for gamma=8
-terminate = False
-truncate = False
-nt = int(round(X/dx))
-x = np.linspace(0, 1, nt+1)
+# Save a checkpoint every 1000 steps
+checkpoint_callback = CheckpointCallback(
+  save_freq=1000,
+  save_path="./logsPPO",
+  name_prefix="rl_model",
+  save_replay_buffer=True,
+  save_vecnormalize=True,
+)
 
-# Holds the resulting states
-uStorage = []
-
-# Reset Environment
-obs,__ = env.reset()
-uStorage.append(obs)
-
-spatial = np.linspace(dx, X, int(round(X/dx))+1)
-kernel = solveKernelFunction(solveBetaFunction(spatial, 8))
-i = 0
-rew = 0
-model = PPO.load("./logsPPO4/rl_model_1000000_steps")
-while not truncate and not terminate:
-    # use backstepping controller
-    action, _ = model.predict(obs)
-    obs, rewards, terminate, truncate, info = env.step(action)
-    uStorage.append(obs)
-    rew += rewards 
-u = np.array(uStorage)
-print("Total Reward", rew)
-
-# Plot the example
-res = 1
-fig = plt.figure()
-spatial = np.linspace(0, X, int(round(X/dx))+1)
-temporal = np.linspace(0, T, len(uStorage))
-u = np.array(uStorage)
-
-subfigs = fig.subfigures(nrows=1, ncols=1, hspace=0)
-
-subfig = subfigs
-subfig.subplots_adjust(left=0.07, bottom=0, right=1, top=1.1)
-axes = subfig.subplots(nrows=1, ncols=1, subplot_kw={"projection": "3d", "computed_zorder": False})
-
-for axis in [axes.xaxis, axes.yaxis, axes.zaxis]:
-    axis._axinfo['axisline']['linewidth'] = 1
-    axis._axinfo['axisline']['color'] = "b"
-    axis._axinfo['grid']['linewidth'] = 0.2
-    axis._axinfo['grid']['linestyle'] = "--"
-    axis._axinfo['grid']['color'] = "#d1d1d1"
-    axis.set_pane_color((1,1,1))
-    
-meshx, mesht = np.meshgrid(spatial, temporal)
-                     
-axes.plot_surface(meshx, mesht, u, edgecolor="black",lw=0.2, rstride=500, cstride=5, 
-                        alpha=1, color="white", shade=False, rasterized=True, antialiased=True)
-axes.view_init(10, 15)
-axes.set_xlabel("x")
-axes.set_ylabel("Time")
-axes.set_zlabel(r"$u(x, t)$", rotation=90)
-axes.zaxis.set_rotate_label(False)
-axes.set_xticks([0, 0.5, 1])
-plt.show()
+model = PPO("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
+# Train for 1 Million timesteps
+model.learn(total_timesteps=1e5, callback=checkpoint_callback)

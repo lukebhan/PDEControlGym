@@ -69,6 +69,24 @@ def load_csv(filename):
             line = f.readline()
     return timesteps, rewards
 
+def load_csv_all(filename):
+    walltime = []
+    timesteps = []
+    rewards = []
+    with open(filename, "r") as f:
+        # remove header
+        line = f.readline()
+        line = f.readline()
+        while line:
+            s = line.split(",")
+            walltime.append(float(s[0]))
+            timesteps.append(int(s[1]))
+            rewards.append(float(s[2]))
+            line = f.readline()
+    return walltime, timesteps, rewards
+
+
+
 linestyle_tuple = [
              ('loosely dotted',        (0, (1, 10))),
                   ('dotted',                (0, (1, 1))),
