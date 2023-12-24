@@ -37,7 +37,7 @@ Documentation for all the environments as well as tutorials are available <a hre
 
 ## Examples
 Jupyter notebooks are made in the examples folder (Hyperbolic and Parabolic subfolders) that detail all the examples for both Hyperbolic and Parabolic PDEs. Additionally, full details on numerical implementation and solvers are available in the 
-<a href=https://pdecontrolgym.readthedocs.io/en/latest/>documentation</a>. These include tutorials on how to train your own RL controller, implemented backstepping controllers as well as plotting comparisons to analyze all of your work. For managing the training of your RL controller, we recommend you use <a href=https://github.com/tensorflow/tensorboard>tensorboard</a> as outlined in the notebooks. 
+<a href=https://pdecontrolgym.readthedocs.io/en/latest/>documentation</a>. These include tutorials on how to train your own RL controller, implemented backstepping controllers as well as plotting comparisons to analyze all of your work. For managing the training of your RL controller, we recommend you use <a href=https://github.com/tensorflow/tensorboard>tensorboard</a> as outlined in the notebooks. For pretrained models, please see the downloaded files on <a href=https://huggingface.co/lukebhan/PDEControlGymModels>Hugging Face</a>.  
 
 ## Contributions
 Contributions to the gym are both welcome and encouraged. Please see the <a href=https://github.com/lukebhan/PDEControlGym/blob/main/CONTRIBUTING.md>contribution guidelines</a>. Any questions are welcome to email the author Luke at lbhan@ucsd.edu
