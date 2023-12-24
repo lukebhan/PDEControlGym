@@ -4,8 +4,8 @@ Contributions from the open-source community are certainly welcomed and encourag
 ### Contributing Guidelines
 Please follow the series of pipelines to submit your contributions below. Remember, contributions are not just in the form of code, but also in forms of issues where items like Bug Reports are extremely valuable. For all types of contributions, please follow the set series of steps to ensure that your contribution makes production.
 
-- First, check that your test/feature/bugfix already is available and discussed in the issues tab as a valuable addition to the codebase. 
-- - If your contribution is not yet listed on the issues tab, please create a new issue with the appropriate tag and @lukebhan on the issue as well. In many cases, a quick response will be given and a resulting discussion may then occur about the fix, its implementation, and potentiall testing required. 
+- First, check that your test/feature/bugfix already is available and discussed in the issues tab as a valuable addition to the codebase.
+  - If your contribution is not yet listed on the issues tab, please create a new issue with the appropriate tag and @lukebhan on the issue as well. In many cases, a quick response will be given and a resulting discussion may then occur about the fix, its implementation, and potentiall testing required. 
 - Next, please create a pull request following the **Style Guidelines** listed below. It is required that your pull request is reviewed by at least one Admin before merging. 
 - Third, please then squash your pull request, double check the style guidelines and you are ready to merge your contribution! Thank you for your efforts. 
 
