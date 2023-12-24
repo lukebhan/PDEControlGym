@@ -40,7 +40,7 @@ Jupyter notebooks are made in the examples folder (Hyperbolic and Parabolic subf
 <a href=https://pdecontrolgym.readthedocs.io/en/latest/>documentation</a>. These include tutorials on how to train your own RL controller, implemented backstepping controllers as well as plotting comparisons to analyze all of your work. For managing the training of your RL controller, we recommend you use <a href=https://github.com/tensorflow/tensorboard>tensorboard</a> as outlined in the notebooks. 
 
 ## Contributions
-Contributions to the gym are both welcome and encouraged. Please see the <a href=https://github.com/lukebhan/PDEControlGym/CONTRIBUTING.md>contribution guidelines</a>. Any questions are welcome to email the author Luke at lbhan@ucsd.edu
+Contributions to the gym are both welcome and encouraged. Please see the <a href=https://github.com/lukebhan/PDEControlGym/blob/main/CONTRIBUTING.md>contribution guidelines</a>. Any questions are welcome to email the author Luke at lbhan@ucsd.edu
 
 ## Citation
 ```
