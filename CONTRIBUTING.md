@@ -12,3 +12,6 @@ Please follow the series of pipelines to submit your contributions below. Rememb
 #### Style Guidelines
 For style guidelines, we use <a href=https://github.com/psf/black>black</a> as our formatter. Please ensure every file (new and old) is formatted under the default Black code style. (This is technically a PEP8 compliant formatter - so if you prefer to use just PEP8, explicily say so in your pull request and we can discuss)
 
+#### Documentation
+Contributions to the documentation are always welcome. The documentation is built on Sphinx using autobuild. Please ensure that your contribution to the documentation is not insignificant (ie a small one line typo is not something worth spending time on, but explaining all the parameters of a new feature certainly is).
+
