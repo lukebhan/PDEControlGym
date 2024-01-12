@@ -14,6 +14,8 @@ Paper: https://arxiv.org/abs/2302.14265
 
 Pre-Trained Models: https://huggingface.co/lukebhan/PDEControlGymModels
 
+We strongly recommend first installing the gym following the instructions in the `documentation here <../guide/install.html>`_. Then, we recommmend exploring the Jupyter-notebooks in the example tutorial found `here <../guide/tutorials.html>`_.
+
 Main Features
 --------------
 
@@ -30,7 +32,7 @@ Main Features
 
   guide/install
   guide/quickstart
-  guide/examples
+  guide/tutorials
 
 .. toctree::
   :maxdepth: 2
@@ -39,6 +41,12 @@ Main Features
   environments/hyperbolic-1d
   environments/parabolic-1d
   environments/navier-stokes-2d
+
+.. toctree::
+  :maxdepth: 2 
+  :caption: Utilities
+
+  utils/rewards
 
 Contributing
 ------------
@@ -58,10 +66,3 @@ To cite this project in publications, please use the following reference:
 		archivePrefix={arXiv},
 		primaryClass={eess.SY}
 	}
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
