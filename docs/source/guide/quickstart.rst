@@ -1,10 +1,10 @@
 .. _quickstart:
 
-Getting Started
+Quick Start
 ===============
 
 A quick example to use the gym is as follows. This import the hyperbolic PDE gym, sets some basic parameters
-and runs an open-loop controller. 
+and runs an open-loop controller. Detailed tutorials are avilable for the gym `here <../guide/tutorials.html>`_.
 
 .. code-block:: python
 
