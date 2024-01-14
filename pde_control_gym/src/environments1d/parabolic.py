@@ -1,10 +1,8 @@
 import numpy as np
-
-from .base_env_1d import PDEEnv1D
-
 import gymnasium as gym
 from gymnasium import spaces
 
+from pde_control_gym.src.environments1d.base_env_1d import PDEEnv1D
 
 class ParabolicPDE1D(PDEEnv1D):
     def __init__(self, parabolicParams):

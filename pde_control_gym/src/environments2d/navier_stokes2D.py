@@ -1,13 +1,8 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-import numpy as np
-from .util import central_difference_x, central_difference_y, laplace
-from .base_env_2d import PDEEnv2D
 
-import gymnasium as gym
-from gymnasium import spaces
-
+from pde_control_gym.src.environments2d.base_env_2d import PDEEnv2D
 
 class Dirchilet:    # assume known
     def __init__(self, v):
@@ -24,6 +19,21 @@ class Neumann:      # du/dx=0
     def __init__(self):
         pass
 
+
+def central_difference(f, coordinate, step=0.01):
+    diff = np.zeros_like(f)
+    if coordinate == "x":
+        diff[1:-1, 1:-1] = (f[1:-1, 2:] - f[1:-1, 0:-2]) / (2 * step)
+    elif coordinate == "y":
+        diff[1:-1, 1:-1] = (f[2:, 1:-1] - f[0:-2, 1:-1]) / (2 * step)
+    return diff
+
+def laplace(f, dx=0.01, dy=0.01):
+    diff = np.zeros_like(f)
+    diff[1:-1, 1:-1] = (
+        f[1:-1, 0:-2] + f[0:-2, 1:-1] - 4 * f[1:-1, 1:-1] + f[1:-1, 2:] + f[2:, 1:-1]
+    ) / (dx * dy)
+    return diff
 
 class NavierStokes2D(PDEEnv2D):
     def __init__(self, NSParams):
@@ -64,8 +74,8 @@ class NavierStokes2D(PDEEnv2D):
 
     def solve_pressure(self, u, v, p_prev):
         dx, dy, dt = self.parameters["dx"], self.parameters["dy"], self.parameters["dt"]
-        dudx = central_difference_x(u, dx)
-        dvdy = central_difference_y(v, dy)
+        dudx = central_difference(u,"x", dx)
+        dvdy = central_difference(v,"y", dy)
         rhs = self.DENSITY / dt * (dudx + dvdy)
         for _ in range(self.N_PRESSURE_POISSON_ITERATIONS):
             p_next = p_prev.copy()

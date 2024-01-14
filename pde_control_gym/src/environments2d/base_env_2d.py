@@ -3,7 +3,6 @@ from gymnasium import spaces
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import abstractmethod
-from .rewards import NormReward
 
 class PDEEnv2D(gym.Env):
     # The entire enviornment and PDE problem gets specified here, so after initialization of the environment each step size is extremely quick

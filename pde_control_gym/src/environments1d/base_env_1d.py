@@ -3,7 +3,6 @@ from gymnasium import spaces
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import abstractmethod
-from .rewards import NormReward
 
 class PDEEnv1D(gym.Env):
     # The entire enviornment and PDE problem gets specified here, so after initialization of the environment each step size is extremely quick
@@ -53,8 +52,9 @@ class PDEEnv1D(gym.Env):
         self.time_index = 0
 
         # Setup reward function. Use custom reward with shaping
-        self.reward = NormReward(self.parameters["nt"],
-            self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["max_state_value"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"])
+        #self.reward = NormReward(self.parameters["nt"],
+        #    self.parameters["reward_norm"], self.parameters["reward_horizon"], self.parameters["max_state_value"], self.parameters["reward_average_length"], self.parameters["truncate_penalty"], self.parameters["terminate_reward"])
+        self.reward = self.parameters["reward_class"](self.parameters["reward_parameters"])
         
 
     @abstractmethod
