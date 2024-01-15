@@ -1,8 +1,9 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+
+import pde_control_gym
 
 # THIS EXAMPLE SOLVES THE HYPERBOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
 

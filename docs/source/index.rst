@@ -43,10 +43,18 @@ Main Features
   environments/navier-stokes-2d
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Custom Environments
+
+   custom_environments/1dbaseenvironment
+   custom_environments/2dbaseenvironment
+
+.. toctree::
   :maxdepth: 2 
   :caption: Utilities
 
-  utils/rewards
+  utils/preimplementedrewards
+  utils/customrewards
 
 Contributing
 ------------

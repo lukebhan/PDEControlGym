@@ -1,4 +1,4 @@
 .. _hyperbolic:
 
-Hyperbolic 1-D PDE
+Hyperbolic 1D PDE
 ==================
