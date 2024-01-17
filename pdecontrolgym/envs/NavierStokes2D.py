@@ -124,8 +124,11 @@ class NavierStokes2D(PDEEnv2D):
     def reset(self, seed=None, options=None):
         self.U = np.zeros((self.parameters["nt"], self.parameters["nx"], self.parameters["ny"],  2))
         self.time_index = 0
-        self.u = np.zeros_like(self.X) 
-        self.v = np.zeros_like(self.X) 
-        self.p =np.zeros_like(self.X) 
+        np.random.seed(seed)
+        self.u = np.random.uniform(-5, 5) * np.ones_like(self.X) 
+        self.v = np.random.uniform(-5, 5) * np.ones_like(self.X) 
+        self.p = np.random.uniform(-5, 5) * np.ones_like(self.X)
+        self.U[0,:,:,0] = self.u
+        self.U[0,:,:,1] = self.v
         obs = self.U[self.time_index]
         return obs, {}
