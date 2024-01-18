@@ -40,7 +40,7 @@ Main Features
 
   environments/hyperbolic-1d
   environments/parabolic-1d
-  environments/navier-stokes-2d
+  environments/navierstokes2d
 
 .. toctree::
    :maxdepth: 2
