@@ -5,7 +5,7 @@
 Pre-implemented Rewards
 =======================
 
-This gym comes with a series of pre-implemented reward functions that are detailed in the documentation here. See `this page <../utils/customrewards.html>`_ for implementing your own custom rewards either in the gym or using an outside function as in `the tutorial doc <../../guide/tutorials.html>`_.
+This gym comes with a series of pre-implemented reward functions that are detailed in the documentation here. See `this page <../utils/customrewards.html>`_ for implementing your own custom rewards either in the gym or using an outside function as in `the tutorial doc <../guide/tutorials.html>`_.
 
 Normalized Reward
 -----------------
