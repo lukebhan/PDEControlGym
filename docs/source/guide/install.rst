@@ -15,6 +15,7 @@ PDE ContRoL Gym requires a few simple prerequisites.
 *  `gym <https://github.com/Farama-Foundation/Gymnasium>`_ 0.28.1+
 * `numpy <https://numpy.org/>`_ 1.26.2+
 
+
 **Recommended** \(needed for examples and tutorials\):
 
 * `pytorch <https://pytorch.org/>`_ 1.12.1+
@@ -25,11 +26,13 @@ Installing the PDE ContRoL Gym
 ------------------------------
 Once the prerequisties are installed, one can now install the gym. 
 
-(1) Begin by cloning the repository using classic git:
+#. Begin by cloning the repository using classic git:
   ``git clone https://github.com/lukebhan/PDEControlGym.git``
-(2) Once cloned, navigate to the directory:
+
+#. Once cloned, navigate to the directory:
   ``cd PDEControlGym``
-(3) Once in the directory, double check that the prerequistes are installed by checking the ``requirements.txt`` file. Finally, install the environment:
+
+#. Once in the directory, double check that the prerequistes are installed by checking the ``requirements.txt`` file. Finally, install the environment:
   ``pip install -e .``
 
 And Viola! You have just successfully installed the PDE ContRoL Gym. Any issues you may have feel free to open a `github issues <https://github.com/lukebhan/PDEControlGym/issues>`_ with questions and reproducible steps.

@@ -3,7 +3,7 @@
 .. automodule:: pde_control_gym.src.environments1d
 
 Transport 1D PDE
-==================
+================
 
 This documentation is for the 1D Transport PDE Environment defined by the boundary control problem
 
@@ -32,7 +32,7 @@ This problem is the simplest possible Hyperbolic PDE benchmark and thus is a goo
 
 
 Numerical Implementation
------------------------
+------------------------
 
 We derive the numerical implementation scheme for those looking for inner details of the environment. We use a first-order finite-difference scheme to approximate the PDE leading to super fast implementation speeds - although with sacrifice on spatial and temporal timestep parameterization.
 

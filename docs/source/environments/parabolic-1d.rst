@@ -32,7 +32,7 @@ This problem is the simplest possible Parabolic PDE benchmark and thus is a good
    :exclude-members: truncate, terminate
 
 Numerical Implementation
------------------------
+------------------------
 
 We derive the numerical implementation scheme for those looking for inner details of the environment. We use a first-order finite-difference scheme to approximate the PDE leading to super fast implementation speeds - although with sacrifice on spatial and temporal timestep parameterization.
 

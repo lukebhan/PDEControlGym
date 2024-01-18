@@ -1,4 +1,4 @@
-.. _rewards:
+.. _preimplementedrewards:
 
 .. automodule:: pde_control_gym.src.rewards
 
