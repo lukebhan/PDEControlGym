@@ -32,7 +32,6 @@ def apply_boundary(a1, a2):
     a2[[-1,0],:] = 0.
     return a1, a2
 
-
 # Timestep and spatial step for PDE Solver
 T = 0.2
 dt = 1e-3
@@ -79,7 +78,8 @@ rewards = []
 times = []
 for experiment_i in range(1):
     np.random.seed(experiment_i)
-    env.reset()
+    env.reset(seed=400)
+    print(env.U[0,0,0])
     s = time.time()
     for t in tqdm(range(T)):
         obs, reward, done, _ , _ = env.step(np.random.uniform(2,4))
@@ -117,7 +117,8 @@ for experiment_i in range(1):
             dl1dx2 = central_difference_y(Lam1[t], dy)
             actions.append(u_ref[t] - 0.1/0.1 * sum(dl1dx2[-2, :])*5*dx)
         U, V, desired_U, desired_V = [], [], [], []
-        env.reset()
+        env.reset(seed=400)
+        print(env.U[0,0,0])
         total_reward = 0.
         for t in tqdm(range(T)):
             obs, reward, done, _ , _ = env.step(actions[t])
@@ -127,4 +128,6 @@ for experiment_i in range(1):
             # desired_V.append(env.v_target[int(env.t*1000)-1])
             total_reward += reward
         print(reward)
+        plt.plot(actions)
+        plt.show()
         #np.savez('result/NS_optmization.npz', U=np.array(U), V=np.array(V), desired_U=np.array(desired_U), desired_V=np.array(desired_V))
