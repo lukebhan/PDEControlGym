@@ -1,14 +1,12 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from stable_baselines3 import SAC
+from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import CheckpointCallback
-import argparse
-parser = argparse.ArgumentParser(description="filename for saving")
-parser.add_argument('integers', metavar='N', type=int)
+import pde_control_gym
+from pde_control_gym.src import TunedReward1D
 
 # THIS EXAMPLE TRAINS A PPO AGENT FOR THE PARABOLIC PDE PROBLEM. 
 # The model is saved every 10k timesteps to the directory ./logsPPO/
@@ -52,8 +50,8 @@ def getInitialCondition(nx):
 
 # Returns beta functions passed into PDE environment. Currently gamma is always
 # set to 8, but this can be modified for further problesms
-def getBetaFunction(nx, X):
-    return solveBetaFunction(np.linspace(0, X, nx+1), 8)
+def getBetaFunction(nx):
+    return solveBetaFunction(np.linspace(0, 1, nx+1), 8)
 
 # Timestep and spatial step for PDE Solver
 # Needs to be extremely fine resolution for success
@@ -68,6 +66,8 @@ parabolicParameters = {
         "dt": dt, 
         "X": X,
         "dx": dx, 
+        "reward_class": TunedReward1D(int(round(T/dt)), -1e3, 3e2),
+        "normalize": True,
         "sensing_loc": "full", 
         "control_type": "Dirchilet", 
         "sensing_type": None,
@@ -75,29 +75,23 @@ parabolicParameters = {
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
         "max_control_value": 20,
-        "reward_norm": 2, 
-        "reward_horizon": "temporal",
-        "reward_average_length": 10,
-        "truncate_penalty": -1e3, 
-        "terminate_reward": 3e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "control_sample_rate": 0.001,
-        "normalize": True,
 }
 
 # Make the hyperbolic PDE gym
-env = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParameters)
+env = gym.make("PDEControlGym-ReactionDiffusionPDE1D", **parabolicParameters)
 
 # Save a checkpoint every 1000 steps
 checkpoint_callback = CheckpointCallback(
-  save_freq=10000,
-  save_path="./logsSAC" + str(parser.parse_args().integers) + "/",
+  save_freq=1000,
+  save_path="./logsPPO",
   name_prefix="rl_model",
   save_replay_buffer=True,
   save_vecnormalize=True,
 )
 
-model = SAC("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
+model = PPO("MlpPolicy",env, verbose=1, tensorboard_log="./tb/")
 # Train for 1 Million timesteps
-model.learn(total_timesteps=1e6, callback=checkpoint_callback)
+model.learn(total_timesteps=1e5, callback=checkpoint_callback)

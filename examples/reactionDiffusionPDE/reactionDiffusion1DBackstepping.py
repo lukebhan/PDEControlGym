@@ -1,8 +1,9 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from pde_control_gym.src import TunedReward1D
+import pde_control_gym
 
 # THIS EXAMPLE SOLVES THE PARABOLIC PDE PROBLEM USING A BACKSTEPPING CONTROLLER
 
@@ -43,8 +44,8 @@ def getInitialCondition(nx):
 
 # Returns beta functions passed into PDE environment. Currently gamma is always
 # set to 8, but this can be modified for further problems
-def getBetaFunction(nx, X):
-    return solveBetaFunction(np.linspace(0, X, nx+1), 8)
+def getBetaFunction(nx):
+    return solveBetaFunction(np.linspace(0, 1, nx+1), 8)
 
 # Timestep and spatial step for PDE Solver
 T = 1
@@ -57,6 +58,8 @@ parabolicParameters = {
         "dt": dt, 
         "X": X,
         "dx": dx, 
+        "reward_class": TunedReward1D(int(round(T/dt)), -1e3, 3e2),
+        "normalize": False,
         "sensing_loc": "full", 
         "control_type": "Dirchilet", 
         "sensing_type": None,
@@ -64,19 +67,13 @@ parabolicParameters = {
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
         "max_control_value": 20,
-        "reward_norm": 2, 
-        "reward_horizon": "temporal",
-        "reward_average_length": 10,
-        "truncate_penalty": -1e3, 
-        "terminate_reward": 3e2, 
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "control_sample_rate": 0.001,
-        "normalize": False,
 }
 
 # Make the hyperbolic PDE gym
-env = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParameters)
+env = gym.make("PDEControlGym-ReactionDiffusionPDE1D", **parabolicParameters)
 
 # Run a single environment test case for gamma=8
 terminate = False

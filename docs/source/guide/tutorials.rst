@@ -10,7 +10,7 @@ Tutorials
 1D Hyperbolic PDEs: A warm-up tutorial
 --------------------------------------
 
-This tutorial will follow the Jupyer-notebook found on `github <https://github.com/lukebhan/PDEControlGym/blob/main/examples/hyperbolicPDE/HyperbolicPDEExample.ipynb>`_. It is recommended you have completed the installation guide and started the notebook in order to follow along with this tutorial. 
+This tutorial will follow the Jupyer-notebook found on `github <https://github.com/lukebhan/PDEControlGym/blob/main/examples/transportPDE/HyperbolicPDEExample.ipynb>`_. It is recommended you have completed the installation guide and started the notebook in order to follow along with this tutorial. 
 
 The problem we will consider in this example is the stabilization of the 1D Hyperbolic PDE with linear recirculation (a benchmark problem in PDE control):
 
@@ -28,41 +28,40 @@ where :math:`u(x, t)` is the system state, :math:`\beta(x)` is a nonlinear recir
 .. code-block:: python
 
     # Make environments
-    envRL = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParametersRL)
-    envBcks = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParametersBackstepping)
+    envRL = gym.make("PDEControlGym-Transport1D", **hyperbolicParametersRL)
+    envBcks = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParametersBackstepping)
 
 This explitly is making two environments registered under the name ``PDEControlGym-HyperbolicPDE1D`` with two separate parameters dictionaries, namely ``hyperbolicParametersRL`` and ``hyperbolicParametersBackstepping``. Thus, in the first part of this tutorial, we will briefly discuss each parameter dicitonary. 
 
 .. code-block:: python
 
+	from pde_control_gym.src import TunedReward1D
+	reward_class =  TunedReward1D(int(round(T/dt)), -1e-4, 1e2)
+
 	hyperbolicParameters = {
-			"T": T, 
-			"dt": dt, 
-			"X": X,
-			"dx": dx, 
-			"sensing_loc": "full", 
-			"control_type": "Dirchilet", 
-			"sensing_type": None,
-			"sensing_noise_func": lambda state: state,
-			"limit_pde_state_size": True,
-			"max_state_value": 1e10,
-			"max_control_value": 20,
-			"reward_norm": 2, 
-			"reward_horizon": "temporal",
-			"reward_average_length": 10,
-			"truncate_penalty": -1e3, 
-			"terminate_reward": 3e2, 
-			"reset_init_condition_func": getInitialCondition,
-			"reset_recirculation_func": getBetaFunction,
-			"control_sample_rate": 0.1,
-			"normalize": None,
+		"T": T, 
+		"dt": dt, 
+		"X": X,
+		"dx": dx, 
+		"reward_class": reward_class,
+		"normalize":None, 
+		"sensing_loc": "full", 
+		"control_type": "Dirchilet", 
+		"sensing_type": None,
+		"sensing_noise_func": lambda state: state,
+		"limit_pde_state_size": True,
+		"max_state_value": 1e10,
+		"max_control_value": 20,
+		"reset_init_condition_func": getInitialCondition,
+		"reset_recirculation_func": getBetaFunction,
+		"control_sample_rate": 0.1,
 	}
 
 	hyperbolicParametersBackstepping = hyperbolicParameters.copy()
 	hyperbolicParametersBackstepping["normalize"] = False
 
 	hyperbolicParametersRL = hyperbolicParameters.copy()
-	hyperbolicParametersRL["normalize"] = Trueython 
+	hyperbolicParametersRL["normalize"] = True
 
 .. note:: 
    All of the 1D PDE boundary control environments have the same set of optional parameters for ease of use!
@@ -100,15 +99,14 @@ Now, we continue our discussion of parameters by explaining the next set of para
 	"max_state_value": 1e10,
 	"max_control_value": 20
 
-In this case, we allow limiting of the PDE state size (using :math:`L_2` norm) to 1e10. We also limit the control value to 20. This helps simplify the continuous action space. The next set of parameters are a variety of settings for the custom reward function as in the paper. We offer a variety of reward functions preimplemented (and it is easy to implement your own). See the `rewards <../utils/rewards.html>`_ documentation for details.
+In this case, we allow limiting of the PDE state size (using :math:`L_2` norm) to 1e10. We also limit the control value to 20. This helps simplify the continuous action space. 
+The next set of parameters are a variety of settings for the custom reward function (See `here <../utils/preimplementedrewards.html>`_) as in the paper. 
+We offer a variety of reward functions preimplemented (and it is easy to implement your own). See the `rewards <../utils/customrewards.html>`_ documentation for details.
 
 .. code-block:: python
-
-    "reward_norm": 2,
-    "reward_horizon": "temporal",
-    "reward_average_length": 10,
-    "truncate_penalty": -1e3,
-    "terminate_reward": 3e2
+	
+	from pde_control_gym.src import TunedReward1D
+	reward_class =  TunedReward1D(int(round(T/dt)), -1e-4, 1e2)
 
 Lastly, we discuss the final few parameters for 1D environments. Namely:
 
@@ -119,7 +117,7 @@ Lastly, we discuss the final few parameters for 1D environments. Namely:
     "control_sample_rate": 0.1,
     "normalize": None,
 
- Each of these parameters are imperative to the setup of the problem and highlight the generality of the benchmarks capabilities. We discuss them incrementally as above:
+Each of these parameters are imperative to the setup of the problem and highlight the generality of the benchmarks capabilities. We discuss them incrementally as above:
 
 - ``resent_init_condition_func``: This parameter takes a function which at the start of each episode or any ``reset`` call will set :math:`u(x, 0)` via this function. Thus, one can train their controller based on any set of initial conditions as long as the function returns an array of length ``nx`` (given by spatial step size of system set above).
 - ``reset_recirculation_func``: This parameter again takes a function representing :math:`\beta(x)` as in the problem statement above. Thus, one can choose any nonlinear reciruclation function of their choice and it can be modified at each episode for adaptive PDE control.
@@ -139,9 +137,8 @@ Ok, so we now have a brief introduction to the parameters the gym can take and a
 
     # Returns beta functions passed into PDE environment. Currently gamma is always
     # set to 7.35, but this can be modified for further problesms
-    def getBetaFunction(nx, X):
-        return solveBetaFunction(np.linspace(0, X, nx), 7.35)
-
+    def getBetaFunction(nx):
+        return solveBetaFunction(np.linspace(0, 1, nx), 7.35)
 
     # Set initial condition function here
     def getInitialCondition(nx):

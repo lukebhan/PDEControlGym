@@ -1,10 +1,11 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 from stable_baselines3 import SAC
+from pde_control_gym.src import TunedReward1D
+import pde_control_gym
 
 # THIS EXAMPLE TEST A SERIES OF ALGORITHMS AND CALCULATES THE AVERAGE REWARD OF EACH OVER 1K SAMPLES
 
@@ -42,8 +43,8 @@ def getInitialCondition(nx):
 
 # Returns beta functions passed into PDE environment. Currently gamma is always
 # set to 7.35, but this can be modified for further problesms
-def getBetaFunction(nx, X):
-    return solveBetaFunction(np.linspace(0, X, nx), 7.35)
+def getBetaFunction(nx):
+    return solveBetaFunction(np.linspace(0, 1, nx), 7.35)
 
 # Timestep and spatial step for PDE Solver
 # Run testing cases for 5 seconds
@@ -52,29 +53,24 @@ dt = 1e-4
 dx = 1e-2
 X = 1
 
-# Backstepping does not need to normalize actions to be between -1 and 1, so normalize is set to False. Otherwise,
-# parameters are same as RL algorithms
+# Normalize to be set below
 hyperbolicParameters = {
-        "T": T,
-        "dt": dt,
+        "T": T, 
+        "dt": dt, 
         "X": X,
-        "dx": dx,
-        "sensing_loc": "full",
-        "control_type": "Dirchilet",
+        "dx": dx, 
+        "reward_class": TunedReward1D(int(round(T/dt)), -1e3, 3e2),
+        "normalize":None, 
+        "sensing_loc": "full", 
+        "control_type": "Dirchilet", 
         "sensing_type": None,
         "sensing_noise_func": lambda state: state,
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
         "max_control_value": 20,
-        "reward_norm": 2,
-        "reward_horizon": "temporal",
-        "reward_average_length": 10,
-        "truncate_penalty": -1e3,
-        "terminate_reward": 3e2,
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "control_sample_rate": 0.1,
-        "normalize": None,
 }
 
 # Parameter varies. For SAC and PPO it is the model itself
@@ -117,8 +113,8 @@ hyperbolicParametersBackstepping["normalize"] = False
 hyperbolicParametersRL = hyperbolicParameters.copy()
 hyperbolicParametersRL["normalize"] = True
 
-envBcks = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParametersBackstepping)
-envRL = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParametersRL)
+envBcks = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParametersBackstepping)
+envRL = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParametersRL)
 
 # Number of test cases to run
 num_instances = 10

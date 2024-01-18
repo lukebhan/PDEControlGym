@@ -1,11 +1,11 @@
 from gymnasium.envs.registration import register
 
 register(
-    id="PDEControlGym-HyperbolicPDE1D", entry_point="pde_control_gym.src:HyperbolicPDE1D"
+    id="PDEControlGym-TransportPDE1D", entry_point="pde_control_gym.src:TransportPDE1D"
 )
 
 register(
-    id="PDEControlGym-ParabolicPDE1D", entry_point="pde_control_gym.src:ParabolicPDE1D"
+    id="PDEControlGym-ReactionDiffusionPDE1D", entry_point="pde_control_gym.src:ReactionDiffusionPDE1D"
 )
 
 register(

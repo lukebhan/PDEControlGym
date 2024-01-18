@@ -1,10 +1,11 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 from stable_baselines3 import SAC
+import pde_control_gym
+from pde_control_gym.src import TunedReward1D
 
 # THIS EXAMPLE TEST A SERIES OF ALGORITHMS AND CALCULATES THE AVERAGE REWARD OF EACH OVER 1K SAMPLES
 
@@ -45,8 +46,8 @@ def getInitialCondition(nx):
 
 # Returns beta functions passed into PDE environment. Currently gamma is always
 # set to 8, but this can be modified for further problems
-def getBetaFunction(nx, X):
-    return solveBetaFunction(np.linspace(0, X, nx+1), 8)
+def getBetaFunction(nx):
+    return solveBetaFunction(np.linspace(0, 1, nx+1), 8)
 
 # Timestep and spatial step for PDE Solver
 T = 1
@@ -57,26 +58,22 @@ X = 1
 # Backstepping does not need to normalize actions to be between -1 and 1, so normalize is set to False. Otherwise,
 # parameters are same as RL algorithms
 parabolicParameters = {
-        "T": T,
-        "dt": dt,
+        "T": T, 
+        "dt": dt, 
         "X": X,
-        "dx": dx,
-        "sensing_loc": "full",
-        "control_type": "Dirchilet",
+        "dx": dx, 
+        "reward_class": TunedReward1D(int(round(T/dt)), -1e3, 3e2),
+        "normalize": None,
+        "sensing_loc": "full", 
+        "control_type": "Dirchilet", 
         "sensing_type": None,
         "sensing_noise_func": lambda state: state,
         "limit_pde_state_size": True,
         "max_state_value": 1e10,
         "max_control_value": 20,
-        "reward_norm": 2,
-        "reward_horizon": "temporal",
-        "reward_average_length": 10,
-        "truncate_penalty": -1e3,
-        "terminate_reward": 3e2,
         "reset_init_condition_func": getInitialCondition,
         "reset_recirculation_func": getBetaFunction,
         "control_sample_rate": 0.001,
-        "normalize": None,
 }
 
 # Parameter varies. For SAC and PPO it is the model itself
@@ -119,8 +116,8 @@ parabolicParametersBackstepping["normalize"] = False
 parabolicParametersRL = parabolicParameters.copy()
 parabolicParametersRL["normalize"] = True
 
-envBcks = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParametersBackstepping)
-envRL = gym.make("PDEControlGym-ParabolicPDE1D", parabolicParams=parabolicParametersRL)
+envBcks = gym.make("PDEControlGym-ReactionDiffusionPDE1D", **parabolicParametersBackstepping)
+envRL = gym.make("PDEControlGym-ReactionDiffusionPDE1D", **parabolicParametersRL)
 
 # Number of test cases to run
 num_instances = 10
@@ -130,8 +127,8 @@ spatial = np.linspace(dx, X, int(round(X/dx)))
 beta = solveBetaFunction(spatial, 7.35)
 
 # Load RL models. # DUMMY ARGUMENTS NEED TO BE MODIFIED
-ppoModelPath = "./logsPPO/rl_model_10000_steps"
-sacModelPath = "./logsSAC/rl_model_10000_steps"
+ppoModelPath = "./logsPPO/rl_model_1000_steps"
+sacModelPath = "./logsSAC/rl_model_1000_steps"
 ppoModel = PPO.load(ppoModelPath)
 sacModel = SAC.load(sacModelPath)
 

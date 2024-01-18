@@ -8,7 +8,7 @@ from pde_control_gym.src.rewards import BaseReward
 
 class PDEEnv1D(gym.Env):
     """
-    This is the base env for all 1D PDE problems. All 1D custom environments should inherit this environment and implement the according methods
+    This is the base env for all 1D PDE problems. All 1D custom environments should inherit this environment and implement the eccording methods
 
     :param T: The end time of the simulation.
     :param dt: The temporal timestep of the simulation.
@@ -22,6 +22,10 @@ class PDEEnv1D(gym.Env):
         # Build parameters for number of time steps and number of spatial steps
         self.nt = int(round(T/dt))
         self.nx = int(round(X/dx))
+        self.dt = dt
+        self.T = T
+        self.dx = dx
+        self.X = X
 
       	# Observation Space handled in individual environment due to sensing modifications
 
@@ -37,8 +41,8 @@ class PDEEnv1D(gym.Env):
         self.u = np.zeros((self.nt, self.nx))
         self.time_index = 0
 
-        # Setup reward function. Use custom reward with shaping
-        self.reward = reward_class
+        # Setup reward function.
+        self.reward_class = reward_class
 
     @abstractmethod
     def step(self, action: np.ndarray):

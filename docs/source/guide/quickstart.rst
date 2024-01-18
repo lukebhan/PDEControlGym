@@ -9,9 +9,9 @@ and runs an open-loop controller. Detailed tutorials are avilable for the gym `h
 .. code-block:: python
 
 	import gymnasium as gym
-	import pdecontrolgym
+	import pde_control_gym
+	from pde_control_gym.src import TunedReward1D
 	import numpy as np
-
 
 	# NO NOISE
 	def noiseFunc(state):
@@ -24,7 +24,7 @@ and runs an open-loop controller. Detailed tutorials are avilable for the gym `h
 
 
 	# Constant beta function
-	def getBetaFunction(nx, X):
+	def getBetaFunction(X):
 		return np.ones(nx)
 
 
@@ -32,33 +32,31 @@ and runs an open-loop controller. Detailed tutorials are avilable for the gym `h
 	T = 5
 	dt = 1e-4
 	dx = 1e-2
-	X = 1
+	X = 1 
+
+	reward_class =  TunedReward1D(int(round(T/dt)), -1e-4, 1e2)
 
 	hyperbolicParameters = {
-		"T": T,
-		"dt": dt,
+		"T": T, 
+		"dt": dt, 
 		"X": X,
-		"dx": dx,
-		"sensing_loc": "full",
-		"control_type": "Dirchilet",
+		"dx": dx, 
+		"reward_class": reward_class,
+		"normalize":None, 
+		"sensing_loc": "full", 
+		"control_type": "Dirchilet", 
 		"sensing_type": None,
 		"sensing_noise_func": lambda state: state,
 		"limit_pde_state_size": True,
 		"max_state_value": 1e10,
 		"max_control_value": 20,
-		"reward_norm": 2,
-		"reward_horizon": "temporal",
-		"reward_average_length": 10,
-		"truncate_penalty": -1e3,
-		"terminate_reward": 3e2,
 		"reset_init_condition_func": getInitialCondition,
 		"reset_recirculation_func": getBetaFunction,
 		"control_sample_rate": 0.1,
-		"normalize": False,
-	}
+	}	
 
 	# Make the hyperbolic PDE gym
-	env = gym.make("PDEControlGym-HyperbolicPDE1D", hyperbolicParams=hyperbolicParameters)
+	env = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParameters)
 
 	# Run a single environment test case for gamma=7.35
 	terminate = False
