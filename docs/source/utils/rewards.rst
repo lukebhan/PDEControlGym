@@ -1,4 +1,0 @@
-.. _rewards:
-
-Reward Functions
-================
