@@ -11,7 +11,7 @@ This documentation is for the 1D Reation-Diffusion PDE Environment defined by th
     :nowrap:
 
 	\begin{eqnarray}	
-        u_t(x, t) &=& u_xx(x, t) + \lambda(x) u(0, t), \quad x \in [0, X], t \in [0, T]\,,\\ 
+        u_t(x, t) &=& u_{xx}(x, t) + \lambda(x) u(0, t), \quad x \in [0, X], t \in [0, T]\,,\\ 
 		u(0, t) &=& 0 \,,
 	\end{eqnarray}
 
@@ -21,8 +21,8 @@ where :math:`\lambda(x)` is the nonlinear, spatial-varying recirculation plant c
     :nowrap:
 
     \begin{eqnarray}
-        u(1, t) &=& U(t) \qquad \text{Dirchilet Boundary Conditions}\,,\\
-        u_x(1, t) &=& U(t) \qquad \text{Neumann Boundary Conditions}\,.
+        u(X, t) &=& U(t) \qquad \text{Dirchilet Boundary Conditions}\,,\\
+        u_x(X, t) &=& U(t) \qquad \text{Neumann Boundary Conditions}\,.
     \end{eqnarray}
 
 This problem is the simplest possible Parabolic PDE benchmark and thus is a good indicator of potentially algorithmic success on more difficult problems. The goal of the problem is to stabilize the system (:math:`\lim_{t \to \infty} \|u(x, t)\| = 0`) where the norm can be varied depending on the problem formulation and continuity of the plant coefficient :math:`\lambda(x)`. A variety of sensing options are supported for the implementation as well if one wants to attempt to perform output feedback stabilization. See the parameter list below.

@@ -20,8 +20,8 @@ where :math:`\beta(x)` is the nonlinear recirculation plant coefficient and cont
     :nowrap:
 
     \begin{eqnarray}
-        u(1, t) &=& U(t) \qquad \text{Dirchilet Boundary Conditions}\,,\\
-        u_x(1, t) &=& U(t) \qquad \text{Neumann Boundary Conditions}\,.
+        u(X, t) &=& U(t) \qquad \text{Dirchilet Boundary Conditions}\,,\\
+        u_x(X, t) &=& U(t) \qquad \text{Neumann Boundary Conditions}\,.
     \end{eqnarray}
 
 This problem is the simplest possible Hyperbolic PDE benchmark and thus is a good indicator of potentially algorithmic success on more difficult problems. The goal of the problem is to stabilize the system (:math:`\lim_{t \to \infty} \|u(x, t)\| = 0`) where the norm can be varied depending on the problem formulation and continuity of the plant coefficient :math:`\beta(x)`. A variety of sensing options are supported for the implementation as well if one wants to attempt to perform output feedback stabilization. See the parameter list below.
