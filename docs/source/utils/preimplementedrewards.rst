@@ -48,6 +48,7 @@ This implements the reward to track the reference trajectory as well as minimizi
    \begin{eqnarray}
      Reward(t) = -\frac{1}{2} \|s' - s_{ref}\|^2 - \frac{\gamma}{2} \| a - a_{ref}\|^2
    \end{eqnarray}
+
 where :math:`\gamma` is the coefficient for the control cost.
 
 
