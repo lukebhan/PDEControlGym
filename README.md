@@ -1,88 +1,63 @@
-# PDECG: Partial-Differential-Equation Control Gym
+ <a href="#"><img alt="PDE ContRoL Gym" src="PDEGymLogo.png" width="100%"/></a>
 
-Link Website | Link Paper 
+<p>
+<a href='https://pdecontrolgym.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/pdecontrolgym/badge/?version=latest' alt='Documentation Status' />
+    </a>
+<a href=https://arxiv.org/abs/2302.14265> 
+    <img src="https://img.shields.io/badge/arXiv-2302.14265-008000.svg" alt="arXiv Status" />
+</a>
+</p>
 
 ## About this repository
 
-This gym provides implementations of various PDEs including hyperbolic PDEs(Burger's Equation) and parabolic PDEs (Reaction-Diffusion/Heat Equations) that can be easily simulated for control algorithms. 
+This repository provides implementations of various PDEs including hyperbolic PDEs(Burger's Equation) and parabolic PDEs (Reaction-Diffusion/Heat Equations), and 2-D Navier Stokes PDEs that are all wrapped under a <a href=https://github.com/Farama-Foundation/Gymnasium>gym</a> designed for **boundary control problems**. These problems are particularly challenging because one has to handle nonlinearity across the entire domain with only a single value at each timestep requiring the solution of PDEs in the feedback loop. 
+
+## Getting Started
+To get started, we strongly suggest the user follows the <a href=https://pdecontrolgym.readthedocs.io/en/latest/guide/tutorials.html>documentation tutorial</a> for learning in a 1D environment once installation is complete. 
 
 ## Installation
+Installing PDE Control Gym is simple, requires few dependencies, and is set to work with most Python Environments (Installation guide can be found in <a href=https://pdecontrolgym.readthedocs.io/en/latest/guide/install.html>docuementation</a> as well). This installation guide assumes you are familiar with either <a href=https://www.anaconda.com/>conda</a> or <a href=https://docs.python.org/3/library/venv.html>virtual env</a> in creating and installing python modules.
 
-## Running Examples
-
-### Heat Equation
-
-### Burger's Equation
-
-### Advection-Diffusion Equation
+- First create a new enviornment for ***Python 3.10+***
+- Install the dependencies. PDE ContRoL Gym requires
+  - Gym Version 0.28.1 (<a href=https://github.com/Farama-Foundation/Gymnasium>Available here</a>)
+  - Numpy Version 1.26.2 (<a href=https://numpy.org/>Available here</a>)
+- To run the examples listed below or any reinforcement learning algorithm, the gym is currently setup using <a href=https://stable-baselines3.readthedocs.io/en/master/>Stable-Baselines3</a> Version 2.2.1.
+- Once dependencies are installed, clone the repository using
+  
+  `git clone https://github.com/lukebhan/PDEControlGym.git`
+- Then navigate to the working folder
+  
+  `cd PDEControlGym`
+- Install the package using pip in the main folder
+  
+  `pip install -e .`
+- Enjoy your fully functional PDE Control library! For usage, see the examples in either `./PDEControlGym/examples` or in the <a href=https://pdecontrolgym.readthedocs.io/en/latest/>documentation</a> or below in the examples section of this file!
 
 ## Documentation
-All the documentation is available at {Insert link to documentation}
+Documentation for all the environments as well as tutorials are available <a href=https://pdecontrolgym.readthedocs.io/en/latest/>here</a>
 
-### Current Implementations
-- Currently PDEC-G contains implementations for controlling general form 1-D parabolic and hyperbolic PDEs. Particularly, both of these are implemented using traditional finite difference algorithms that require a small time-step. More details about each specific environment are given below and can be found on the website at {Insert Link to documentation}.
+## Examples
+Jupyter notebooks are made in the examples folder (Hyperbolic and Parabolic subfolders) that detail all the examples for both Hyperbolic and Parabolic PDEs. Additionally, full details on numerical implementation and solvers are available in the 
+<a href=https://pdecontrolgym.readthedocs.io/en/latest/>documentation</a>. These include tutorials on how to train your own RL controller, implemented backstepping controllers as well as plotting comparisons to analyze all of your work. For managing the training of your RL controller, we recommend you use <a href=https://github.com/tensorflow/tensorboard>tensorboard</a> as outlined in the notebooks. For pretrained models, please see the downloaded files on <a href=https://huggingface.co/lukebhan/PDEControlGymModels>Hugging Face</a>.  
 
-## General PDE Arguments 
-### PDE Boundary Conditions:	
-PDECG supports both Neumann and Dirchilet boundary conditions to specify the non-control boundary. To specify the boundary conditions, one must pass in a functional argument as well as the location and type of boundary condition into the PDECG initialization call. Examples of valid boundary conditions are given below. Please note that boundary condition functions should ideally be continuous to ensure the well-posed formulation of the PDE
-### Sensing:
-PDECG supports both Neumann and Dirchilet boundary sensing at both endpoints as well as full state sensing. To specify the sensing, provide the {insert argument} when creating the gym and the observation call in the gymnasium enviornment will automatically provide the exact sensing value specified. 
-### Control:
-As with sensing, PDECG supports both Neumann and Dirchilet boundary control that can be colocated with the sensing. However, the environment will throw an error if the sensing and control arguments are exactly the same. As with sensing, provide the {insert argument} when creating the gym and the action will automatically apply the control at that specific boundary position.
-### Rewards:
-The PDECG gym supports a variety of awards including the general $L_2$, $L_1$, $L_\infty$ norms of $u(x, t)$. Additionally PDECG allows for rewards to be taken over average times as well as differential rewards. Each reward type is listed below with the exact arguments and behavior specifications. For custom rewards, see the section labeled Tuning Existing PDE Environments. Rewards are specified in the following form 
-```python
-reward = {type: {"custom", "norm"}, 
-          args(optional): {
-                            "norm"(optional): {1, 2, "inf"},
-                            "averaging"(optional): {"temporal", "differential", "t-horizon"},
-                            "t_avg"(optional): {Integer}
-                          }
-         }
+## Contributions
+Contributions to the gym are both welcome and encouraged. Please see the <a href=https://github.com/lukebhan/PDEControlGym/blob/main/CONTRIBUTING.md>contribution guidelines</a>. Any questions are welcome to email the author Luke at lbhan@ucsd.edu
+
+## Citation
 ```
-An example of the $L_\infty$ reward average over the past $5$ timesteps looks like:
-```python
-reward = {type: "norm",
-          args: {
-                  "norm": "infty",
-                  "averaging": "t-horizon",
-                  "t_avg": 5
-                }
-         }
+@misc{https://doi.org/10.48550/arxiv.2302.14265,
+  doi = {10.48550/ARXIV.2302.14265},
+  url = {https://arxiv.org/abs/2302.14265},
+  author = {Bhan, Luke and Shi, Yuanyuan and Krstic, Miroslav},
+  keywords = {Systems and Control (eess.SY), Optimization and Control (math.OC), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Mathematics, FOS: Mathematics},
+  title = {Neural Operators for Bypassing Gain and Control Computations in PDE Backstepping},
+  publisher = {arXiv},
+  year = {2023},
+  copyright = {Creative Commons Attribution 4.0 International}
+  }
 ```
-#### Pre-implemented reward functions:
-- $L_k$ norms
-    - Additional Args (given as a tuple): 
-		- `norm`(optional, defaults to $L_2$ if not specified): The type of norm. $1$ specifies the Manhattan distannce, $2$ specifies the Euclidean distance, and $\infty$ specifes the max value.
-        - `averaging`(optional, defaults to temporal if not specified): 
-		    - `temporal`: Returns at each time $t$, the reward $\|\|u(x, t)\|\|_{L_k}$
-            - `differential`: Returns at each time $t$, the reward $\|\|u(x, t) - u(x, t-dt)\|\|_{L_k}$ where $u(x, t-dt)$ is the PDE solution at the previous time step
-		    - `t-horizon`: Requires an additional argument in the form `t_avg` where $t_{avg}$ is the number of timesteps to average over. If $t_{avg}=1$, this is the same as temporal, but may be slower. If $t\lt t_{avg}$, this provides the reward for all $u$ up to t. For $t>t_{avg}>1$, this will provide the reward at time $t$ as $$r(t)=\frac{1}{t_{avg}}\sum_{\tau=t-dt*t_{avg}}^t \|\|u(x, \tau)\|\|_{L_k}$$
 
-## Hyperbolic PDE
-### General System form:
-PDECG supports hyperbolic PDEs of the form
-```math
-\frac{\partial u}{\partial t} = c \frac{\partial u}{\partial x} + \beta(x)u(0, t)
-```
-where $u(x, t)$ is the PDE solution at position $x \in [0, 1]$ and $t \in [0, T]$. Additionally, boundary conditions can be specified by the user at either endpoint using Neumann or Dirchilet actuation. More details on boundary conditions is provided in the section below. 
-
-
-
-## Controllers
-PDECG currently has two preimplemented controllers that can be easily used for controller the PDE. First, an analytical backstepping controller for both hyperbolic and parabolic PDEs has been developed using the algorithm in {Insert Citations of Miroslav's Papers}. Second, any RL library that works with gymansium environments can be easily used with PDECG and currently PPO with stable-baselines3 is provided int he examples tab. Details on the exact implementations for both the backstepping controller and the stable-baselines3 controller is given below. 
-### Backstepping
-{Add details on the backstepping controller}	
-### Reinforcement Learning using Stable Baselines
-{Add details on the stable baselines controller}
-
-
-### Tuning Existing PDE Enviornments
-#### Custom Reward Functions
-#### Custom Simulation Algorithms
-#### Custom figure functions
-
-### Creating a PDE Environment
-
-#### General Setup
-#### Required Inheritance
+## Licensing
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
