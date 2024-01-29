@@ -36,3 +36,21 @@ where :math:`u(x, t)` is the solution vector, T is final simulation time, and :m
    :members:
 
 
+
+NS Reward 
+----------------------
+
+This implements the reward to track the reference trajectory as well as minimizing the control action loss which is defined as:
+
+.. math::
+   :nowrap:
+
+   \begin{eqnarray}
+     Reward(t) = -\frac{1}{2} \|s' - s_{ref}\|^2 - \frac{\gamma}{2} \| a - a_{ref}\|^2
+   \end{eqnarray}
+
+where :math:`\gamma` is the coefficient for the control cost.
+
+
+.. autoclass:: NSReward
+   :members:

@@ -1,38 +1,29 @@
 import gymnasium as gym
-import pdecontrolgym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from pdecontrolgym.envs.NavierStokes2D import Dirchilet, Controllable, Neumann
-from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
+import time 
+from tqdm import tqdm
+from pde_control_gym.src import NSReward
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3 import PPO
 
-# THIS EXAMPLE TRAINS A PPO AGENT FOR THE HYPERBOLIC PDE PROBLEM. 
-# The model is saved every 10k timesteps to the directory ./logsPPO/
-# The tensorboard results are saved to the directory
-# ./tb/
+# THIS EXAMPLE SOLVES THE NavierStokes PROBLEM based on optimization
 
-Nx = 21
-control = {'n_action': 2*Nx}
-for i, pos in enumerate(['upper', 'lower', 'left', 'right']):
-    if i == 0:
-        control[pos] = Controllable({'u': np.arange(Nx*2*i, Nx*(2*i+1)), 'v': np.arange(Nx*(2*i+1), Nx*(2*i+2))})
-    else:
-        control[pos] = Dirchilet(0)
+# Set initial condition function here
+def getInitialCondition(X):
+    u = np.random.uniform(-5, 5) * np.ones_like(X) 
+    v = np.random.uniform(-5, 5) * np.ones_like(X) 
+    p = np.random.uniform(-5, 5) * np.ones_like(X) 
+    return u, v, p
 
-def adapt_action(action):
-    a = np.zeros(2*Nx)
-    a[:Nx] = action
-    return a
-
-def apply_boundary(a1, a2):
-    a1[:,[-1, 0]] = 0.
-    a1[[-1,0],:] = 0.
-    a2[:,[-1, 0]] = 0.
-    a2[[-1,0],:] = 0.
-    return a1, a2
-
+# Set up boundary conditions here
+boundary_condition = {
+    "upper": ["Controllable", "Dirchilet"], 
+    "lower": ["Dirchilet", "Dirchilet"], 
+    "left": ["Dirchilet", "Dirchilet"], 
+    "right": ["Dirchilet", "Dirchilet"], 
+}
 
 # Timestep and spatial step for PDE Solver
 T = 0.2
@@ -49,27 +40,17 @@ NS2DParameters = {
         "dx": dx, 
         "Y": Y,
         "dy":dy,
-        "control": control, 
-        "desire_U": desire_states, 
-        "adapt": adapt_action,
-        "viscosity": 0.1,
-        "density": 1.0,
-        "pressure_ite": 2000,
-        "stable_factor": 0.5,
-        "limit_pde_state_size": True,
-        "max_state_value": 1e10,
-        "max_control_value": 10,
-        "reward_norm": 2, 
-        "reward_horizon": "temporal",
-        "reward_average_length": 10,
-        "truncate_penalty": -1e3, 
-        "terminate_reward": 3e2, 
-        "normalize": False,
+        "action_dim": 1, 
+        "reward_class": NSReward(0.1),
+        "normalize": False, 
+        "reset_init_condition_func": getInitialCondition,
+        "boundary_condition": boundary_condition,
+        "U_ref": desire_states, 
+        "action_ref": 2.0 * np.ones(1000), 
 }
 
-# Make the hyperbolic PDE gym
-env = gym.make("PDEControlGym-NavierStokes2D", NSParams=NS2DParameters)
-
+# Make the NavierStokes PDE gym
+env = gym.make("PDEControlGym-NavierStokes2D", **NS2DParameters)
 
 # Save a checkpoint every 10000 steps
 checkpoint_callback = CheckpointCallback(
