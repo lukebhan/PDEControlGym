@@ -32,7 +32,6 @@ dx, dy = 0.05, 0.05
 X, Y = 1, 1
 u_target = np.load('target.npz')['u']
 v_target = np.load('target.npz')['v']
-print(u_target.shape)
 desire_states = np.stack([u_target, v_target], axis=-1) # (NT, Nx, Ny, 2)
 NS2DParameters = {
         "T": T, 

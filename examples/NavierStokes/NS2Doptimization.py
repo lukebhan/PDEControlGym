@@ -32,7 +32,6 @@ dx, dy = 0.05, 0.05
 X, Y = 1, 1
 u_target = np.load('target.npz')['u']
 v_target = np.load('target.npz')['v']
-print(u_target.shape)
 desire_states = np.stack([u_target, v_target], axis=-1) # (NT, Nx, Ny, 2)
 NS2DParameters = {
         "T": T, 
@@ -70,14 +69,13 @@ times = []
 for experiment_i in range(1):
     np.random.seed(experiment_i)
     env.reset(seed=400)
-    print(env.U[0,0,0])
     s = time.time()
     for t in tqdm(range(T)):
         obs, reward, done, _ , _ = env.step(np.random.uniform(2,4)) 
         U.append(env.u)
         V.append(env.v)
         total_reward += reward
-    print(total_reward)
+    print("Total Reward:", total_reward)
     u_target = np.load('target.npz')['u']
     v_target = np.load('target.npz')['v']
     u_ref = [2 for _ in range(T)]
@@ -109,14 +107,12 @@ for experiment_i in range(1):
             actions.append(u_ref[t] - 0.1/0.1 * sum(dl1dx2[-2, :])*5*dx)
         U, V = [], []
         env.reset(seed=400)
-        print(env.U[0,0,0])
         total_reward = 0.
         for t in tqdm(range(T)):
             obs, reward, done, _ , _ = env.step(actions[t])
             U.append(env.u)
             V.append(env.v)
             total_reward += reward
-        print(total_reward)
         plt.plot(actions)
         plt.show()
         np.savez('result/NS_optmization.npz', U=env.U[:,:,:,0], V=env.U[:,:,:,1], desired_U=np.array(u_target), desired_V=np.array(v_target), actions=actions)
