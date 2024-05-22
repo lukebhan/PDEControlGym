@@ -47,16 +47,14 @@ Contributions to the gym are both welcome and encouraged. Please see the <a href
 
 ## Citation
 ```
-@misc{https://doi.org/10.48550/arxiv.2302.14265,
-  doi = {10.48550/ARXIV.2302.14265},
-  url = {https://arxiv.org/abs/2302.14265},
-  author = {Bhan, Luke and Shi, Yuanyuan and Krstic, Miroslav},
-  keywords = {Systems and Control (eess.SY), Optimization and Control (math.OC), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Mathematics, FOS: Mathematics},
-  title = {Neural Operators for Bypassing Gain and Control Computations in PDE Backstepping},
-  publisher = {arXiv},
-  year = {2023},
-  copyright = {Creative Commons Attribution 4.0 International}
-  }
+@misc{bhan2024pde,
+      title={PDE Control Gym: A Benchmark for Data-Driven Boundary Control of Partial Differential Equations}, 
+      author={Luke Bhan and Yuexin Bian and Miroslav Krstic and Yuanyuan Shi},
+      year={2024},
+      eprint={2405.11401},
+      archivePrefix={arXiv},
+      primaryClass={eess.SY}
+}
 ```
 
 ## Licensing
