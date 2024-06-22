@@ -24,7 +24,7 @@ and runs an open-loop controller. Detailed tutorials are avilable for the gym `h
 
 
 	# Constant beta function
-	def getBetaFunction(X):
+	def getBetaFunction(nx):
 		return np.ones(nx)
 
 
