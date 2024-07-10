@@ -11,7 +11,7 @@
 
 ## About this repository
 
-This repository provides implementations of various PDEs including hyperbolic PDEs(Burger's Equation) and parabolic PDEs (Reaction-Diffusion/Heat Equations), and 2-D Navier Stokes PDEs that are all wrapped under a <a href=https://github.com/Farama-Foundation/Gymnasium>gym</a> designed for **boundary control problems**. These problems are particularly challenging because one has to handle nonlinearity across the entire domain with only a single value at each timestep requiring the solution of PDEs in the feedback loop. 
+This repository provides implementations of various PDEs including hyperbolic PDEs(Burger's Equation) and parabolic PDEs (Reaction-Diffusion/Heat Equations), and 2-D Navier Stokes PDEs that are all wrapped under a <a href=https://github.com/Farama-Foundation/Gymnasium>gym</a> designed for **boundary control problems**. These problems are particularly challenging because one has to handle nonlinearity across the entire domain with only a single value at each timestep requiring the solution of PDEs in the feedback loop. See the <a href=https://arxiv.org/abs/2405.11401>full paper</a> presented at L4DC 2024 for more details. 
 
 ## Getting Started
 To get started, we strongly suggest the user follows the <a href=https://pdecontrolgym.readthedocs.io/en/latest/guide/tutorials.html>documentation tutorial</a> for learning in a 1D environment once installation is complete. 
