@@ -26,7 +26,7 @@ boundary_condition = {
 }
 
 # Timestep and spatial step for PDE Solver
-T = 0.2
+T = 0.201 # to perform 200 steps
 dt = 1e-3
 dx, dy = 0.05, 0.05
 X, Y = 1, 1

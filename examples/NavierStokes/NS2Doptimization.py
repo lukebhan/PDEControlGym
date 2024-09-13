@@ -26,12 +26,12 @@ boundary_condition = {
 }
 
 # Timestep and spatial step for PDE Solver
-T = 0.2
+T = 0.201 # to perform 200 steps
 dt = 1e-3
 dx, dy = 0.05, 0.05
 X, Y = 1, 1
-u_target = np.load('target.npz')['u']
-v_target = np.load('target.npz')['v']
+u_target = np.load('target.npz')['u'][1:]
+v_target = np.load('target.npz')['v'][1:]
 print(u_target.shape)
 desire_states = np.stack([u_target, v_target], axis=-1) # (NT, Nx, Ny, 2)
 NS2DParameters = {
@@ -63,7 +63,7 @@ def apply_boundary(a1, a2):
 
 total_reward = 0.
 U, V = [], []
-T = 199
+T = 200
 
 rewards = []
 times = []
@@ -106,7 +106,7 @@ for experiment_i in range(1):
         actions = []
         for t in tqdm(range(T)):
             dl1dx2 = central_difference(Lam1[t], "y", dy)
-            actions.append(u_ref[t] - 0.1/0.1 * sum(dl1dx2[-2, :])*5*dx)
+            actions.append(u_ref[t] - 0.1/0.1 * sum(dl1dx2[-2, 12:17])*5*dx)
         U, V = [], []
         env.reset(seed=400)
         print(env.U[0,0,0])

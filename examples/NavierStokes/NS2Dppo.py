@@ -26,7 +26,7 @@ boundary_condition = {
 }
 
 # Timestep and spatial step for PDE Solver
-T = 0.2
+T = 0.201 # to perform 200 steps
 dt = 1e-3
 dx, dy = 0.05, 0.05
 X, Y = 1, 1
@@ -63,5 +63,5 @@ checkpoint_callback = CheckpointCallback(
 )
 
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./tb/")
-# Train for 1 Million timesteps
+# Train
 model.learn(total_timesteps=2e5, callback=checkpoint_callback)
