@@ -51,7 +51,7 @@ with finite spatial derviatves approximated by first-order centered diffrences
     :nowrap:
 
     \begin{eqnarray} 
-        \frac{\partial u}{\partial x} = \frac{u_{j+1}^n - 2u_j^n+u_{j+1}^n}{(\Delta x)^2}\,,
+        \frac{\partial^2 u}{\partial x^2} = \frac{u_{j+1}^n - 2u_j^n+u_{j-1}^n}{(\Delta x)^2}\,,
     \end{eqnarray}
 
 where :math:`\Delta t=dt=\text{time step}`, :math:`\Delta x=dx=\text{spatial step}`, :math:`n=0, ..., Nt`, :math:`j=0, ..., Nx`, where :math:`Nt` and :math:`Nx` are the total number of discretized temporal and spatial steps respectively. Then substituting :math:`u_{xx}` and :math:`u_t` into the taylor approximation yields
