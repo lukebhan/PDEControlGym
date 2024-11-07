@@ -22,7 +22,7 @@ class TunedReward1D(BaseReward):
         self.truncate_penalty = truncate_penalty
         self.terminate_reward = terminate_reward
 
-    def reward(self, uVec: np.ndarray =None, time_index: int = None, terminate: Optional[bool] =None, truncate: Optional[bool] =None, action: Optional[float] =None):
+    def reward(self, uVec: np.ndarray =None, time_index: int = None, terminate: Optional[bool] =None, truncate: Optional[bool] =None, action: Optional[float] =None, control_sample_rate: Optional[float]=0.01):
         r""" 
         reward
 
@@ -37,4 +37,4 @@ class TunedReward1D(BaseReward):
             return (self.terminate_reward - np.sum(abs(uVec[:, -1]))/1000 - np.linalg.norm(uVec[time_index]))
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)
-        return np.linalg.norm(uVec[time_index-100])-np.linalg.norm(uVec[time_index])
+        return np.linalg.norm(uVec[time_index-1/control_sample_rate])-np.linalg.norm(uVec[time_index])
