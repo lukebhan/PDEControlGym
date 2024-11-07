@@ -20,8 +20,8 @@ class PDEEnv1D(gym.Env):
     def __init__(self, T: float, dt: float, X: float, dx: float, reward_class: Type[BaseReward], normalize: bool = False):
         super(PDEEnv1D, self).__init__()
         # Build parameters for number of time steps and number of spatial steps
-        self.nt = int(round(T/dt))
-        self.nx = int(round(X/dx))
+        self.nt = int(round(T/dt)+1)
+        self.nx = int(round(X/dx)+1)
         self.dt = dt
         self.T = T
         self.dx = dx
