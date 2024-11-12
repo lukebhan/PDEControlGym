@@ -26,11 +26,11 @@ This implements the reward as used in the `benchmark paper <https://google.com>`
         \text{truncate_penalty}*(T-t) & \text{truncate}=\text{True} \\ 
        \text{terminate_reward} - \sum_{i=0}^{nt}|u(-1, i)| / 1000 
         - \|u(x, T)\|_{L_2} & \text{terminate}=\text{True} \\ & \text{and} \\ &  \|u(x, T)\|_{L_2} < 20 \\
-        \|u(x, t-dt*100\|_{L_2} - \|u(x, t)\|_{L_2} & \text{Otherwise}
+        \|u(x, t-dt*1/\text{control_sample_rate}\|_{L_2} - \|u(x, t)\|_{L_2} & \text{Otherwise}
         \end{cases}
    \end{eqnarray}
 
-where :math:`u(x, t)` is the solution vector, T is final simulation time, and :math:`\|u(x, t)\|_{L_2}` represents the :math:`L_2` norm at time :math:`t` over :math:`x`.
+where :math:`u(x, t)` is the solution vector, T is final simulation time, `control_sample_rate` is the rate at which the controller is resampled (Default=0.01), and :math:`\|u(x, t)\|_{L_2}` represents the :math:`L_2` norm at time :math:`t` over :math:`x`.
 
 .. autoclass:: TunedReward1D
    :members:
