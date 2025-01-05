@@ -75,7 +75,7 @@ env = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParameters)
 # Run a single environment test case for gamma=7.35
 terminate = False
 truncate = False
-nt = int(round(X/dx))
+nt = int(round(X/dx))+1
 x = np.linspace(0, 1, nt)
 
 # Holds the resulting states

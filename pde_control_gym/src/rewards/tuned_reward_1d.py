@@ -37,4 +37,4 @@ class TunedReward1D(BaseReward):
             return (self.terminate_reward - np.sum(abs(uVec[:, -1]))/1000 - np.linalg.norm(uVec[time_index]))
         if truncate:
             return self.truncate_penalty*(self.nt-time_index)
-        return np.linalg.norm(uVec[time_index-1/control_sample_rate])-np.linalg.norm(uVec[time_index])
+        return np.linalg.norm(uVec[time_index-int(1/control_sample_rate)])-np.linalg.norm(uVec[time_index])

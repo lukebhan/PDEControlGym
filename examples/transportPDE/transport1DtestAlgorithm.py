@@ -120,7 +120,7 @@ envRL = gym.make("PDEControlGym-TransportPDE1D", **hyperbolicParametersRL)
 num_instances = 10
 
 # For backstepping controller
-spatial = np.linspace(dx, X, int(round(X/dx)))
+spatial = np.linspace(dx, X, int(round(X/dx))+1)
 beta = solveBetaFunction(spatial, 7.35)
 
 # Load RL models. # DUMMY ARGUMENTS NEED TO BE MODIFIED
