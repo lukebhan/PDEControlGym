@@ -21,7 +21,7 @@ class PDEEnv1D(gym.Env):
         super(PDEEnv1D, self).__init__()
         # Build parameters for number of time steps and number of spatial steps
         self.nt = int(round(T/dt)+1)
-        self.nx = int(round(X/dx)+1)
+        self.nx = int(round(X/dx))
         self.dt = dt
         self.T = T
         self.dx = dx
