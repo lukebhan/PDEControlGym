@@ -1,0 +1,7 @@
+Metadata-Version: 2.2
+Name: pdecontrolgym
+Version: 0.0.1
+Requires-Dist: gymnasium
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Dynamic: requires-dist
