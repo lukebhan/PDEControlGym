@@ -15,3 +15,8 @@ For style guidelines, we use <a href=https://github.com/psf/black>black</a> as o
 #### Documentation
 Contributions to the documentation are always welcome. The documentation is built on Sphinx using autobuild. Please ensure that your contribution to the documentation is not insignificant (ie a small one line typo is not something worth spending time on, but explaining all the parameters of a new feature certainly is).
 
+To setup the documentation, download the packages in the requirements.txt. Then, one can run the documentation locally from the \docs\ folder with
+```
+sphinx-autobuild source build
+```
+
