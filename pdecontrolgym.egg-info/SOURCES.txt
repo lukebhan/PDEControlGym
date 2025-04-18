@@ -22,3 +22,4 @@ pdecontrolgym.egg-info/SOURCES.txt
 pdecontrolgym.egg-info/dependency_links.txt
 pdecontrolgym.egg-info/requires.txt
 pdecontrolgym.egg-info/top_level.txt
+pdecontrolgym.egg-info/.ipynb_checkpoints/requires-checkpoint.txt
