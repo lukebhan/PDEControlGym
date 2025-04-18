@@ -9,5 +9,9 @@ register(
 )
 
 register(
+    id="PDEControlGym-TrafficPDE1D", entry_point="pde_control_gym.src:TrafficPDE1D"
+)
+
+register(
     id="PDEControlGym-NavierStokes2D", entry_point="pde_control_gym.src:NavierStokes2D"
 )
