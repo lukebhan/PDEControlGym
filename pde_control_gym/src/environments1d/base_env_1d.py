@@ -18,7 +18,7 @@ class PDEEnv1D(gym.Env):
     :param normalize: Chooses whether to take action inputs between -1 and 1 and normalize them to betwen (``-max_control_value``, ``max_control_value``) or to leave inputs unaltered. ``max_control_value`` is environment specific so please see the environment for details. 
     """
     def __init__(self, T: float, dt: float, X: float, dx: float, reward_class: Type[BaseReward], normalize: bool = False):
-        super().__init__()
+        super(PDEEnv1D, self).__init__()
         # Build parameters for number of time steps and number of spatial steps
         self.nt = int(round(T/dt)+1)
         self.nx = int(round(X/dx))

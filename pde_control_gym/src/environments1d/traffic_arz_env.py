@@ -5,7 +5,7 @@ from typing import Callable, Optional
 from pde_control_gym.src.environments1d.base_env_1d import PDEEnv1D
 from pde_control_gym.src.environments1d.traffic_arz_utils import Veq, F_r, F_y
 
-class TrafficPDE(PDEEnv1D):
+class TrafficPDE1D(PDEEnv1D):
     r""" 
     Traffic ARZ PDE
 
@@ -85,10 +85,11 @@ class TrafficPDE(PDEEnv1D):
         self.observation_space = spaces.Box(low=0, high=40, shape=(2 * self.M,), dtype="float64")
 
         #Action space
-        if self.simulation_type == 1 or self.simulation_type == 2 or self.simulation_type == 4 or self.simulation_type == 5 or self.simulation_type == 6 or self.simulation_type == 7:
-            self.action_space = spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(1,))
-        elif self.simulation_type == 3:
+        if self.simulation_type == 3:
             self.action_space = spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(2,))
+        else:
+            self.action_space = spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(1,))
+            
 
 
 
@@ -136,12 +137,13 @@ class TrafficPDE(PDEEnv1D):
         self.time_index += dt
         qs_input = action
         
-        if self.simulation_type == 1 or self.simulation_type == 2 or self.simulation_type == 4 or self.simulation_type == 5 or self.simulation_type == 6 or self.simulation_type == 7:
-            qs_input = np.clip(qs_input, a_min=self.action_space.low, a_max=self.action_space.high)[0]
-        else:
+        if self.simulation_type == 3:
             qs_input = np.clip(qs_input, a_min=self.action_space.low, a_max=self.action_space.high)
             q_inlet_input = qs_input[0]
             q_outlet_input = qs_input[1]
+
+        else:
+            qs_input = np.clip(qs_input, a_min=self.action_space.low, a_max=self.action_space.high)[0]
 
         #PDE control at inlet
         if self.simulation_type == 1 or self.simulation_type == 4 or self.simulation_type == 6:
@@ -190,11 +192,6 @@ class TrafficPDE(PDEEnv1D):
 
         # Calculate Velocity
         self.v = self.y/self.r + Veq(self.vm, self.rm, self.r)
-
-        # Reward
-        # v_desired = self.vs_desired  # vs
-        # r_desired = self.rs_desired  # rs
-        # reward = -(np.linalg.norm(self.v - v_desired, ord=None) / (v_desired) + np.linalg.norm(self.r - r_desired, ord=None) / (r_desired))
 
         reward = self.reward_class.reward(self.vs_desired, self.rs_desired, self.v, self.r)
         

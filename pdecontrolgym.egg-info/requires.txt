@@ -1,3 +1,0 @@
-gymnasium
-numpy
-matplotlib

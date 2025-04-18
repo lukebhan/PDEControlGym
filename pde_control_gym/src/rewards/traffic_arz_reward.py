@@ -4,7 +4,7 @@ import numpy as np
 
 class TrafficARZReward(BaseReward):
     """
-    TunedReward1D
+    TrafficARZReward
 
     This is a custom reward used for evaluating the action taken by traffic controller with respect to steady velocity and density
     """

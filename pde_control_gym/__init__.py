@@ -9,7 +9,7 @@ register(
 )
 
 register(
-    id="PDEControlGym-TrafficPDE", entry_point="pde_control_gym.src:TrafficPDE"
+    id="PDEControlGym-TrafficPDE1D", entry_point="pde_control_gym.src:TrafficPDE1D"
 )
 
 register(
