@@ -4,6 +4,7 @@ from gymnasium import spaces
 from typing import Callable, Optional
 from pde_control_gym.src.environments1d.base_env_1d import PDEEnv1D
 from pde_control_gym.src.environments1d.traffic_arz_utils import Veq, F_r, F_y
+import random
 
 class TrafficPDE1D(PDEEnv1D):
     r""" 
@@ -25,6 +26,9 @@ class TrafficPDE1D(PDEEnv1D):
                  v_max: float = 40,
                  ro_max: float = 0.16,
                  tau: float = 60,
+                 limit_pde_state_size: bool = False,
+                 control_freq: int = 1,
+                 reward_buffer_size: int = 1,
                  **kwargs):
         super().__init__(**kwargs)
         
@@ -33,14 +37,10 @@ class TrafficPDE1D(PDEEnv1D):
         self.rm = ro_max
         self.qm = v_max * ro_max/4
         self.tau = tau
-
-        if v_steady != Veq(v_max, ro_max, ro_steady):
-            raise ValueError('The steady state velocity and density do not satisfy the equilibrium condition. Check the values of v_steady and ro_steady and ensure that they obey v_steady = v_max(1 - ro_steady/v_max).')
-        self.vs = v_steady
-        self.rs = ro_steady
-
-        self.qs = v_steady * ro_steady
-        self.ps = self.vm/self.rm * self.qs/self.vs
+        self.limit_pde_state_size = limit_pde_state_size
+        self.control_freq = control_freq
+        self.reward_history = []
+        self.reward_buffer_size = reward_buffer_size
         
         if self.simulation_type == 'outlet':
             print('Case 1: Outlet Boundary Control')
@@ -48,9 +48,27 @@ class TrafficPDE1D(PDEEnv1D):
             print('Case 2: Inlet Boundary Control')
         elif self.simulation_type == 'both':
             print('Case 3: Outlet & Inlet Boundary Control')
+        elif self.simulation_type == 'inlet-train':
+            print('Case 4: Inlet training')
+        elif self.simulation_type == 'outlet-train':
+            print('Case 5: Outlet training')
         else:
             raise ValueError('Invalid simulation type')      
-    
+
+        if self.simulation_type == 'inlet' or self.simulation_type == 'outlet' or self.simulation_type == 'both':
+            if v_steady != Veq(v_max, ro_max, ro_steady):
+                raise ValueError('The steady state velocity and density do not satisfy the equilibrium condition. Check the values of v_steady and ro_steady and ensure that they obey v_steady = v_max(1 - ro_steady/v_max).')
+            self.vs = v_steady
+            self.rs = ro_steady
+            self.qs = v_steady * ro_steady
+            self.ps = self.vm/self.rm * self.qs/self.vs
+        else:
+            rand_index = random.randint(0, 2)
+            rs_values = {0: 0.115, 1: 0.12, 2: 0.125}
+            self.rs = rs_values[rand_index]
+            self.vs = Veq(self.vm, self.rm, self.rs)
+            self.qs = self.rs * self.vs
+        print(self.rs,self.vs)
         x = np.arange(0,self.X+self.dx,self.dx)
         self.L = self.X
         self.M = len(x)
@@ -68,16 +86,33 @@ class TrafficPDE1D(PDEEnv1D):
         self.info = dict()
         self.info['V'] = self.v
 
-	    # Observation space
-        self.observation_space = spaces.Box(low=0, high=40, shape=(2 * self.M,), dtype="float64")
+	    # # Observation space40.0
+        # low = np.array([-self.rm] * self.M + [-self.vm] * self.M, dtype=np.float64)
+        # high = np.array([2*self.rm] * self.M + [2*self.vm] * self.M, dtype=np.float64)
+        # self.observation_space = spaces.Box(low=low, high=high, dtype=np.float64)
+
+        self.observation_space  = spaces.Box(low=-10, high=10, shape=(2 * self.M,), dtype=np.float64)
+
+        # self.observation_space  = spaces.Box(low=0, high=40, shape=(2 * self.M,), dtype=np.float64) #spaces.Box(low=-2, high=2*qm, shape=(2 * M,), dtype=np.float32)
 
         #Action space
         if self.simulation_type == 'both':
             self.action_space = spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(2,))
         else:
             self.action_space = spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(1,))
-            
 
+  #   @property
+  #   def observation_space(self):
+  #       return spaces.Box(low=-10, high=10, shape=(2 * self.M,), dtype=np.float64)
+		# # return spaces.Box(low=-2, high=2*qm, shape=(2 * M,), dtype=np.float32)
+
+  #   @property
+  #   def action_space(self):
+  #       if self.simulation_type == 'both':
+  #           return spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(2,))
+  #       else:
+  #           return spaces.Box(dtype=np.float64, low = self.qs * 0.8, high = 1.2 * self.qs, shape=(1,))
+        
 
 
     def terminate(self):
@@ -98,10 +133,21 @@ class TrafficPDE1D(PDEEnv1D):
 
         Determines whether to truncate the episode based on the PDE state size and the vairable ``limit_pde_state_size`` given in the PDE environment intialization.
         """
-        if all(self.r - self.rs == 0) and all(self.v - self.vs == 0):
+        if (self.limit_pde_state_size and (np.any(self.v > self.vm) or np.any(self.r > self.rm))):
+            # if np.any(self.v > self.vm):
+            #     s= 'v'
+            # elif np.any(self.r > self.rm):
+            #     s = 'r'
+            # else:
+            #     s= 'both'
+            # print("Truncating --- max values reached "+s)
+            # # self.reset()
+            return True
+        elif np.all(self.r - self.rs == 0) and np.all(self.v - self.vs == 0):
             return True
         else:
             return False
+
 
 
     def step(self, action):
@@ -132,12 +178,47 @@ class TrafficPDE1D(PDEEnv1D):
         else:
             qs_input = np.clip(qs_input, a_min=self.action_space.low, a_max=self.action_space.high)[0]
 
+       #  if int(self.time_index/dt) % self.control_freq == 0:
+       #      # print(self.time_index)
+       #      #PDE control at inlet
+       #      if self.simulation_type == 'outlet' or self.simulation_type == 'outlet-train':
+    			# # Fixed inlet boundary input
+       #          self.q_inlet = self.qs
+    
+       #      elif self.simulation_type == 'inlet' or self.simulation_type == 'inlet-train':
+    			# # Control inlet boundary 
+       #          self.q_inlet = qs_input
+    
+       #      elif self.simulation_type == 'both':
+       #          # Control inlet boundary 
+       #          self.q_inlet = q_inlet_input
+    
+    
+       #  # Boundary conditions
+       #  self.r[0] = self.r[1]
+       #  self.y[0] = self.qs - self.r[0] * Veq(self.vm, self.rm, self.r[0])
+       #  self.r[self.M-1] = self.r[self.M-2]
+
+       #  if int(self.time_index/dt) % self.control_freq == 0:
+       #      # PDE control at outlet
+       #      if self.simulation_type == 'outlet':
+       #          # Control outlet boundary 
+       #          self.y[self.M-1] = qs_input - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
+            
+       #      elif self.simulation_type == 'inlet':
+       #          # Fixed outlet boundary 
+       #          self.y[self.M-1] = self.qs - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
+            
+       #      elif self.simulation_type == 'both':
+       #          # Control outlet boundary 
+       #          self.y[self.M-1] = q_outlet_input - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
+
         #PDE control at inlet
-        if self.simulation_type == 'outlet':
+        if self.simulation_type == 'outlet' or self.simulation_type == 'outlet-train':
 			# Fixed inlet boundary input
             self.q_inlet = self.qs
 
-        elif self.simulation_type == 'inlet':
+        elif self.simulation_type == 'inlet' or self.simulation_type == 'inlet-train':
 			# Control inlet boundary 
             self.q_inlet = qs_input
 
@@ -151,38 +232,81 @@ class TrafficPDE1D(PDEEnv1D):
         self.r[self.M-1] = self.r[self.M-2]
 
         # PDE control at outlet
-        if self.simulation_type == 'outlet':
+        if self.simulation_type == 'outlet' or self.simulation_type == 'outlet-train':
             # Control outlet boundary 
             self.y[self.M-1] = qs_input - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
         
-        elif self.simulation_type == 'inlet':
+        elif self.simulation_type == 'inlet' or self.simulation_type == 'inlet-train':
             # Fixed outlet boundary 
             self.y[self.M-1] = self.qs - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
         
         elif self.simulation_type == 'both':
             # Control outlet boundary 
             self.y[self.M-1] = q_outlet_input - self.r[self.M-1]* Veq(self.vm, self.rm, self.r[self.M-1])
-        
+            
         #Finite differencing of PDEs
-        for j in range(1,self.M-1) :
+        r_jm1 = self.r[0:self.M-2]
+        r_j   = self.r[1:self.M-1]
+        r_jp1 = self.r[2:self.M]
+        
+        y_jm1 = self.y[0:self.M-2]
+        y_j   = self.y[1:self.M-1]
+        y_jp1 = self.y[2:self.M]
+        
+        # Compute midpoint values
+        r_pmid = 0.5 * (r_jp1 + r_j) - (dt / (2 * dx)) * (F_r(self.vm, self.rm, r_jp1, y_jp1) - F_r(self.vm, self.rm, r_j, y_j))
+        r_mmid = 0.5 * (r_jm1 + r_j) - (dt / (2 * dx)) * (F_r(self.vm, self.rm, r_j, y_j) - F_r(self.vm, self.rm, r_jm1, y_jm1))
+        
+        y_pmid = (
+            0.5 * (y_jp1 + y_j)
+            - (dt / (2 * dx)) * (F_y(self.vm, self.rm, r_jp1, y_jp1) - F_y(self.vm, self.rm, r_j, y_j))
+            - 0.25 * dt / self.tau * (y_jp1 + y_j)
+        )
+        
+        y_mmid = (
+            0.5 * (y_jm1 + y_j)
+            - (dt / (2 * dx)) * (F_y(self.vm, self.rm, r_j, y_j) - F_y(self.vm, self.rm, r_jm1, y_jm1))
+            - 0.25 * dt / self.tau * (y_jm1 + y_j)
+        )
+        
+        # Update values in the inner domain
+        self.r[1:self.M-1] -= (dt / dx) * (F_r(self.vm, self.rm, r_pmid, y_pmid) - F_r(self.vm, self.rm, r_mmid, y_mmid))
+        self.y[1:self.M-1] -= (
+            (dt / dx) * (F_y(self.vm, self.rm, r_pmid, y_pmid) - F_y(self.vm, self.rm, r_mmid, y_mmid))
+            + 0.5 * dt / self.tau * (y_pmid + y_mmid)
+        )
 
-            r_pmid = 1/2 * (self.r[j+1] + self.r[j]) - dt/(2 * dx) * ( F_r(self.vm, self.rm, self.r[j+1], self.y[j+1]) - F_r(self.vm, self.rm, self.r[j], self.y[j]) )
-
-            y_pmid = 1/2 * (self.y[j+1] + self.y[j]) - dt/(2 * dx) * ( F_y(self.vm, self.rm, self.r[j+1], self.y[j+1]) - F_y(self.vm, self.rm, self.r[j], self.y[j])) - 1/4 * dt / self.tau * (self.y[j+1]+self.y[j])
-
-            r_mmid = 1/2 * (self.r[j-1 ] + self.r[j]) - dt/(2 * dx) * ( F_r(self.vm, self.rm, self.r[j], self.y[j]) - F_r(self.vm, self.rm, self.r[j-1], self.y[j-1]))
-
-            y_mmid = 1/2 * (self.y[j-1] + self.y[j]) - dt/(2 * dx) * ( F_y(self.vm, self.rm, self.r[j], self.y[j]) - F_y(self.vm, self.rm, self.r[j-1], self.y[j-1])) - 1/4 * dt / self.tau * (self.y[j-1]+self.y[j])
-
-            self.r[j] = self.r[j] - dt/dx * (F_r(self.vm, self.rm, r_pmid, y_pmid) - F_r(self.vm, self.rm, r_mmid, y_mmid))
-            self.y[j] = self.y[j] - dt/dx * (F_y(self.vm, self.rm, r_pmid, y_pmid) - F_y(self.vm, self.rm, r_mmid, y_mmid)) - 1/2 * dt/self.tau * (y_pmid + y_mmid)
-
+        
         # Calculate Velocity
-        self.v = self.y/self.r + Veq(self.vm, self.rm, self.r)
+        # eps = 1e-6
+        self.v = self.y/(self.r) + Veq(self.vm, self.rm, self.r)
+
+        # print("b",(self.v.shape),(self.r.shape))
+        # self.v = np.clip(self.v, 5, self.vm)
+        # self.r = np.clip(self.r, 0.1, self.rm)
+        # self.y = np.clip(self.y, 0.1*5, self.rm*self.vm)
+        # print("a",(self.v.shape),(self.r.shape))
 
         reward = self.reward_class.reward(self.vs, self.rs, self.v, self.r)
+
+        # if self.truncate():
+        #     reward -= 0.5
+        # elif self.terminate():
+        #     reward += 0.5
+        # print(reward)
+
+        # # Update rolling buffer
+        # self.reward_history.append(reward)
+        # if len(self.reward_history) > self.reward_buffer_size:
+        #     self.reward_history.pop(0)
         
-        return np.reshape(np.concatenate((self.r, self.v)), -1), reward, self.terminate(), self.truncate(), self.info
+        # # Compute rolling average reward
+        # reward = np.mean(self.reward_history)
+        
+        if self.simulation_type == 'outlet-train':
+            return np.reshape(np.concatenate(((self.r-self.rs)/self.rs, (self.v-self.vs)/self.vs)), -1), reward, self.terminate(), self.truncate(), self.info
+        else:
+            return np.reshape(np.concatenate((self.r, self.v)), -1), reward, (self.terminate() or reward > -0.00023), self.truncate(), self.info
 
 
     def reset(self, seed: Optional[int]=None, options: Optional[dict]=None):
@@ -194,11 +318,20 @@ class TrafficPDE1D(PDEEnv1D):
         :return: A tuple of (observation, info).
         """
 
+        # print("Resetting env")
+        
         x = np.arange(0,self.X+self.dx,self.dx)
         self.r = np.zeros([self.M,1])
         self.y = np.zeros([self.M,1])
 
+        if self.simulation_type == 'outlet-train':
+            rand_index = random.randint(0, 2)
+            rs_values = {0: 0.115, 1: 0.12, 2: 0.125}
+            self.rs = rs_values[rand_index]
+            self.vs = Veq(self.vm, self.rm, self.rs)
+            self.qs = self.rs * self.vs
 
+        print("Resetting env",self.rs,self.vs)
         #Initial condition of the PDE
         self.r = self.rs * np.transpose(np.sin(3 * x / self.L * np.pi ) * 0.1 + np.ones([1,self.M]))
         self.y = self.qs * np.ones([self.M,1]) - self.vm * self.r + self.vm / self.rm * (self.r)**(2)
