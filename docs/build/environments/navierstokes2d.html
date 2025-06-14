@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navier-Stokes 2D PDE &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Traffic ARZ 1D PDE" href="Trafficarz1d.html" />
+    <link rel="prev" title="Reaction-Diffusion 1D PDE" href="parabolic-1d.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Navier-Stokes 2D PDE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pde_control_gym.src.environments2d.NavierStokes2D"><code class="docutils literal notranslate"><span class="pre">NavierStokes2D</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments2d.NavierStokes2D.apply_boundary"><code class="docutils literal notranslate"><span class="pre">NavierStokes2D.apply_boundary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments2d.NavierStokes2D.reset"><code class="docutils literal notranslate"><span class="pre">NavierStokes2D.reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments2d.NavierStokes2D.solve_pressure"><code class="docutils literal notranslate"><span class="pre">NavierStokes2D.solve_pressure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments2d.NavierStokes2D.step"><code class="docutils literal notranslate"><span class="pre">NavierStokes2D.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#numerical-implementation">Numerical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Navier-Stokes 2D PDE</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environments/navierstokes2d.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="navier-stokes-2d-pde">
+<span id="module-pde_control_gym.src.environments2d"></span><span id="navierstokes2d"></span><h1>Navier-Stokes 2D PDE<a class="headerlink" href="#navier-stokes-2d-pde" title="Link to this heading"></a></h1>
+<p>This documentation is for the 2D Navier-Stokes PDE Environment defined by the boundary control problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}   \begin{eqnarray}
+   &amp; \nabla \cdot \vec{u} = 0, \, \frac{\partial \vec{u}}{\partial t} + \vec{u} \cdot \nabla \vec{u} = -\frac{1}{\rho} \nabla p + \nu \nabla^2 \vec{u}, \,
+x \in [0,1], y \in [0,1], t \in [0, T]   \\
+   &amp; \vec{u}(x, 0, t) = U(x,t), \quad \forall x \in [0,1], t \in [0, T] \\
+   &amp; \vec{u}(x, 1, t) = \vec{u}(1, y, t) = \vec{u}(0, y, t) = 0, \forall x \in [0,1], y \in [0,1], t \in [0,T]
+   \end{eqnarray}\end{split}\]</div>
+<p>with boundary control input in the top boundary and the velocity at all other boundaries is set to be zero. We incorporate a predictor-corrector scheme for the imcompressive Navier Stokes equations. In the scheme, we denote <span class="math notranslate nohighlight">\(\vec{u} = (u(x,y), v(x,y))\)</span> is the velocity vector, and <span class="math notranslate nohighlight">\((x,y)\)</span> is the spatial position.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments2d.NavierStokes2D">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pde_control_gym.src.environments2d.</span></span><span class="sig-name descname"><span class="pre">NavierStokes2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_init_condition_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_condition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">U_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viscosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_pressure_iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments2d/navier_stokes2D.html#NavierStokes2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments2d.NavierStokes2D" title="Link to this definition"></a></dt>
+<dd><p>NavierStokes equations 2D
+This class implements the 2D NavierStokes PDE and inhertis from the class <code class="xref py py-class docutils literal notranslate"><span class="pre">PDEEnv2D</span></code>. Thus, for a full list of of arguments, first see the class <code class="xref py py-class docutils literal notranslate"><span class="pre">PDEEnv2D</span></code> in conjunction with the arguments presented here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reset_init_condition_func</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]</span>) – Takes in a function used during the reset method for setting the initial PDE condition <span class="math notranslate nohighlight">\(U(x, y, 0)=[u(x,y,0), v(x,y,0)]\)</span>.</p></li>
+<li><p><strong>boundary_condition</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – dictionary recording that the top/bottom/left/right is at what condition: Neumann/Dirchilet/Controllable</p></li>
+<li><p><strong>U_ref</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – reference trajectory of PDEs</p></li>
+<li><p><strong>action_ref</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – reference actions of PDEs</p></li>
+<li><p><strong>viscosity</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – kinematic viscosity value for the NavierStokes PDE</p></li>
+<li><p><strong>dentisty</strong> – density value for pressure field in the NavierStokes PDE</p></li>
+<li><p><strong>maximum_pressure_iteration</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – the maximum iterations to solve for the pressure field</p></li>
+<li><p><strong>stable_factor</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – the stability factor for the stability of NavierStokes</p></li>
+<li><p><strong>density</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments2d.NavierStokes2D.apply_boundary">
+<span class="sig-name descname"><span class="pre">apply_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments2d/navier_stokes2D.html#NavierStokes2D.apply_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments2d.NavierStokes2D.apply_boundary" title="Link to this definition"></a></dt>
+<dd><p>Each time solving the PDE, we apply the boundary conditions to u and v</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – <span class="math notranslate nohighlight">\(u(x,y)\)</span></p></li>
+<li><p><strong>v</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – <span class="math notranslate nohighlight">\(v(x,y)\)</span></p></li>
+<li><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]</span>) – action performed by reinforcement learning</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments2d.NavierStokes2D.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments2d/navier_stokes2D.html#NavierStokes2D.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments2d.NavierStokes2D.reset" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Allows a seed for initialization of the envioronment to be set for RL algorithms.</p></li>
+<li><p><strong>options</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</span>) – Allows a set of options for the initialization of the environment to be set for RL algorithms.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Resets the PDE at the start of each environment according to the parameters given during the PDE environment intialization</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments2d.NavierStokes2D.solve_pressure">
+<span class="sig-name descname"><span class="pre">solve_pressure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments2d/navier_stokes2D.html#NavierStokes2D.solve_pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments2d.NavierStokes2D.solve_pressure" title="Link to this definition"></a></dt>
+<dd><p>Solving pressure</p>
+<p>Usinf an iterative approach to solve pressure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>v</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>p_prev</strong> (<em>ndarray</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments2d.NavierStokes2D.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments2d/navier_stokes2D.html#NavierStokes2D.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments2d.NavierStokes2D.step" title="Link to this definition"></a></dt>
+<dd><p>Moves the PDE with control action forward <code class="docutils literal notranslate"><span class="pre">dt</span></code> steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]</span>) – the control action to apply to the PDE at the boundary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="numerical-implementation">
+<h2>Numerical Implementation<a class="headerlink" href="#numerical-implementation" title="Link to this heading"></a></h2>
+<p>We use the predictor-corrector step to solve the Navier-Stokes 2D problem. The pressure field is solve in an iterative manner.</p>
+<p>First, the predictor step.</p>
+<div class="math notranslate nohighlight">
+\begin{eqnarray}
+u^*_{i,j} &amp;= u^n_{i,j} + \Delta t (\nu(\frac{u^n_{i-1,j} - 2 u^n_{i,j} + u^n_{i+1,j}}{(\Delta x)^2} + \frac{u^n_{i,j-1} -2u^n_{i,j}+u^n_{i,j+1}}{(\Delta y)^2}))  \\
+&amp;\quad\quad\quad - \Delta t (u^{n}_{i,j}\frac{u^n_{i+1,j}-u^n_{i-1,j}}{2\Delta x} + v^{n}_{i,j}\frac{u^n_{i,j+1} - u^{n}_{i,j-1}}{2 \Delta y})), \\
+v^*_{i,j} &amp;= v^{n}_{i,j} + \Delta t (\nu(\frac{v^{n}_{i-1,j} - 2 v^{n}_{i,j} + v^{n}_{i+1,j}}{(\Delta x)^2} + \frac{v^{n}_{i,j-1} -2v^{n}_{i,j}+v^{n}_{i,j+1}}{(\Delta y)^2}))  \\
+&amp; \quad\quad\quad - \Delta t (u^{n}_{i,j}\frac{v^{n}_{i+1,j}-v^{n}_{i-1,j}}{2\Delta x} + v^{n}_{i,j}\frac{v^{n}_{i,j+1} - v^{n}_{i,j-1}}{2 \Delta y})
+\end{eqnarray}</div><p>Second, solve the pressure for the continuity condition.</p>
+<div class="math notranslate nohighlight">
+\begin{eqnarray}
+\nabla^2 p = \frac{\partial^2 p}{\partial x^2} +  \frac{\partial^2 p}{\partial y^2} = -\rho (\frac{\partial^2 u}{\partial x^2} + 2 \frac{\partial u}{\partial x}\frac{\partial v}{\partial y} + \frac{\partial^2 v}{\partial y^2})
+\end{eqnarray}</div><p>Third, perform the corrector step.</p>
+<div class="math notranslate nohighlight">
+\begin{eqnarray}
+&amp;  u^{n+1}_{i,j} = u^*_{i,j} - \Delta t \cdot \frac{1}{\rho} \frac{p^*_{i+1,j}-p^*_{i-1,j}}{2\Delta x} \\
+&amp;  v^{n+1}_{i,j} = v^*_{i,j} - \Delta t \cdot \frac{1}{\rho} \frac{p^*_{i,j+1} - p^*_{i,j-1}}{\Delta y}
+\end{eqnarray}</div><p>We apply boundary conditions every time step after the predictor step and corrector step.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parabolic-1d.html" class="btn btn-neutral float-left" title="Reaction-Diffusion 1D PDE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Trafficarz1d.html" class="btn btn-neutral float-right" title="Traffic ARZ 1D PDE" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

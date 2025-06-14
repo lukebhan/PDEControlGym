@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pde_control_gym.src.environments1d.parabolic &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pde_control_gym.src.environments1d.parabolic</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pde_control_gym.src.environments1d.parabolic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="kn">import</span> <span class="n">spaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pde_control_gym.src.environments1d.base_env_1d</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDEEnv1D</span>
+
+<div class="viewcode-block" id="ReactionDiffusionPDE1D">
+<a class="viewcode-back" href="../../../../environments/parabolic-1d.html#pde_control_gym.src.environments1d.ReactionDiffusionPDE1D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReactionDiffusionPDE1D</span><span class="p">(</span><span class="n">PDEEnv1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Reaction-Diffusion PDE 1D</span>
+
+<span class="sd">    This class implements the 1D Reaction-Diffusion PDE and inhertis from the class :class:`PDEEnv1D`. Thus, for a full list of of arguments, first see the class :class:`PDEEnv1D` in conjunction with the arguments presented here</span>
+
+<span class="sd">    :param sensing_noise_func: Takes in a function that can add sensing noise into the system. Must return the same sensing vector as given as a parameter.</span>
+<span class="sd">    :param reset_init_condition_func: Takes in a function used during the reset method for setting the initial PDE condition :math:`u(x, 0)`.</span>
+<span class="sd">    :param reset_recirculation_func: Takes in a function used during the reset method for setting the initial plant parameter :math:`\beta` vector at the start of each epsiode.</span>
+<span class="sd">    :param sensing_loc: Sets the sensing location as either ``&quot;full&quot;``, ``&quot;collocated&quot;``, or ``&quot;opposite&quot;`` which indicates whether the full state, the boundary at the same side of the control, or boundary at the opposite side of control is given as the observation at each time step.</span>
+<span class="sd">    :param control_type: The control location can either be given as a ``&quot;Dirchilet&quot;`` or ``&quot;Neumann&quot;`` boundary conditions and is always at the ``X`` point. </span>
+<span class="sd">    :param sensing_type: Only used when ``sensing_loc`` is set to ``opposite``. In this case, the sensing can be either given as ``&quot;Dirchilet&quot;`` or ``&quot;Neumann&quot;`` and is given at the ``0`` point.</span>
+<span class="sd">    :param limit_pde_state_size: This is a boolean which will terminate the episode early if :math:`\|u(x, t)\|_{L_2} \geq` ``max_state_value``.</span>
+<span class="sd">    :param max_state_value: Only used when ``limit_pde_state_size`` is ``True``. Then, this sets the value for which the :math:`L_2` norm of the PDE will be compared to at each step asin ``limit_pde_state_size``.</span>
+<span class="sd">    :param max_control_value: Sets the maximum control value input as between [``-max_control_value``, ``max_control_value``] and is used in the normalization of action inputs.</span>
+<span class="sd">    :param control_sample_rate: Sets the sample rate at which the controller is applied to the PDE. This allows the PDE to be simulated at a smaller resolution then the controller.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensing_noise_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                 <span class="n">reset_init_condition_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                 <span class="n">reset_recirculation_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> 
+                 <span class="n">sensing_loc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span>
+                 <span class="n">control_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">,</span> 
+                 <span class="n">sensing_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">,</span> 
+                 <span class="n">limit_pde_state_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">max_state_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e10</span><span class="p">,</span> 
+                 <span class="n">max_control_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> 
+                 <span class="n">control_sample_rate</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_noise_func</span> <span class="o">=</span> <span class="n">sensing_noise_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_init_condition_func</span> <span class="o">=</span> <span class="n">reset_init_condition_func</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_recirculation_func</span> <span class="o">=</span> <span class="n">reset_recirculation_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_loc</span> <span class="o">=</span> <span class="n">sensing_loc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_type</span> <span class="o">=</span> <span class="n">control_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_type</span> <span class="o">=</span> <span class="n">sensing_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limit_pde_state_size</span> <span class="o">=</span> <span class="n">limit_pde_state_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span> <span class="o">=</span> <span class="n">max_state_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_control_value</span> <span class="o">=</span> <span class="n">max_control_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_sample_rate</span> <span class="o">=</span> <span class="n">control_sample_rate</span>
+        <span class="c1"># Observation space changes depending on sensing</span>
+        <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensing_loc</span><span class="p">:</span>
+            <span class="k">case</span> <span class="s2">&quot;full&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">case</span> <span class="s2">&quot;collocated&quot;</span> <span class="o">|</span> <span class="s2">&quot;opposite&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid sensing_loc parameter. Please use &#39;full&#39;, &#39;collocated&#39;, or &#39;opposite&#39;. See documentation for details.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Setup configurations for control and sensing. Messy, but done once, explicitly before runtime to setup return and control functions</span>
+        <span class="c1"># There is a trick here where noise is a function call itself. Important that noise is a single argument function that returns a single argument</span>
+        <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_type</span><span class="p">:</span>
+            <span class="k">case</span> <span class="s2">&quot;Neumann&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">control</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">:</span> <span class="n">control</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">state</span>
+                <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensing_loc</span><span class="p">:</span>
+                    <span class="c1"># Neumann control u_x(1), full state measurement</span>
+                    <span class="k">case</span> <span class="s2">&quot;full&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+                    <span class="c1"># Neumann control u_x(1), Dirchilet sensing u(1)</span>
+                    <span class="k">case</span> <span class="s2">&quot;collocated&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">case</span> <span class="s2">&quot;opposite&quot;</span><span class="p">:</span>
+                        <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensing_type</span><span class="p">:</span>
+                            <span class="c1"># Neumann control u_x(1), Neumann sensing u_x(0)</span>
+                            <span class="k">case</span> <span class="s2">&quot;Neumann&quot;</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span>
+                                    <span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">dx</span>
+                                <span class="p">)</span>
+                            <span class="c1"># Neumann control u_x(1), Dirchilet sensing u(0)</span>
+                            <span class="k">case</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;In the parabolic PDE system, u(0, t)=0 and so Dirchilet sensing at u(0, t) is not viable. See documentation for details.&quot;</span><span class="p">)</span>
+                            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                                    <span class="s2">&quot;Invalid sensing_type parameter. Please use &#39;Neumann&#39; or &#39;Dirchilet&#39;. See documentation for details.&quot;</span>
+                                <span class="p">)</span>
+                    <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid sensing_loc parameter. Please use &#39;full&#39;, &#39;collocated&#39;, or &#39;opposite&#39;. See documentation for details.&quot;</span>
+                        <span class="p">)</span>
+            <span class="k">case</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">control</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="n">control</span>
+                <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensing_loc</span><span class="p">:</span>
+                    <span class="c1"># Dichilet control u(1), full state measurement</span>
+                    <span class="k">case</span> <span class="s2">&quot;full&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+                    <span class="c1"># Dichilet control u(1), Neumann sensing u_x(1): Please pass both an initial condition and a recirculation function in the parameters dictionary. See documentation for more details</span>
+                    <span class="k">case</span> <span class="s2">&quot;collocated&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">state</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">dx</span>
+                        <span class="p">)</span>
+                    <span class="k">case</span> <span class="s2">&quot;opposite&quot;</span><span class="p">:</span>
+                        <span class="k">match</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensing_type</span><span class="p">:</span>
+                            <span class="c1"># Dichilet control u(1), Neumann sensing u_x(0)</span>
+                            <span class="k">case</span> <span class="s2">&quot;Neumann&quot;</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="n">noise</span><span class="p">(</span>
+                                    <span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">dx</span>
+                                <span class="p">)</span>
+                            <span class="c1"># Dirchilet control u(1), Dirchilet sensing u(0)</span>
+                            <span class="k">case</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;In the parabolic PDE system, u(0, t)=0 and so Dirchilet sensing at u(0, t) is not viable. See documentation for details.&quot;</span><span class="p">)</span>
+                            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                                    <span class="s2">&quot;Invalid sensing_type parameter. Please use &#39;Neumann&#39; or &#39;Dirchilet&#39;. See documentation for details.&quot;</span>
+                                <span class="p">)</span>
+            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid control_type parameter. Please use &#39;Neumann&#39; or &#39;Dirchilet&#39;. See documentation for details.&quot;</span>
+                <span class="p">)</span>
+        <span class="c1"># Add ghost point nx+1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ReactionDiffusionPDE1D.step">
+<a class="viewcode-back" href="../../../../environments/parabolic-1d.html#pde_control_gym.src.environments1d.ReactionDiffusionPDE1D.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        step</span>
+
+<span class="sd">        Moves the PDE with control action forward ``control_sample_rate*dt`` steps.</span>
+
+<span class="sd">        :param control: The control input to apply to the PDE at the boundary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control_sample_rate</span><span class="o">/</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">F</span> <span class="o">=</span> <span class="n">dt</span><span class="o">/</span><span class="p">(</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Actions are applied at a slower rate then the PDE is simulated at</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sample_rate</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="n">Nx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="n">Nx</span><span class="p">]</span> <span class="o">+</span>  \
+                      <span class="n">F</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">Nx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="n">Nx</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="n">Nx</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span><span class="n">dt</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">Nx</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="n">Nx</span><span class="p">]</span>
+            <span class="c1"># Explicit u(0, t) = 0 BC</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># Explicit update of u according to finite difference derivation</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">control_update</span><span class="p">(</span>
+                <span class="n">control</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_control_value</span>
+            <span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">terminate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="n">truncate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sensing_noise_func</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reward_class</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">terminate</span><span class="p">,</span>
+            <span class="n">truncate</span><span class="p">,</span> 
+            <span class="p">{},</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        terminate</span>
+
+<span class="sd">        Determines whether the episode should end if the ``T`` timesteps are reached</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">truncate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        truncate </span>
+
+<span class="sd">        Determines whether to truncate the episode based on the PDE state size and the vairable ``limit_pde_state_size`` given in the PDE environment intialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">limit_pde_state_size</span>
+            <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>  <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_state_value</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Resets the system state</span>
+<div class="viewcode-block" id="ReactionDiffusionPDE1D.reset">
+<a class="viewcode-back" href="../../../../environments/parabolic-1d.html#pde_control_gym.src.environments1d.ReactionDiffusionPDE1D.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        reset </span>
+
+<span class="sd">        :param seed: Allows a seed for initialization of the envioronment to be set for RL algorithms.</span>
+<span class="sd">        :param options: Allows a set of options for the initialization of the environment to be set for RL algorithms.</span>
+
+<span class="sd">        Resets the PDE at the start of each environment according to the parameters given during the PDE environment intialization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">init_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset_init_condition_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+            <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset_recirculation_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;Please pass both an initial condition and a recirculation function in the parameters dictionary. See documentation for more details&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sensing_update</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sensing_noise_func</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="p">{},</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

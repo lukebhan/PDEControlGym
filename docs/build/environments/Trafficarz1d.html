@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traffic ARZ 1D PDE &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="1D Custom Environments" href="../custom_environments/1dbaseenvironment.html" />
+    <link rel="prev" title="Navier-Stokes 2D PDE" href="navierstokes2d.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Traffic ARZ 1D PDE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pde_control_gym.src.environments1d.TrafficPDE1D"><code class="docutils literal notranslate"><span class="pre">TrafficPDE1D</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments1d.TrafficPDE1D.reset"><code class="docutils literal notranslate"><span class="pre">TrafficPDE1D.reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments1d.TrafficPDE1D.step"><code class="docutils literal notranslate"><span class="pre">TrafficPDE1D.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#numerical-implementation">Numerical implementation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Traffic ARZ 1D PDE</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environments/Trafficarz1d.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="traffic-arz-1d-pde">
+<span id="module-pde_control_gym.src.environments1d"></span><span id="trafficarz1d"></span><h1>Traffic ARZ 1D PDE<a class="headerlink" href="#traffic-arz-1d-pde" title="Link to this heading"></a></h1>
+<p>This documentation provides a detailed description of the ARZ PDE model for traffic control and its implementation.</p>
+<p>Traffic congestion remains a major challenge as the world’s population is rapidly growing. One particularly common form of congestion is stop-and-go traffic, which frequently occurs on busy freeways. Stop-and-go traffic is a result of delayed drivers response to changes in traffic flow. It makes the traffic flow across a freeway similiar to ocilliatory waves and this leads to unsafe driving conditions, increased fuel consumption, and higher emissions. Thus, it is crucial to develop effective control strategies to mitigate stop-and-go traffic in freeways.</p>
+<p>The ARZ PDE model is a well-known model for simulating stop-and-go traffic behavior on freeways. It consists of a system of coupled hyperbolic PDEs that describe how traffic density evolves over time and space.</p>
+<p>Consider a freeway of length <span class="math notranslate nohighlight">\(L\)</span> simulated over a time interval <span class="math notranslate nohighlight">\(T\)</span>. Let <span class="math notranslate nohighlight">\(\rho(x, t)\)</span> denote the traffic density (vehicles per unit length) and <span class="math notranslate nohighlight">\(v(x, t)\)</span> the velocity of vehicles at a given position <span class="math notranslate nohighlight">\(x\)</span> and time <span class="math notranslate nohighlight">\(t\)</span>. The ARZ model captures the dynamics of these quantities through the following system of PDEs:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+\rho_t + (\rho v)_x &amp;= 0, \tag{1} \\
+(v - V(\rho))_t + v(v - V(\rho))_x &amp;= \frac{V(\rho) - v}{\tau} \tag{2}
+\end{align}</div><dl class="simple">
+<dt>Where,</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(V(\rho)\)</span> is the velocity-density relationship used to model the reduction of velocity with increase in traffic density,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\tau\)</span> is the relaxation time that represents the delay in the driver’s response to changes in traffic flow,</p></li>
+</ul>
+</dd>
+</dl>
+<p>The velocity-density relationship is typically modeled as a decreasing function of density, such as the Greenshield’s model:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+V(\rho) = v_m \left(1 - \frac{\rho}{\rho_{m}}\right) \tag{3}
+\end{align}</div><p>Where, <span class="math notranslate nohighlight">\(v_m\)</span> and <span class="math notranslate nohighlight">\(\rho_{m}\)</span> are the maximum permissible velocity and density on the freeway.</p>
+<p>The first equation (1) represents the conservation of vehicles which ensures that no vehicles appear or disappear within the road segment. On the otherhand second equation (2) captures the effect of velocity changes in response to traffic density variations.</p>
+<p>The primary control objective is to regulate traffic flow in freeway around a steady-state <span class="math notranslate nohighlight">\((ρ^\star, v^\star)\)</span> that satisfies the equilibrium condition <span class="math notranslate nohighlight">\(v^\star = V(ρ^\star)\)</span>. This is achieved by applying a control input <span class="math notranslate nohighlight">\(u(t)\)</span> at the boundaries <span class="math notranslate nohighlight">\(x = 0\)</span> and <span class="math notranslate nohighlight">\(x=L\)</span> (entrance and exit) of the freeway and observing the traffic density and velocity at that instant.  In practice, the most feasible parameter to control through metering at these boundaries is the traffic flux <span class="math notranslate nohighlight">\(q(x,t) = \rho(x, t) v(x, t)\)</span>, which represents the rate at which vehicles enter or exit the freeway. Thus, control action is given by:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+u(x,t) = q(x,t) = \rho(x, t) v(x, t) \tag{4}
+\end{align}</div><p>Three types of boundary control scenarios are possible for this problem:</p>
+<ol class="arabic simple">
+<li><p>Inlet control <span class="math notranslate nohighlight">\(u_{in}(t)\)</span> at the entrance <span class="math notranslate nohighlight">\((x = 0)\)</span></p></li>
+<li><p>Outlet control <span class="math notranslate nohighlight">\(u_{out}(t)\)</span> at the exit <span class="math notranslate nohighlight">\((x = L)\)</span></p></li>
+<li><p>Control at both inlet and outlet <span class="math notranslate nohighlight">\(u_{in}(t)\)</span> and <span class="math notranslate nohighlight">\(u_{out}(t)\)</span></p></li>
+</ol>
+<dl class="py class">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.TrafficPDE1D">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pde_control_gym.src.environments1d.</span></span><span class="sig-name descname"><span class="pre">TrafficPDE1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inlet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ro_steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ro_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/traffic_arz_env.html#TrafficPDE1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.TrafficPDE1D" title="Link to this definition"></a></dt>
+<dd><p>Traffic ARZ PDE</p>
+<p>This class implements the Traffic ARZ PDE and inhertis from the class <code class="xref py py-class docutils literal notranslate"><span class="pre">PDEEnv1D</span></code>. Thus, for a full list of of arguments, first see the class <code class="xref py py-class docutils literal notranslate"><span class="pre">PDEEnv1D</span></code> in conjunction with the arguments presented here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Defines the type of boundary control. Inputs ‘inlet’, ‘outlet’ and ‘both’ represents boundary control at inlet, outlet and both respectively.</p></li>
+<li><p><strong>v_max</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum permissible velocity (meters/second) on freeway under simulation</p></li>
+<li><p><strong>ro_max</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum permissible density (vehicles/meter) on freeway under simulation</p></li>
+<li><p><strong>v_steady</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Desired steady state velocity (meters/second). Ensure that v_steady and ro_steady obey the equilibrium equation v_steady = v_max(1 - ro_steady/v_max)</p></li>
+<li><p><strong>ro_steady</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Desired steady state density (vehicles/meter). Ensure that v_steady and ro_steady obey the equilibrium equation v_steady = v_max(1 - ro_steady/v_max)</p></li>
+<li><p><strong>tau</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Relaxation time (seconds) required by the driver to adjust to the new velocity</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.TrafficPDE1D.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/traffic_arz_env.html#TrafficPDE1D.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.TrafficPDE1D.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial observation and info.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Optional seed for reproducibility.</p></li>
+<li><p><strong>options</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</span>) – Optional dictionary to define initialization options.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of (observation, info).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.TrafficPDE1D.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/traffic_arz_env.html#TrafficPDE1D.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.TrafficPDE1D.step" title="Link to this definition"></a></dt>
+<dd><p>Updates the PDE state based on the action taken and returns the new state, reward, done, truncated and info. The PDE is solved using finite differencing explained in docs and the reward is computed based on the deviation from the desired density and velocity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>action</strong> – The control input to apply to the freeway at the inlet, outlet or both.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of:
+- observation (np.ndarray): The concatenated state vector containing density (<cite>r</cite>) and velocity (<cite>v</cite>) after taking action.
+- reward (float): The reward computed based on deviation from desired density and velocity after action.
+- done (bool): Whether the simulation should terminate.
+- truncated (bool): Whether the simulation was truncated as desired state has been achieved.
+- info (dict): Additional information about the current state for debugging.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="numerical-implementation">
+<h2>Numerical implementation<a class="headerlink" href="#numerical-implementation" title="Link to this heading"></a></h2>
+<p>The Traffic ARZ PDE model is simulated using the below solution. The PDEs are transformed into an auxiliary variable to recasts the second PDE into conservative form to make it solvable using finite differencing methods. We define the auxiliary variable <span class="math notranslate nohighlight">\(y\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+y = \rho (v - V(\rho)) \tag{5}
+\end{align}</div><p>Then, the velocity can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+v = \frac{y}{\rho} + V(\rho) \tag{6}
+\end{align}</div><p>The PDE in equation (1) is then transformed into:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+\rho_t + (\rho v)_x &amp;= 0 \tag{7} \\
+\rho_t + (y + \rho V(\rho))_x &amp;= 0 \tag{8} \\
+\rho_t + (F_r(\rho, v))_x &amp;= 0 \tag{9} \\
+\rho_t = -(F_r(\rho, &amp;y))_x \tag{10}
+\end{align}</div><p>Where, <span class="math notranslate nohighlight">\(F_r(\rho, v) = y + \rho V(\rho)\)</span>.</p>
+<p>The PDE in equation (2) is then transformed as follows:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+(v - V(\rho))_t + v(v - V(\rho))_x &amp;= \frac{V(\rho) - v}{\tau}  \tag{11} \\
+\rho (v - V(\rho))_t + \rho v(v - V(\rho))_x &amp;= \rho \frac{V(\rho) - v}{\tau} \tag{12} \\
+y_t  + \left( y + \left( \frac{y}{p} + V(\rho)\right)\right)_x &amp;= - \frac{y}{\tau} \tag{13} \\
+y_t  + (F_y(\rho,y))_x &amp;= - \frac{y}{\tau} \tag{14} \\
+y_t  = - (F_y(\rho,y))_x &amp;- \frac{y}{\tau} \tag{15}
+\end{align}</div><p>Where, <span class="math notranslate nohighlight">\(F_y(\rho,y) = y + \left( \frac{y}{p} + V(\rho)\right)\)</span>.</p>
+<p>The PDEs are then discretized using the finite difference method. Let <span class="math notranslate nohighlight">\(x_j = j \cdot \Delta x\)</span> and <span class="math notranslate nohighlight">\(t^n = n \cdot \Delta t\)</span> be the spatial and time discretization variables respectively. The discretized form of <span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(y\)</span> at the grid points <span class="math notranslate nohighlight">\((x_j, t^n)\)</span> is denoted as <span class="math notranslate nohighlight">\(\rho_j^n\)</span> and <span class="math notranslate nohighlight">\(y_j^n\)</span> respectively. The discretized PDEs are the solved using Lax-Friedrich’s method. The Lax-Friedrich’s method is a finite difference method used to solve hyperbolic PDEs. It is based on the idea of averaging the values of the solution at neighboring grid midpoints to obtain a new value at the current grid point.</p>
+<p>The soulutions at the right grid midpoint is given by:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+\rho_{j+\frac{1}{2}}^n &amp;= \frac{1}{2} \left( \rho_j^n + \rho_{j+1}^n \right) - \frac{\Delta t}{2\Delta x} \left[ F_r(\rho_{j+1}^n, y_{j+1}^n) - F_r(\rho_j^n, y_j^n) \right], \tag{16} \\
+y_{j+\frac{1}{2}}^n &amp;= \frac{1}{2} \left( y_j^n + y_{j+1}^n \right) - \frac{\Delta t}{2\Delta x} \left[ F_y(\rho_{j+1}^n, y_{j+1}^n) - F_y(\rho_j^n, y_j^n) \right] - \frac{\Delta t}{4\tau} \left( y_j^n + y_{j+1}^n \right) \tag{17}
+\end{align}</div><p>Similarly, the soulutions at the left grid midpoint is given by:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+\rho_{j-\frac{1}{2}}^n &amp;= \frac{1}{2} \left( \rho_j^n + \rho_{j-1}^n \right) - \frac{\Delta t}{2\Delta x} \left[ F_r(\rho_{j-1}^n, y_{j-1}^n) - F_r(\rho_j^n, y_j^n) \right], \tag{18} \\
+y_{j-\frac{1}{2}}^n &amp;= \frac{1}{2} \left( y_j^n + y_{j-1}^n \right) - \frac{\Delta t}{2\Delta x} \left[ F_y(\rho_{j-1}^n, y_{j-1}^n) - F_y(\rho_j^n, y_j^n) \right] - \frac{\Delta t}{4\tau} \left( y_j^n + y_{j-1}^n \right)  \tag{19}
+\end{align}</div><p>The update equations for <span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(y\)</span> at the grid points <span class="math notranslate nohighlight">\((x_j, t^{n+1})\)</span> are given by:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+\rho_j^{n+1} &amp;= \rho_j^n - \frac{\Delta t}{\Delta x} \left[ F_r(\rho_{j+\frac{1}{2}}^n, y_{j+\frac{1}{2}}^n) - F_r(\rho_{j-\frac{1}{2}}^n, y_{j-\frac{1}{2}}^n) \right], \tag{20} \\
+y_j^{n+1} &amp;= y_j^n - \frac{\Delta t}{\Delta x} \left[ F_y(\rho_{j+\frac{1}{2}}^n, y_{j+\frac{1}{2}}^n) - F_y(\rho_{j-\frac{1}{2}}^n, y_{j-\frac{1}{2}}^n) \right] - \frac{\Delta t}{2 \tau} \left( y_{j+\frac{1}{2}}^n + y_{j-\frac{1}{2}}^n \right) \tag{21}
+\end{align}</div><p>Finally, the velocity is reconstructed using:</p>
+<div class="math notranslate nohighlight">
+\begin{align}
+v_j^{n+1} = \frac{y_j^{n+1}}{\rho_j^{n+1}} + V\left( \rho_j^{n+1} \right) \tag{22}
+\end{align}</div></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="navierstokes2d.html" class="btn btn-neutral float-left" title="Navier-Stokes 2D PDE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../custom_environments/1dbaseenvironment.html" class="btn btn-neutral float-right" title="1D Custom Environments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

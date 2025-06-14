@@ -10,7 +10,7 @@ The PDEContRoLGym is a benchmark containing a series of 1D and 2D problems for P
 
 Github Repository: https://github.com/lukebhan/PDEControlGym
 
-Paper: https://proceedings.mlr.press/v242/bhan24a/bhan24a.pdf
+Paper: https://arxiv.org/abs/2302.14265
 
 Pre-Trained Models: https://huggingface.co/lukebhan/PDEControlGymModels
 
@@ -68,11 +68,11 @@ To cite this project in publications, please use the following reference:
 
 .. code-block:: bibtex
 
-  @inproceedings{bhan2024pde,
-    title={Pde control gym: A benchmark for data-driven boundary control of partial differential equations},
-    author={Bhan, Luke and Bian, Yuexin and Krstic, Miroslav and Shi, Yuanyuan},
-    booktitle={6th Annual Learning for Dynamics \& Control Conference},
-    pages={1083--1095},
-    year={2024},
-    organization={PMLR}
-  }
+	@misc{bhan2023neural,
+		title={Neural Operators for Bypassing Gain and Control Computations in PDE Backstepping}, 
+		author={Luke Bhan and Yuanyuan Shi and Miroslav Krstic},
+		year={2023},
+		eprint={2302.14265},
+		archivePrefix={arXiv},
+		primaryClass={eess.SY}
+	}

@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pde_control_gym.src.environments2d.navier_stokes2D &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pde_control_gym.src.environments2d.navier_stokes2D</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pde_control_gym.src.environments2d.navier_stokes2D</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="kn">import</span> <span class="n">spaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pde_control_gym.src.environments2d.base_env_2d</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDEEnv2D</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">central_difference</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">coordinate</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
+        <span class="n">diff</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">coordinate</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+        <span class="n">diff</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">diff</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">laplace</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">diff</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">diff</span>
+
+<div class="viewcode-block" id="NavierStokes2D">
+<a class="viewcode-back" href="../../../../environments/navierstokes2d.html#pde_control_gym.src.environments2d.NavierStokes2D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NavierStokes2D</span><span class="p">(</span><span class="n">PDEEnv2D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    NavierStokes equations 2D</span>
+<span class="sd">    This class implements the 2D NavierStokes PDE and inhertis from the class :class:`PDEEnv2D`. Thus, for a full list of of arguments, first see the class :class:`PDEEnv2D` in conjunction with the arguments presented here</span>
+
+<span class="sd">    :param reset_init_condition_func: Takes in a function used during the reset method for setting the initial PDE condition :math:`U(x, y, 0)=[u(x,y,0), v(x,y,0)]`.</span>
+<span class="sd">    :param boundary_condition: dictionary recording that the top/bottom/left/right is at what condition: Neumann/Dirchilet/Controllable</span>
+<span class="sd">    :param U_ref: reference trajectory of PDEs</span>
+<span class="sd">    :param action_ref: reference actions of PDEs</span>
+<span class="sd">    :param viscosity: kinematic viscosity value for the NavierStokes PDE</span>
+<span class="sd">    :param dentisty: density value for pressure field in the NavierStokes PDE</span>
+<span class="sd">    :param maximum_pressure_iteration:  the maximum iterations to solve for the pressure field  </span>
+<span class="sd">    :param stable_factor: the stability factor for the stability of NavierStokes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_init_condition_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                 <span class="n">boundary_condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                 <span class="n">U_ref</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                 <span class="n">action_ref</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">viscosity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> 
+                 <span class="n">maximum_pressure_iteration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2000</span><span class="p">,</span>
+                 <span class="n">stable_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_init_condition_func</span> <span class="o">=</span> <span class="n">reset_init_condition_func</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">KINEMATIC_VISCOSITY</span> <span class="o">=</span> <span class="n">viscosity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DENSITY</span> <span class="o">=</span> <span class="n">density</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_PRESSURE_POISSON_ITERATIONS</span> <span class="o">=</span> <span class="n">maximum_pressure_iteration</span>
+        <span class="n">STABILITY_SAFETY_FACTOR</span> <span class="o">=</span> <span class="n">stable_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U_ref</span> <span class="o">=</span> <span class="n">U_ref</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_ref</span> <span class="o">=</span> <span class="n">action_ref</span>
+        <span class="n">max_t</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">KINEMATIC_VISCOSITY</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">&gt;</span> <span class="n">STABILITY_SAFETY_FACTOR</span> <span class="o">*</span> <span class="n">max_t</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stability is not guarenteed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BoundaryControlInit</span><span class="p">(</span><span class="n">boundary_condition</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">BoundaryControlInit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boundary_condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Setup configurations of boundary conditions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="o">=</span> <span class="n">boundary_condition</span>
+        <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_idx</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">xx</span><span class="p">),</span> <span class="s1">&#39;upper&#39;</span><span class="p">:(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">xx</span><span class="p">),</span> <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_idx_neuman</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">xx</span><span class="p">),</span> <span class="s1">&#39;upper&#39;</span><span class="p">:(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">xx</span><span class="p">),</span> <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)}</span>
+
+<div class="viewcode-block" id="NavierStokes2D.apply_boundary">
+<a class="viewcode-back" href="../../../../environments/navierstokes2d.html#pde_control_gym.src.environments2d.NavierStokes2D.apply_boundary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Each time solving the PDE, we apply the boundary conditions to u and v</span>
+<span class="sd">        </span>
+<span class="sd">        :param u: :math:`u(x,y)`</span>
+<span class="sd">        :param v: :math:`v(x,y)`</span>
+<span class="sd">        :param action: action performed by reinforcement learning</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span> 
+                <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span><span class="p">[</span><span class="n">pos</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_idx</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+                <span class="k">match</span> <span class="n">condition</span><span class="p">:</span>
+                    <span class="k">case</span> <span class="s2">&quot;Neumann&quot;</span><span class="p">:</span>
+                        <span class="n">xidx2</span><span class="p">,</span> <span class="n">yidx2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_idx_neuman</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">u</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="n">xidx2</span><span class="p">,</span> <span class="n">yidx2</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">xidx2</span><span class="p">,</span> <span class="n">yidx2</span><span class="p">]</span>
+                    <span class="k">case</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">u</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">case</span> <span class="s2">&quot;Controllable&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">u</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">xidx</span><span class="p">,</span> <span class="n">yidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> </div>
+
+    
+
+<div class="viewcode-block" id="NavierStokes2D.solve_pressure">
+<a class="viewcode-back" href="../../../../environments/navierstokes2d.html#pde_control_gym.src.environments2d.NavierStokes2D.solve_pressure">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p_prev</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solving pressure</span>
+
+<span class="sd">        Usinf an iterative approach to solve pressure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+        <span class="n">dudx</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+        <span class="n">dvdy</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">rhs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DENSITY</span> <span class="o">/</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="n">dudx</span> <span class="o">+</span> <span class="n">dvdy</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N_PRESSURE_POISSON_ITERATIONS</span><span class="p">):</span>
+            <span class="n">p_next</span> <span class="o">=</span> <span class="n">p_prev</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">p_next</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">p_prev</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">p_prev</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p_prev</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span>  <span class="p">]</span> <span class="o">+</span> <span class="n">p_prev</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span>  <span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="o">-</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">rhs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="c1"># Neuman Condition for pressure</span>
+            <span class="n">p_next</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">p_next</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">p_next</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="p">:]</span> <span class="o">=</span> <span class="n">p_next</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span>  <span class="p">:]</span> 
+            <span class="n">p_next</span><span class="p">[:,</span>  <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p_next</span><span class="p">[:,</span>  <span class="mi">1</span><span class="p">]</span>
+            <span class="n">p_next</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">p_next</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">p_prev</span> <span class="o">=</span> <span class="n">p_next</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p_prev</span>
+        <span class="k">return</span> <span class="n">p_prev</span></div>
+
+
+<div class="viewcode-block" id="NavierStokes2D.step">
+<a class="viewcode-back" href="../../../../environments/navierstokes2d.html#pde_control_gym.src.environments2d.NavierStokes2D.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        step</span>
+
+<span class="sd">        Moves the PDE with control action forward ``dt`` steps.</span>
+
+<span class="sd">        :param action: the control action to apply to the PDE at the boundary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+        <span class="n">u_prev</span><span class="p">,</span> <span class="n">v_prev</span><span class="p">,</span> <span class="n">p_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span>
+        <span class="n">dudx</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">u_prev</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+        <span class="n">dudy</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">u_prev</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">dvdx</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">v_prev</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+        <span class="n">dvdy</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">v_prev</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">laplace_u_prev</span> <span class="o">=</span> <span class="n">laplace</span><span class="p">(</span><span class="n">u_prev</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">laplace_v_prev</span> <span class="o">=</span> <span class="n">laplace</span><span class="p">(</span><span class="n">v_prev</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="c1"># predictor step</span>
+        <span class="n">u_pred</span> <span class="o">=</span> <span class="n">u_prev</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="n">u_prev</span> <span class="o">*</span> <span class="n">dudx</span> <span class="o">-</span> <span class="n">v_prev</span> <span class="o">*</span> <span class="n">dudy</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">KINEMATIC_VISCOSITY</span> <span class="o">*</span> <span class="n">laplace_u_prev</span><span class="p">)</span>
+        <span class="n">v_pred</span> <span class="o">=</span> <span class="n">v_prev</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="n">u_prev</span> <span class="o">*</span> <span class="n">dvdx</span> <span class="o">-</span> <span class="n">v_prev</span> <span class="o">*</span> <span class="n">dvdy</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">KINEMATIC_VISCOSITY</span> <span class="o">*</span> <span class="n">laplace_v_prev</span><span class="p">)</span>
+        <span class="c1"># apply boundary conditions</span>
+        <span class="n">u_pred</span><span class="p">,</span> <span class="n">v_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_boundary</span><span class="p">(</span><span class="n">u_pred</span><span class="p">,</span> <span class="n">v_pred</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="c1"># solve for pressure</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_pressure</span><span class="p">(</span><span class="n">u_pred</span><span class="p">,</span> <span class="n">v_pred</span><span class="p">,</span> <span class="n">p_prev</span><span class="p">)</span>
+        <span class="n">dpdx</span><span class="p">,</span> <span class="n">dpdy</span> <span class="o">=</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">dx</span><span class="p">),</span> <span class="n">central_difference</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+        <span class="n">u_next</span> <span class="o">=</span> <span class="n">u_pred</span> <span class="o">-</span> <span class="n">dt</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">DENSITY</span> <span class="o">*</span> <span class="n">dpdx</span>
+        <span class="n">v_next</span> <span class="o">=</span> <span class="n">v_pred</span> <span class="o">-</span> <span class="n">dt</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">DENSITY</span> <span class="o">*</span> <span class="n">dpdy</span>
+        <span class="n">u_next</span><span class="p">,</span> <span class="n">v_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_boundary</span><span class="p">(</span><span class="n">u_next</span><span class="p">,</span> <span class="n">v_next</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_next</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_next</span>
+        <span class="n">terminate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_class</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">U_ref</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_ref</span><span class="p">)</span>
+        <span class="c1">#- 1/2 * np.linalg.norm(self.U[self.time_index]-self.desired_U[self.time_index])**2/21/21 - 0.1/2 * np.linalg.norm(action - 2.)**2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">u_next</span><span class="p">,</span> <span class="n">v_next</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">]</span>
+        <span class="n">truncated</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminate</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        terminate</span>
+
+<span class="sd">        Determines whether the episode should end if the ``T`` timesteps are reached</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Resets the system state</span>
+<div class="viewcode-block" id="NavierStokes2D.reset">
+<a class="viewcode-back" href="../../../../environments/navierstokes2d.html#pde_control_gym.src.environments2d.NavierStokes2D.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        reset </span>
+
+<span class="sd">        :param seed: Allows a seed for initialization of the envioronment to be set for RL algorithms.</span>
+<span class="sd">        :param options: Allows a set of options for the initialization of the environment to be set for RL algorithms.</span>
+
+<span class="sd">        Resets the PDE at the start of each environment according to the parameters given during the PDE environment intialization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">init_u</span><span class="p">,</span> <span class="n">init_v</span><span class="p">,</span> <span class="n">init_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset_init_condition_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;Please pass both an initial condition and a recirculation function in the parameters dictionary. See documentation for more details&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span>  <span class="mi">2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">init_u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">init_v</span> <span class="c1"># np.random.uniform(-5, 5) * np.ones_like(self.X) </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">init_p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_v</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="p">{}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorials &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Transport 1D PDE" href="../environments/hyperbolic-1d.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#d-hyperbolic-pdes-a-warm-up-tutorial">1D Hyperbolic PDEs: A warm-up tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#results">Results</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environments/hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorials</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guide/tutorials.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorials">
+<span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Examples are fully built out in Jupyter-notebooks for 1D Hyperbolic and Parabolic PDEs. Our tutorial in this documentation is aimed
+to demonstrate the use of the library and the basic workings of its parameters.</p>
+</div>
+<section id="d-hyperbolic-pdes-a-warm-up-tutorial">
+<h2>1D Hyperbolic PDEs: A warm-up tutorial<a class="headerlink" href="#d-hyperbolic-pdes-a-warm-up-tutorial" title="Link to this heading"></a></h2>
+<p>This tutorial will follow the Jupyer-notebook found on <a class="reference external" href="https://github.com/lukebhan/PDEControlGym/blob/main/examples/transportPDE/HyperbolicPDEExample.ipynb">github</a>. It is recommended you have completed the installation guide and started the notebook in order to follow along with this tutorial.</p>
+<p>The problem we will consider in this example is the stabilization of the 1D Hyperbolic PDE with linear recirculation (a benchmark problem in PDE control):</p>
+<div class="math notranslate nohighlight">
+\begin{eqnarray}
+    u_t(x, t) &amp;=&amp; u_x(x, t) + \beta(x)u(0, t) \\
+    u(1, t) &amp;=&amp; U(t)
+\end{eqnarray}</div><p>where <span class="math notranslate nohighlight">\(u(x, t)\)</span> is the system state, <span class="math notranslate nohighlight">\(\beta(x)\)</span> is a nonlinear recirculation function to be chosen by the user and <span class="math notranslate nohighlight">\(U(t)\)</span> is the boundary control input given by the RL controller to stabilize the system. We begin by first discussing the initialization of the environment as given by the following two lines in the 6th code block of the notebook:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make environments</span>
+<span class="n">envRL</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;PDEControlGym-Transport1D&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">hyperbolicParametersRL</span><span class="p">)</span>
+<span class="n">envBcks</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;PDEControlGym-TransportPDE1D&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">hyperbolicParametersBackstepping</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This explitly is making two environments registered under the name <code class="docutils literal notranslate"><span class="pre">PDEControlGym-HyperbolicPDE1D</span></code> with two separate parameters dictionaries, namely <code class="docutils literal notranslate"><span class="pre">hyperbolicParametersRL</span></code> and <code class="docutils literal notranslate"><span class="pre">hyperbolicParametersBackstepping</span></code>. Thus, in the first part of this tutorial, we will briefly discuss each parameter dicitonary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pde_control_gym.src</span><span class="w"> </span><span class="kn">import</span> <span class="n">TunedReward1D</span>
+<span class="n">reward_class</span> <span class="o">=</span>  <span class="n">TunedReward1D</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">T</span><span class="o">/</span><span class="n">dt</span><span class="p">)),</span> <span class="o">-</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e2</span><span class="p">)</span>
+
+<span class="n">hyperbolicParameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span>
+        <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="p">,</span>
+        <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="n">X</span><span class="p">,</span>
+        <span class="s2">&quot;dx&quot;</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span>
+        <span class="s2">&quot;reward_class&quot;</span><span class="p">:</span> <span class="n">reward_class</span><span class="p">,</span>
+        <span class="s2">&quot;normalize&quot;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;sensing_loc&quot;</span><span class="p">:</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;control_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sensing_type&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;sensing_noise_func&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
+        <span class="s2">&quot;limit_pde_state_size&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;max_state_value&quot;</span><span class="p">:</span> <span class="mf">1e10</span><span class="p">,</span>
+        <span class="s2">&quot;max_control_value&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s2">&quot;reset_init_condition_func&quot;</span><span class="p">:</span> <span class="n">getInitialCondition</span><span class="p">,</span>
+        <span class="s2">&quot;reset_recirculation_func&quot;</span><span class="p">:</span> <span class="n">getBetaFunction</span><span class="p">,</span>
+        <span class="s2">&quot;control_sample_rate&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">hyperbolicParametersBackstepping</span> <span class="o">=</span> <span class="n">hyperbolicParameters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">hyperbolicParametersBackstepping</span><span class="p">[</span><span class="s2">&quot;normalize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">hyperbolicParametersRL</span> <span class="o">=</span> <span class="n">hyperbolicParameters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">hyperbolicParametersRL</span><span class="p">[</span><span class="s2">&quot;normalize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All of the 1D PDE boundary control environments have the same set of optional parameters for ease of use!</p>
+</div>
+<p>Let us slowly describe each parameter here for full clarity. More details can of course be found in the detailed <a class="reference external" href="../environments/hyperbolic-1d.html">Hyperbolic 1D</a> documentation. First, we set our spatial and temporal timesteps as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">1e-4</span>
+<span class="n">dx</span> <span class="o">=</span> <span class="mf">1e-2</span>
+<span class="n">X</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>and follow this by describing both the sensing and actuation of the PDE.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;sensing_loc&quot;</span><span class="p">:</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span>
+<span class="s2">&quot;control_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Dirchilet&quot;</span><span class="p">,</span>
+<span class="s2">&quot;sensing_type&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="s2">&quot;sensing_noise_func&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="n">state</span>
+</pre></div>
+</div>
+<p>In this block, we can see four parameters are set. We will take the time to go through each one incrementally.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sensing_loc</span></code>: Sets the observation space for the PDE. So we can choose for the sensing to be only at the boundary or as in this case <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code> sensing measurement returning the entire state of the PDE.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_type</span></code>: This sets the actuation type at the bounday for either Neumann (derivative) or Dirchilet (direct) boundary conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sensing_type</span></code>: This, like <code class="docutils literal notranslate"><span class="pre">control_type</span></code> allows us to choose whether to use Neumann or Dirchilet sensing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sensing_noise_func</span></code>: This function is called before the sensing is returned to the user and it allows us to add noise to the sensing in whatever approach we prefer. In this case, we just choose the function to return the sensing exactly via a simple Lambda function.</p></li>
+</ul>
+<p>Now, we continue our discussion of parameters by explaining the next set of parameters which can be used for early-stopping, a common trick in RL problems:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;limit_pde_state_size&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="s2">&quot;max_state_value&quot;</span><span class="p">:</span> <span class="mf">1e10</span><span class="p">,</span>
+<span class="s2">&quot;max_control_value&quot;</span><span class="p">:</span> <span class="mi">20</span>
+</pre></div>
+</div>
+<p>In this case, we allow limiting of the PDE state size (using <span class="math notranslate nohighlight">\(L_2\)</span> norm) to 1e10. We also limit the control value to 20. This helps simplify the continuous action space.
+The next set of parameters are a variety of settings for the custom reward function (See <a class="reference external" href="../utils/preimplementedrewards.html">here</a>) as in the paper.
+We offer a variety of reward functions preimplemented (and it is easy to implement your own). See the <a class="reference external" href="../utils/customrewards.html">rewards</a> documentation for details.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pde_control_gym.src</span><span class="w"> </span><span class="kn">import</span> <span class="n">TunedReward1D</span>
+<span class="n">reward_class</span> <span class="o">=</span>  <span class="n">TunedReward1D</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">T</span><span class="o">/</span><span class="n">dt</span><span class="p">)),</span> <span class="o">-</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Lastly, we discuss the final few parameters for 1D environments. Namely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;reset_init_condition_func&quot;</span><span class="p">:</span> <span class="n">getInitialCondition</span><span class="p">,</span>
+<span class="s2">&quot;reset_recirculation_func&quot;</span><span class="p">:</span> <span class="n">getBetaFunction</span><span class="p">,</span>
+<span class="s2">&quot;control_sample_rate&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+<span class="s2">&quot;normalize&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>Each of these parameters are imperative to the setup of the problem and highlight the generality of the benchmarks capabilities. We discuss them incrementally as above:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">resent_init_condition_func</span></code>: This parameter takes a function which at the start of each episode or any <code class="docutils literal notranslate"><span class="pre">reset</span></code> call will set <span class="math notranslate nohighlight">\(u(x, 0)\)</span> via this function. Thus, one can train their controller based on any set of initial conditions as long as the function returns an array of length <code class="docutils literal notranslate"><span class="pre">nx</span></code> (given by spatial step size of system set above).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reset_recirculation_func</span></code>: This parameter again takes a function representing <span class="math notranslate nohighlight">\(\beta(x)\)</span> as in the problem statement above. Thus, one can choose any nonlinear reciruclation function of their choice and it can be modified at each episode for adaptive PDE control.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control_sample_rate</span></code>: Due to the numerical scheme of PDEs, we require an extremely small timestep for simulation. However, such small timestep can be prohibitive to accept new control inputs so frequently as is impossible in real-world applications. Thus, we allow the user to specify the rate at which the controller is sampled to better represent real-time implementations. In this example, we consider a new control signal given every 10Hz.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalize</span></code>: This is specifically for the RL controller which tends to work best when providing actions between -1 and 1. If this is set to true, the control anticipates a value between [-1, 1] and transforms this to a value between [-1*``max_control_value``, <code class="docutils literal notranslate"><span class="pre">max_control_value</span></code>]. If set to false, it takes the control input as the true value and applies it without any modification.</p></li>
+</ul>
+<p>Ok, so we now have a brief introduction to the parameters the gym can take and as one can see, the problem can accept many many variations from observers to adaptive control. In this specific example, we will use the following instantiations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chebyshev Polynomial Beta Functions</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solveBetaFunction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">beta</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">gamma</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">beta</span>
+
+ <span class="c1"># Returns beta functions passed into PDE environment. Currently gamma is always</span>
+ <span class="c1"># set to 7.35, but this can be modified for further problesms</span>
+ <span class="k">def</span><span class="w"> </span><span class="nf">getBetaFunction</span><span class="p">(</span><span class="n">nx</span><span class="p">):</span>
+     <span class="k">return</span> <span class="n">solveBetaFunction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nx</span><span class="p">),</span> <span class="mf">7.35</span><span class="p">)</span>
+
+ <span class="c1"># Set initial condition function here</span>
+ <span class="k">def</span><span class="w"> </span><span class="nf">getInitialCondition</span><span class="p">(</span><span class="n">nx</span><span class="p">):</span>
+     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Thus, our beta function is a Chebyshev polynomial <span class="math notranslate nohighlight">\(\beta(x) = 5\cos(7.35 \cos^{-1}(x))\)</span> and our intiial condition is a constant function valued between either 1 and 10: <span class="math notranslate nohighlight">\(u(x, 0) \sim \text{Uniform}(1, 10) \quad \forall x \in [0, 1]\)</span>. We are now ready to train our first RL controller. To do this, we will use the <a class="reference external" href="https://github.com/DLR-RM/stable-baselines3">stable-baselines 3 library</a>. We imported a series of functions from the library as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">stable_baselines3</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">stable_baselines3</span><span class="w"> </span><span class="kn">import</span> <span class="n">SAC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">stable_baselines3.common.env_checker</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_env</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">stable_baselines3.common.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">CheckpointCallback</span>
+</pre></div>
+</div>
+<p>These will allow us to compare two algorithms, namely PPO and SAC. From here, we can then train each algorithm on our environment for 500k timesteps using the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save a checkpoint every 10000 steps</span>
+<span class="n">checkpoint_callbackPPO</span> <span class="o">=</span> <span class="n">CheckpointCallback</span><span class="p">(</span>
+    <span class="n">save_freq</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;./logsPPO&quot;</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="o">=</span><span class="s2">&quot;rl_model&quot;</span><span class="p">,</span>
+    <span class="n">save_replay_buffer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">save_vecnormalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+ <span class="p">)</span>
+
+<span class="c1"># Save a checkpoint every 10000 steps</span>
+<span class="n">checkpoint_callbackSAC</span> <span class="o">=</span> <span class="n">CheckpointCallback</span><span class="p">(</span>
+    <span class="n">save_freq</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;./logsSAC&quot;</span><span class="p">,</span>
+    <span class="n">name_prefix</span><span class="o">=</span><span class="s2">&quot;rl_model&quot;</span><span class="p">,</span>
+    <span class="n">save_replay_buffer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">save_vecnormalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+ <span class="p">)</span>
+
+ <span class="c1"># TRAINING. SKIP IF WANT TO USE PRELOADED MODELS</span>
+ <span class="c1"># Train PPO</span>
+ <span class="n">model</span> <span class="o">=</span> <span class="n">PPO</span><span class="p">(</span><span class="s2">&quot;MlpPolicy&quot;</span><span class="p">,</span><span class="n">envRL</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tensorboard_log</span><span class="o">=</span><span class="s2">&quot;./tb/&quot;</span><span class="p">)</span>
+ <span class="c1"># Train for 500k timesteps</span>
+ <span class="n">model</span><span class="o">.</span><span class="n">learn</span><span class="p">(</span><span class="n">total_timesteps</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">checkpoint_callback</span><span class="p">)</span>
+
+ <span class="c1"># Train SAC</span>
+ <span class="n">model</span> <span class="o">=</span> <span class="n">SAC</span><span class="p">(</span><span class="s2">&quot;MlpPolicy&quot;</span><span class="p">,</span><span class="n">envRL</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tensorboard_log</span><span class="o">=</span><span class="s2">&quot;./tb/&quot;</span><span class="p">)</span>
+ <span class="c1"># Train for 500k timesteps</span>
+ <span class="n">model</span><span class="o">.</span><span class="n">learn</span><span class="p">(</span><span class="n">total_timesteps</span><span class="o">=</span><span class="mf">5e5</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">checkpoint_callback</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will take some time to run (pretrained models available on <a class="reference external" href="https://huggingface.co/lukebhan/PDEControlGymModels/tree/main">hugging face</a>), but it will save the resulting models in two directories, namely <code class="docutils literal notranslate"><span class="pre">./logsPPO</span></code> and <code class="docutils literal notranslate"><span class="pre">./logsSAC</span></code>. We also can use tensorboard to follow our training and rewards.</p>
+<p>In the rest of this tutorial, we will compare our models to the resulting PDE backstepping controllers from <a class="reference external" href="http://flyingv.ucsd.edu/krstic/talks/talks-files/siam-book-course.pdf">(Krstic, M. and Smyshlyaev A. 2008)</a>. The stabilizing controller in math terms looks like:</p>
+<div class="math notranslate nohighlight">
+    \begin{eqnarray}
+            U(t) &amp;=&amp; \int_0^x k(1-y)u(y, t)dy \\
+            k(x) &amp;=&amp; -\beta(x) + \int_0^x \beta(x-y) k(y) dy
+    \end{eqnarray}</div><p>The controller is implemented with the following two functions where <span class="math notranslate nohighlight">\(k\)</span> uses successive approximations (1 iteration is sufficient):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Kernel function solver for backstepping</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solveKernelFunction</span><span class="p">(</span><span class="n">theta</span><span class="p">):</span>
+        <span class="n">kappa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)):</span>
+                <span class="n">kernelIntegral</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+                        <span class="n">kernelIntegral</span> <span class="o">+=</span> <span class="p">(</span><span class="n">kappa</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">theta</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="n">dx</span>
+                <span class="n">kappa</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernelIntegral</span>  <span class="o">-</span> <span class="n">theta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">kappa</span><span class="p">)</span>
+
+<span class="c1"># Control convolution solver</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">solveControl</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)):</span>
+                <span class="n">res</span> <span class="o">+=</span> <span class="n">kernel</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">res</span><span class="o">*</span><span class="mf">1e-2</span>
+</pre></div>
+</div>
+<p>We now skip a few helper functions in the notebook which are not of immediate importance in this tutorial to explore the final results. We begin presenting the results here as they appear in the Jupyter-notebooks finalizing our tutorial applying RL for PDE Boundary Control! Feel free to run the notebook instead to generate your own results!</p>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading"></a></h2>
+<p>We begin by confirming that the problem is nontrivial - with the <span class="math notranslate nohighlight">\(\beta(x)\)</span> function we chose, the system is unstable when the control is set to <span class="math notranslate nohighlight">\(U(t)=0\)</span>.</p>
+<figure class="align-center">
+<img alt="../_images/hyperbolicOpenloop.png" src="../_images/hyperbolicOpenloop.png" />
+</figure>
+<p>We then compare all three of our approaches: backstepping, PPO, and SAC from left to right on two initial conditions. We can see that all the approaches seem to stabilize, but the model-based approach clearly does better and thus there is room for future research in model-free PDE control.</p>
+<figure class="align-center">
+<img alt="../_images/hyperbolicExamples.png" src="../_images/hyperbolicExamples.png" />
+</figure>
+<p>Additionally, we compare the control signals and can celarly see that the RL control signals oscillate much more frequently then the model based control indicating some directions for improvement based on smootheness.</p>
+<figure class="align-center">
+<img alt="../_images/hyperbolicControlSignals.png" src="../_images/hyperbolicControlSignals.png" />
+</figure>
+<p>Lastly, we conclude this tutorial by looking at the commulative rewards for each episode. Naturally, the backstepping controller performs best confirming the oscillations we see in the generated figures above.</p>
+<figure class="align-center">
+<img alt="../_images/hyperbolicTable.png" src="../_images/hyperbolicTable.png" />
+</figure>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../environments/hyperbolic-1d.html" class="btn btn-neutral float-right" title="Transport 1D PDE" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

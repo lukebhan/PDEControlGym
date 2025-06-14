@@ -1,0 +1,167 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pde_control_gym.src.rewards.tuned_reward_1d &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../environments/Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/1dbaseenvironment.html">1D Custom Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../custom_environments/2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pde_control_gym.src.rewards.tuned_reward_1d</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pde_control_gym.src.rewards.tuned_reward_1d</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pde_control_gym.src.rewards.base_reward</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseReward</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<div class="viewcode-block" id="TunedReward1D">
+<a class="viewcode-back" href="../../../../utils/preimplementedrewards.html#pde_control_gym.src.rewards.TunedReward1D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TunedReward1D</span><span class="p">(</span><span class="n">BaseReward</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TunedReward1D</span>
+
+<span class="sd">    This is a custom reward used for successfully implementing the model-free boundary controller for the 1D environments as given in the `paper &lt;https://google.com&gt;`_ documenting the benchmark. </span>
+
+<span class="sd">    :param nt: The number of maximum timesteps for the episode simulation. No default: Error is thrown if not specified.</span>
+<span class="sd">    :param truncate_penalty: Allows the user to specify a penalty reward for each remaining timestep in case the episode is ended early. Default is :math:`-1e4`.</span>
+<span class="sd">    :param terminate_reward: Allows the user to add a reward for reaching the full length of the episode: Default is :math:`1e2`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">truncate_penalty</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">terminate_reward</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e2</span><span class="p">):</span>
+        <span class="c1"># Exception Handling</span>
+        <span class="k">if</span> <span class="n">nt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Number of simulation steps must be specified in the NormReward class.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">=</span> <span class="n">nt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">truncate_penalty</span> <span class="o">=</span> <span class="n">truncate_penalty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">terminate_reward</span> <span class="o">=</span> <span class="n">terminate_reward</span>
+
+<div class="viewcode-block" id="TunedReward1D.reward">
+<a class="viewcode-back" href="../../../../utils/preimplementedrewards.html#pde_control_gym.src.rewards.TunedReward1D.reward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uVec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">terminate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">truncate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_sample_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        reward</span>
+
+<span class="sd">        :param uVec: (required) This is the solution vector of the PDE of which to compute the reward on.</span>
+<span class="sd">        :param time_index: (required) This is the time at which to compute the reward. (Given in terms of index of uVec).</span>
+<span class="sd">        :param terminate: States whether the episode is the terminal episode.</span>
+<span class="sd">        :param truncate: States whether the epsiode is truncated, or ending early.</span>
+<span class="sd">        :param action: Ignored in this reward - needed to inherit from base reward class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">terminate</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">uVec</span><span class="p">[</span><span class="n">time_index</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">terminate_reward</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">uVec</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">/</span><span class="mi">1000</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">uVec</span><span class="p">[</span><span class="n">time_index</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">truncate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">truncate_penalty</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="o">-</span><span class="n">time_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">uVec</span><span class="p">[</span><span class="n">time_index</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">control_sample_rate</span><span class="p">)])</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">uVec</span><span class="p">[</span><span class="n">time_index</span><span class="p">])</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
