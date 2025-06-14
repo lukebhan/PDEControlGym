@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1D Custom Environments &mdash; PDEControlGym 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/pdecg_theme.css?v=c04f4f2d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2D Custom Environments" href="2dbaseenvironment.html" />
+    <link rel="prev" title="Traffic ARZ 1D PDE" href="../environments/Trafficarz1d.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PDEControlGym
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/tutorials.html">Tutorials</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Environments</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environments/hyperbolic-1d.html">Transport 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/parabolic-1d.html">Reaction-Diffusion 1D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/navierstokes2d.html">Navier-Stokes 2D PDE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments/Trafficarz1d.html">Traffic ARZ 1D PDE</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Custom Environments</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1D Custom Environments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#base-1d-environment-class">Base 1D Environment Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D"><code class="docutils literal notranslate"><span class="pre">PDEEnv1D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.reset"><code class="docutils literal notranslate"><span class="pre">PDEEnv1D.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.step"><code class="docutils literal notranslate"><span class="pre">PDEEnv1D.step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="2dbaseenvironment.html">2D Custom Environments</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/preimplementedrewards.html">Pre-implemented Rewards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/customrewards.html">Custom Rewards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PDEControlGym</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">1D Custom Environments</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/custom_environments/1dbaseenvironment.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="d-custom-environments">
+<span id="module-pde_control_gym.src.environments1d.base_env_1d"></span><span id="d-customenvironments"></span><h1>1D Custom Environments<a class="headerlink" href="#d-custom-environments" title="Link to this heading"></a></h1>
+<p>Any 1D custom environment can easily be added to the PDE ContRoL Gym. It is best to follow the current environments format to ensure project structure errors are avoided. The following steps are required to add a custom 1D environment.</p>
+<ol class="arabic">
+<li><p>Build you environment (in the folder <code class="docutils literal notranslate"><span class="pre">pde_control_gym/src/environments1d/</span></code>) implementing all the required functions by inheriting the base class <a class="reference internal" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D" title="pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">PDEEnv1D</span></code></a>. All the details about the base class are given below and it is probably helpful to look at the source code for the other 1D environments in <code class="docutils literal notranslate"><span class="pre">pde_control_gym/src/environments1d/</span></code> for example templates.</p></li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> files in each of the following folders:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pde_control_gym/src/environments1d/__init__.py</span></code></dt><dd><p>Import your class containing the environment and add it to the <code class="docutils literal notranslate"><span class="pre">__all__</span></code> array.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pde_control_gym/src/__init__.py</span></code></dt><dd><p>Again import your class from the <code class="docutils literal notranslate"><span class="pre">environments1d</span></code> folder and again add it to the <code class="docutils literal notranslate"><span class="pre">__all__</span></code> array.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pde_control_gym/__init__.py</span></code></dt><dd><p>Register your new environment by giving the environment an <code class="docutils literal notranslate"><span class="pre">id</span></code> and set the <code class="docutils literal notranslate"><span class="pre">entry_point</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;pde_control_gym.src:{Insert</span> <span class="pre">Class</span> <span class="pre">Name}&quot;</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</li>
+<li><p>Reinstall environment by going to the root directory and running <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>.</p></li>
+<li><p>Use your new environment by importing the gym and making the environment!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pde_control_gym</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{id_given_in_step_2}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="s2">&quot;{Your env parameters}&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<section id="base-1d-environment-class">
+<h2>Base 1D Environment Class<a class="headerlink" href="#base-1d-environment-class" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pde_control_gym.src.environments1d.base_env_1d.</span></span><span class="sig-name descname"><span class="pre">PDEEnv1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/base_env_1d.html#PDEEnv1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D" title="Link to this definition"></a></dt>
+<dd><p>This is the base env for all 1D PDE problems. All 1D custom environments should inherit this environment and implement the eccording methods</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The end time of the simulation.</p></li>
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The temporal timestep of the simulation.</p></li>
+<li><p><strong>X</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The spatial length of the simulation.</p></li>
+<li><p><strong>dx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The spatial timestep of the simulation.</p></li>
+<li><p><strong>reward_class</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Type</span></code>[<a class="reference internal" href="../utils/customrewards.html#pde_control_gym.src.rewards.base_reward.BaseReward" title="pde_control_gym.src.rewards.base_reward.BaseReward"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseReward</span></code></a>]</span>) – An instance of the reward class to specify user reward for each simulation step. Must inherit BaseReward class. See <a class="reference external" href="../../utils/rewards.html">reward documentation</a> for detials.</p></li>
+<li><p><strong>normalize</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Chooses whether to take action inputs between -1 and 1 and normalize them to betwen (<code class="docutils literal notranslate"><span class="pre">-max_control_value</span></code>, <code class="docutils literal notranslate"><span class="pre">max_control_value</span></code>) or to leave inputs unaltered. <code class="docutils literal notranslate"><span class="pre">max_control_value</span></code> is environment specific so please see the environment for details.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.reset">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_cond</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recirculation_func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/base_env_1d.html#PDEEnv1D.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the environment at the start of each epsiode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init_cond</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – The intial condition to reset the PDE <span class="math notranslate nohighlight">\(u(x, 0)\)</span> to.</p></li>
+<li><p><strong>recirculation_func</strong> – Specifies the plant parameter function. See each individual environment for details on implementation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.step">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pde_control_gym/src/environments1d/base_env_1d.html#PDEEnv1D.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pde_control_gym.src.environments1d.base_env_1d.PDEEnv1D.step" title="Link to this definition"></a></dt>
+<dd><p>Implements the environment behavior for a single timestep depending on a given action</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>action</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – The action to take in the environment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../environments/Trafficarz1d.html" class="btn btn-neutral float-left" title="Traffic ARZ 1D PDE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="2dbaseenvironment.html" class="btn btn-neutral float-right" title="2D Custom Environments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PDEContRoLGym.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
