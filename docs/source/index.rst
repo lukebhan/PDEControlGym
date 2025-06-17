@@ -42,6 +42,7 @@ Main Features
   environments/parabolic-1d
   environments/navierstokes2d
   environments/Trafficarz1d
+  environments/neuron-1d
 
 .. toctree::
    :maxdepth: 2
