@@ -57,7 +57,7 @@ The model establishes the following nonlinear error system using the above terms
     :nowrap:
 
     \begin{align}
-    u(x,t) = c(x,t) - c_{eq}(x) \tag{1} \\
+    u(x,t) = c(x,t) - c_{eq}(x) \tag{1}
     \end{align}
 
 
@@ -70,7 +70,7 @@ The model establishes the following nonlinear error system using the above terms
     :nowrap:
 
     \begin{align}
-    z_1(t) = c_c(t)-c_\infty \tag{2} \\
+    z_1(t) = c_c(t)-c_\infty \tag{2}
     \end{align}
 
 
@@ -82,7 +82,7 @@ The model establishes the following nonlinear error system using the above terms
     :nowrap:
 
     \begin{align}
-    z_2(t) = l(t)-l_s  \tag{3} \\
+    z_2(t) = l(t)-l_s  \tag{3}
     \end{align}
 
 
@@ -92,7 +92,7 @@ The model establishes the following nonlinear error system using the above terms
     :nowrap:
 
     \begin{align}
-    U(t) = -\left(q_s(t) - q^*_s\right)  = 0 \tag{4} \\
+    U(t) = -\left(q_s(t) - q^*_s\right)  = 0 \tag{4}
     \end{align}
 
 
@@ -105,7 +105,7 @@ Let :math:`Z(t)` be an ODE state vector for the reference error states :math:`z_
     :nowrap:
 
     \begin{align}
-    Z(t) = [z_1(t)\quad z_2(t)]^T \tag{5} \\
+    Z(t) = [z_1(t)\quad z_2(t)]^T \tag{5}
     \end{align}
 
 
@@ -170,7 +170,7 @@ The discretized form of :math:`u` and :math:`Z` at the grid points :math:`(x_n, 
     :nowrap:
 
     \begin{align}
-    u^{j+1}_n = \delta t\left[D\left(\frac{u^j_{n+1} - 2u^j_n + u^j_{n-1}}{δx^2}\right) - a\left(\frac{u^j_{n+1} - u^j_n}{\delta x}\right) - gu^j_n\right] + u^j_n \tag{10} \\
+    u^{j+1}_n = \delta t\left[D\left(\frac{u^j_{n+1} - 2u^j_n + u^j_{n-1}}{δx^2}\right) - a\left(\frac{u^j_{n+1} - u^j_n}{\delta x}\right) - gu^j_n\right] + u^j_n \tag{10}
     \end{align}
 
 - The solution to find the tubulin concentration in the axon in the leftmost boundary of the grid is:
@@ -179,7 +179,7 @@ The discretized form of :math:`u` and :math:`Z` at the grid points :math:`(x_n, 
     :nowrap:
 
     \begin{align}
-    u^{j}_0 = u^{j}_1 \tag{11} \\
+    u^{j}_0 = u^{j}_1 \tag{11}
     \end{align}
 
 - The solution to best approximate, in the next time step, the tubulin concentration in the cone and the length of the axon in the x-coordinate is given by:
@@ -188,7 +188,7 @@ The discretized form of :math:`u` and :math:`Z` at the grid points :math:`(x_n, 
     :nowrap:
 
     \begin{align}
-    Z^{j+1} = Z^j + δt\left[Z^jA_1 + B\left(\frac{u^j_{L-1} - u^j_{L}}{δx}\right)\right] \tag{12} \\
+    Z^{j+1} = Z^j + δt\left[A_1Z^j + B\left(\frac{u^j_{L-1} - u^j_{L}}{δx}\right)\right] \tag{12}
     \end{align}
 
 
@@ -198,7 +198,7 @@ The discretized form of :math:`u` and :math:`Z` at the grid points :math:`(x_n, 
     :nowrap:
 
     \begin{align}
-    u^{j+1}_{L} = H^{T}Z^{j+1} \tag{13} \\
+    u^{j+1}_{L} = H^{T}Z^{j+1} \tag{13}
     \end{align}
 
 
