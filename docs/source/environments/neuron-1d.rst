@@ -19,7 +19,7 @@ Moreover, a defined control law could produce an elongation of the axon to great
 
 
 
-.. image:: images/screenshot.png
+.. image:: ../_static/img/neuronDiagram.png
    :alt: Neuron growth control diagram
    :align: center
    :width: 600px
