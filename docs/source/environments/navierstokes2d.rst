@@ -29,7 +29,7 @@ Numerical Implementation
 
 We use the predictor-corrector step to solve the Navier-Stokes 2D problem. The pressure field is solve in an iterative manner. 
 
-First, the predictor step. 
+First, the predictor step (where :math:`u_{i, j}^{n}` is shorthand for :math:`u(x_{i}, y_{j}, t_{n})`).
 
 .. math:: 
     :nowrap:

@@ -11,3 +11,7 @@ register(
 register(
     id="PDEControlGym-NavierStokes2D", entry_point="pde_control_gym.src:NavierStokes2D"
 )
+
+register(
+    id="PDEControlGym-BrainTumor1D", entry_point="pde_control_gym.src:BrainTumor1D"
+)
