@@ -32,7 +32,13 @@ Main Features
 
   guide/install
   guide/quickstart
-  guide/tutorials
+
+.. toctree:: 
+  :maxdepth: 2
+  :caption: Tutorials
+
+  tutorials/hyperbolic-1d_tutorial
+  tutorials/Trafficarz1d_tutorial
 
 .. toctree::
   :maxdepth: 2
