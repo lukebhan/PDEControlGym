@@ -42,8 +42,7 @@ Where, :math:`v_m` and :math:`\rho_{m}` are the maximum permissible velocity and
 
 The first equation (1) represents the conservation of vehicles which ensures that no vehicles appear or disappear within the road segment. On the otherhand second equation (2) captures the effect of velocity changes in response to traffic density variations.
 
-
-The primary control objective is to regulate traffic flow in freeway around a steady-state :math:`(ρ^\star, v^\star)` that satisfies the equilibrium condition :math:`v^\star = V(ρ^\star)`. This is achieved by applying a control input :math:`u(t)` at the boundaries :math:`x = 0` and :math:`x=L` (entrance and exit) of the freeway and observing the traffic density and velocity at that instant.  In practice, the most feasible parameter to control through metering at these boundaries is the traffic flux :math:`q(x,t) = \rho(x, t) v(x, t)`, which represents the rate at which vehicles enter or exit the freeway. Thus, control action is given by:
+The primary control objective is to regulate traffic flow in freeway around a steady-state :math:`(ρ^\star, v^\star)` that satisfies the equilibrium condition :math:`v^\star = V(ρ^\star)`. This is achieved by applying a control input :math:`u(t)` at the boundaries :math:`x = 0` and :math:`x=L` (entrance and exit) of the freeway. In practice, traffic flux :math:`q(x,t) = \rho(x, t) v(x, t)` is the most practical parameter to control on freeways. This can be achieved through ramp metering (controlling the rate vehicles enter or exit) or by adjusting speed limits at boundaries as shown in the above figure. We consider traffic flux as our primary control action. If we were to use speed limits are the control mechanism, then the control velocity can be determined directly from the traffic flux using Equation (4). Thus, the control action is given by:
 
 .. math::
     :nowrap:
