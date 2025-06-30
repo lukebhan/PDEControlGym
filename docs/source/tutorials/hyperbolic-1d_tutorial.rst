@@ -1,14 +1,14 @@
-.. _tutorials:
+.. _hyperbolic-1d_tutorial:
 
-Tutorials
+1D Hyperbolic PDEs Tutorial
 =========
 
 .. note::
    Examples are fully built out in Jupyter-notebooks for 1D Hyperbolic and Parabolic PDEs. Our tutorial in this documentation is aimed
    to demonstrate the use of the library and the basic workings of its parameters.
 
-1D Hyperbolic PDEs: A warm-up tutorial
---------------------------------------
+.. 1D Hyperbolic PDEs: A warm-up tutorial
+.. --------------------------------------
 
 This tutorial will follow the Jupyer-notebook found on `github <https://github.com/lukebhan/PDEControlGym/blob/main/examples/transportPDE/HyperbolicPDEExample.ipynb>`_. It is recommended you have completed the installation guide and started the notebook in order to follow along with this tutorial. 
 
