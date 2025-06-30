@@ -5,11 +5,11 @@
 Traffic ARZ 1D PDE
 =========================
 
-This documentation provides a detailed description of the ARZ PDE model for traffic control and its implementation.
+This documentation provides a detailed description of the Traffic ARZ PDE model for traffic control and its implementation.
 
 Traffic congestion remains a major challenge as the world's population is rapidly growing. One particularly common form of congestion is stop-and-go traffic, which frequently occurs on busy freeways. Stop-and-go traffic is a result of delayed drivers response to changes in traffic flow. It makes the traffic flow across a freeway similiar to ocilliatory waves and this leads to unsafe driving conditions, increased fuel consumption, and higher emissions. Thus, it is crucial to develop effective control strategies to mitigate stop-and-go traffic in freeways. 
 
-The ARZ PDE model is a well-known model for simulating stop-and-go traffic behavior on freeways as shown in the below figure. It consists of a system of coupled hyperbolic PDEs that describe how traffic density evolves over time and space.
+The `Traffic Aw–Rascle–Zhang (Traffic ARZ) PDE model <https://www.sciencedirect.com/science/article/abs/pii/S0005109818305144>`_ is a well-known model for simulating stop-and-go traffic behavior on freeways as shown in the below figure. It consists of a system of coupled hyperbolic PDEs that describe how traffic density evolves over time and space.
 
 
 .. figure:: ../_static/img/trafficARZFreeway.png

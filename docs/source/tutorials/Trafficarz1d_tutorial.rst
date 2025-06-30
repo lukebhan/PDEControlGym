@@ -1,9 +1,9 @@
 .. _Trafficarz1d_tutorial:
 
-Traffic ARZ PDE Tutorial
+1D Traffic ARZ PDE Tutorial
 =========
 
-This tutorial will follow the Jupyer-notebooks found at `github <https://github.com/lukebhan/PDEControlGym/blob/main/examples/TrafficPDE1D>`_. We will explore the traffic ARZ PDE environment, which consists of 1D coupled hyperbolic PDEs that models traffic flow on freeways. The contontrol objective is to stabilize the traffic flow to a desired steady state traffic density and velocity.
+This tutorial will follow the Jupyer-notebooks found at `github <https://github.com/lukebhan/PDEControlGym/blob/main/examples/TrafficPDE1D>`_. We will explore the `Traffic Aw–Rascle–Zhang (ARZ) PDE environment <../environments/Trafficarz1d.html>`_, which consists of 1D coupled hyperbolic PDEs that models traffic flow on freeways. The contontrol objective is to stabilize the traffic flow to a desired steady state traffic density and velocity.
 
 We first start by initializing the :class:`~pde_control_gym.src.environments.TrafficARZ1D` environment. The environment is initialized with the following parameters:
 
@@ -54,7 +54,7 @@ We can now instantiate the trafficARZ environment as follows:
     envBcks = gym.make("PDEControlGym-TrafficPDE1D",**Parameters)
 
 
-Before, bulinding the controller model, we need to define a function that sequentially applies the control actions to the environment. This function will be used to run a simulation episode and store the data obtained from each timestep for further analysis. The function will take a model (controller) and an environment as input, and it will return the cumulative reward, the environment state history, the action history, and the reward history as follows:
+Before, building the controller model, we need to define a function that sequentially applies the control actions to the environment. This function will be used to run a simulation episode and store the data obtained from each timestep for further analysis. The function will take a model (controller) and an environment as input, and it will return the cumulative reward, the environment state history, the action history, and the reward history as follows:
 
 .. code-block:: python
 
@@ -112,10 +112,10 @@ The kernels for outlet backsteeping controller are given by:
 
     \begin{align}
     K(x) &= -\frac{\gamma \cdot p^\star}{\tau} \cdot e^{-x / (\tau v^\star)} \\
-    M(x) &= -K(x)
+    M(x) &= -K(x),
     \end{align}
 
-Where, :math:`\gamma` is a scaling factor and :math:`p^\star = \frac{v_{max} r^\star}{r_{max}}`. We now define the following characteristic speeds of the backstepping controller:
+where :math:`\gamma` is a scaling factor and :math:`p^\star = \frac{v_{max} r^\star}{r_{max}}`. We now define the following characteristic speeds of the backstepping controller:
 
 .. math::
     :nowrap:
@@ -226,7 +226,7 @@ The Reinforcement Learning (RL) controller uses Proximal Policy Optimization (PP
             "control_freq" : 2
     }    
 
-Here, the ``limit_pde_state_size`` parameter is set to ``True`` to limit the size of the PDE state space to ensure numerical stability while traning, and the ``control_freq`` parameter is set to ``2`` to simulate the PDE twice per action. This give the RL model more time to learn the optimal control action. 
+Here, the ``limit_pde_state_size`` parameter is set to ``True`` to limit the size of the PDE state space to ensure numerical stability while traning. The ``control_freq`` parameter is set to ``2``, which means the control input is applied every two PDE simulation steps using a zero-order hold approach, effectively holding the control constant while the PDE evolves between updates. This allows the RL model more time to learn the optimal control action. 
 
 Then, we deaclare some callbacks to log the training metrics to TensorBoard and to save the model checkpoints during training. 
 
