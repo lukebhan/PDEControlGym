@@ -19,16 +19,19 @@ class BrainTumor1D(PDEEnv1D):
                  **kwargs     
     ):
         super().__init__(**kwargs)
+        # Override base env 1d state size
         self.nt = int(round(self.T/self.dt)+1)
         self.nx = int(round(self.X/self.dx)+1)
+        self.u = np.zeros((self.nt, self.nx))
         self.xScale = np.linspace(0, self.X, self.nx) # index -> space mapping
         print(f"nx: {self.nx}, nt: {self.nt}")
+        print(f"u.shape: {self.u.shape}")
 
-        self.reset_init_condition_func = reset_init_condition_func
-        self.radiation_schedule = radiation_schedule
-
+        # Simulation parameters
         self.T1_DETECTION_THRESHOLD = 0.8
         self.T2_DETECTION_THRESHOLD = 0.16
+        self.reset_init_condition_func = reset_init_condition_func
+        self.radiation_schedule = radiation_schedule
         self.D = D
         self.rho = rho
         self.alpha = alpha
@@ -43,17 +46,16 @@ class BrainTumor1D(PDEEnv1D):
             dtype=np.float64
         )
 
+        # Simulation metrics
         self.stage = "Growth"
         self.simulationDays = 0
         self.growthDays = 0
         self.therapyDays = 0
         self.postTherapyDays = 0
-
         self.firstTherapyDay = None
         self.firstPostTherapyDay = None
         self.DOT = 0 #excludes weekends
         self.DIT = 0 #includes weekends
-
         self.cDeathDay = None
 
     
@@ -69,7 +71,6 @@ class BrainTumor1D(PDEEnv1D):
         return None
 
     # Diffusion-Proliferation only
-    '''
     def step(self, control: float):
         print(f"Call step(). Perform dimensionalized finite differencing for time_index={self.time_index+1}")
 
@@ -92,17 +93,24 @@ class BrainTumor1D(PDEEnv1D):
             # update state
             self.u[self.time_index] = nextU
 
+        # log after current time_index calculated
+        T1TumorRadius = self.getTumorRadius(self.time_index, 0.8)
+        T2TumorRadius = self.getTumorRadius(self.time_index, 0.16)
+        print(f"{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}\n")
+
         # check termination conditions
         terminate = self.terminate()
+        truncate = self.truncate()
         return (
             self.u[self.time_index],
             self.reward_class.reward(),
             terminate,
-            False,
+            truncate,
             {},
         )
-    '''
+    
 
+    '''
     # Diffusion-Proliferation-Radiation
     def step(self, control: float):
 
@@ -237,7 +245,7 @@ class BrainTumor1D(PDEEnv1D):
                   truncate,
                   {},
                 )
-                  
+    '''        
 
                         
 
@@ -266,8 +274,18 @@ class BrainTumor1D(PDEEnv1D):
         # alert when tumor reaches deadly radius
         if (T1TumorRadius is not None and T1TumorRadius >= self.t1_death_radius):
             if (self.cDeathDay is None):
-                print(f"\nTumor reaches T1TumorRadius = {T1TumorRadius} = {self.t1_death_radius} = self.t1_death_radius\n")
                 self.cDeathDay = self.time_index
+                self.postTherapyDays = self.time_index - self.therapyDays - self.growthDays
+                self.simulationDays = self.growthDays + self.therapyDays + self.postTherapyDays
+                print(f"\nTruncate: Tumor T1TumorRadius {T1TumorRadius} is at or exceeds self.t1_death_radius {self.t1_death_radius}mm\n")
+                print(f"self.simulationDays {self.simulationDays}")
+                print(f"self.growthDays {self.growthDays}")
+                print(f"self.therapyDays {self.therapyDays}")
+                print(f"self.postTherapyDays {self.postTherapyDays}")
+                print(f"self.firstTherapyDay {self.firstTherapyDay}")
+                print(f"self.firstPostTherapyDay {self.firstPostTherapyDay}")
+                print(f"self.cDeathDay {self.cDeathDay}")
+                return True
         return False
         
     def reset(self, seed: Optional[int]=None, options: Optional[dict]=None):

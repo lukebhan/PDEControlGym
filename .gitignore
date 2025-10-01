@@ -2,3 +2,6 @@
 *~
 *.swp
 *.swo
+*.zip
+build/
+*.egg-info/
