@@ -16,7 +16,6 @@ class BrainTumor1D(PDEEnv1D):
                  t1_death_radius: int = 35,
                  reset_init_condition_func = None,
                  total_dosage = None,
-                 benchmark = False,
                  **kwargs     
     ):
         super().__init__(**kwargs)
@@ -44,8 +43,6 @@ class BrainTumor1D(PDEEnv1D):
             np.full(self.nx, k, dtype="float64"),
             dtype=np.float64
         )
-        self.benchmark = benchmark
-        print("benchmark:", self.benchmark)
 
         # Action controlled parameters
         self.total_dosage = total_dosage
@@ -62,6 +59,7 @@ class BrainTumor1D(PDEEnv1D):
         #self.DOT = 0 #excludes weekends
         #self.DIT = 0 #includes weekends
         self.cDeathDay = None
+        self.t_benchmark = None
 
     
     def getTumorRadius(self, time_index, detectionRatio):
@@ -77,7 +75,7 @@ class BrainTumor1D(PDEEnv1D):
     
     # Diffusion-Proliferation-Radiation with Action and Reward
     def step(self, control: float):
-        print(f"Call step(). Perform dimensionalized finite differencing for time_index={self.time_index+1}")
+        print(f"\tEnvironment: Call step(). Perform dimensionalized finite differencing for time_index={self.time_index+1}")
 
         if (self.time_index < self.nt-1):
             self.time_index += 1
@@ -101,14 +99,14 @@ class BrainTumor1D(PDEEnv1D):
                 # log after current time_index calculated
                 T1TumorRadius = self.getTumorRadius(self.time_index, 0.8)
                 T2TumorRadius = self.getTumorRadius(self.time_index, 0.16)
-                print(f"{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}\n")
+                print(f"\t{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}\n")
 
                 # check if detection radius reached
                 T1TumorRadius = self.getTumorRadius(self.time_index, self.T1_DETECTION_THRESHOLD)
                 self.growthDays = self.time_index
-                if (not self.benchmark and T1TumorRadius is not None and T1TumorRadius >= self.t1_detection_radius):
+                if (T1TumorRadius is not None and T1TumorRadius >= self.t1_detection_radius):
                     self.firstTherapyDay = self.time_index + 1
-                    print(f"\nGrowth break when time_index={self.growthDays}. Therapy stage begins when time_index={self.firstTherapyDay}. T1TumorRadius={T1TumorRadius:.2f}\n")
+                    print(f"\n\tGrowth break when time_index={self.growthDays}. Therapy stage begins when time_index={self.firstTherapyDay}. T1TumorRadius={T1TumorRadius:.2f}\n")
                     self.stage = "Therapy"
                 
                 # check termination conditions
@@ -124,16 +122,16 @@ class BrainTumor1D(PDEEnv1D):
             
             # therapy stage
             if (self.stage == "Therapy"):
-                print(f"Therapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
-                dosage = control * self.remaining_dosage
-                print(f"Action = {control}. Remaining dosage = {self.remaining_dosage}. Dosage for current timestep = {dosage}")
-                self.remaining_dosage -= dosage
+                print(f"\tTherapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
+                applied_dosage = control * self.remaining_dosage
+                print(f"\tAction = {control}. Remaining dosage = {self.remaining_dosage}. Dosage for current timestep = {applied_dosage}")
+                self.remaining_dosage -= applied_dosage
 
                 dArray = np.zeros_like(self.u[0])
                 # use previous day's radius metrics
                 T2TumorRadius = self.getTumorRadius(self.time_index - 1, self.T2_DETECTION_THRESHOLD)
                 treatmentRadius = T2TumorRadius + 25
-                dArray[self.xScale <= treatmentRadius] = dosage
+                dArray[self.xScale <= treatmentRadius] = applied_dosage
                 R = np.ones_like(self.u[0])
                 BED = (dArray + ((dArray ** 2) / (self.alphaBetaRatio)) )
                 S = np.exp(-self.alpha * BED)
@@ -154,13 +152,13 @@ class BrainTumor1D(PDEEnv1D):
                 # log after current time_index calculated
                 T1TumorRadius = self.getTumorRadius(self.time_index, 0.8)
                 T2TumorRadius = self.getTumorRadius(self.time_index, 0.16)
-                print(f"{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}\n")
+                print(f"\t{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}")
 
                 # check if therapy completed: if self.remaining_dosage < 1
                 if self.remaining_dosage < 1:
                     self.therapyDays = self.time_index - self.growthDays
                     self.firstPostTherapyDay = self.time_index + 1
-                    print(f"\nTherapy completed. Begin Post-Therapy starting time_index={self.firstPostTherapyDay}\n")
+                    print(f"\n\tTherapy completed. Begin Post-Therapy starting time_index={self.firstPostTherapyDay}\n")
                     self.stage = "Post-Therapy"
 
                 # check termination conditions
@@ -168,7 +166,7 @@ class BrainTumor1D(PDEEnv1D):
                 truncate = self.truncate()
                 return (
                   self.u[self.time_index],
-                  self.reward_class.reward(), 
+                  self.reward_class.reward(uVec=self.u, time_index=self.time_index, terminate=terminate, truncate=truncate, action=control, t_benchmark = self.t_benchmark, tumor_radius=T1TumorRadius, treatment_radius=treatmentRadius, applied_dosage=applied_dosage), 
                   terminate,
                   truncate,
                   {"stage": self.stage},
@@ -176,7 +174,7 @@ class BrainTumor1D(PDEEnv1D):
             
             # post-therapy stage
             if (self.stage == "Post-Therapy"):
-                print(f"Post-Therapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
+                print(f"\tPost-Therapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
 
                 # perform finite differencing
                 nextU[1:self.nx-1] = ( currU[1:self.nx-1] +
@@ -200,7 +198,7 @@ class BrainTumor1D(PDEEnv1D):
                 truncate = self.truncate()
                 return (
                   self.u[self.time_index],
-                  self.reward_class.reward(),
+                  self.reward_class.reward(uVec=self.u, time_index=self.time_index, terminate=terminate, truncate=truncate, action=control, t_benchmark = self.t_benchmark),
                   terminate,
                   truncate,
                   {"stage": self.stage},
@@ -210,8 +208,12 @@ class BrainTumor1D(PDEEnv1D):
         
     def terminate(self):
         if self.time_index >= self.nt - 1:
-            self.postTherapyDays = self.time_index - self.therapyDays - self.growthDays
-            self.simulationDays = self.growthDays + self.therapyDays + self.postTherapyDays
+            if (self.stage == "Therapy"):
+                self.therapyDays = self.time_index - self.growthDays
+                self.simulationDays = self.growthDays + self.therapyDays
+            if (self.stage == "Post-Therapy"):
+                self.postTherapyDays = self.time_index - self.therapyDays - self.growthDays
+                self.simulationDays = self.growthDays + self.therapyDays + self.postTherapyDays
             print(f"\nTerminate: self.time_index is at or exceeds {self.nt - 1}\n")
             print(f"self.simulationDays {self.simulationDays}")
             print(f"self.growthDays {self.growthDays}")
@@ -231,9 +233,10 @@ class BrainTumor1D(PDEEnv1D):
         if (T1TumorRadius is not None and T1TumorRadius >= self.t1_death_radius):
             if (self.cDeathDay is None):
                 self.cDeathDay = self.time_index
-                if (self.benchmark):
-                    self.simulationDays = self.growthDays
-                else:
+                if (self.stage == "Therapy"):
+                    self.therapyDays = self.time_index - self.growthDays
+                    self.simulationDays = self.growthDays + self.therapyDays
+                if (self.stage == "Post-Therapy"):
                     self.postTherapyDays = self.time_index - self.therapyDays - self.growthDays
                     self.simulationDays = self.growthDays + self.therapyDays + self.postTherapyDays
                 print(f"\nTruncate: Tumor T1TumorRadius {T1TumorRadius} is at or exceeds self.t1_death_radius {self.t1_death_radius}mm\n")
@@ -258,8 +261,76 @@ class BrainTumor1D(PDEEnv1D):
         self.time_index = 0
         self.u = np.zeros((self.nt, self.nx))
         self.u[0] = init_condition
+        self.stage = "Growth"
+
+        # reset metrics
+        self.simulationDays = 0
+        self.growthDays = 0
+        self.therapyDays = 0
+        self.postTherapyDays = 0
+        self.firstTherapyDay = None
+        self.firstPostTherapyDay = None
+        #self.DOT = 0 #excludes weekends
+        #self.DIT = 0 #includes weekends
+        self.cDeathDay = None
+        self.total_dosage = self.total_dosage
+        self.remaining_dosage = self.total_dosage #deducted after each action
 
         return (
             self.u[0],
             {},
         )
+
+class TherapyWrapper(gym.Wrapper):
+    def __init__(self, env: BrainTumor1D):
+        super().__init__(env)
+    
+    # Run growth stage of simulation until start of therapy
+    def reset(self):
+        print(f"Wrapper: Reset environment")
+        obs, info = self.env.reset()
+
+        print(f"Wrapper: Start Growth Stage")
+        while self.env.unwrapped.stage == "Growth":
+            obs, _, terminated, truncated, info = self.env.step(0)
+            if terminated or truncated:
+                break
+        print(f"Wrapper: End Growth Stage\n")
+        return obs, info
+    
+    # Returns therapy reward if normal therapy step. Otherwise return episode reward
+    def step(self, control: float):
+        print(f"Wrapper: Therapy step()")
+        obs, reward, terminated, truncated, info = self.env.step(control)
+
+        # Internally simulate Post-Therapy until terminate or truncate
+        if not (terminated or truncated) and self.env.unwrapped.stage == "Post-Therapy":
+            print(f"Wrapper: Post-Therapy step()")
+            while not (terminated or truncated):
+                obs, reward, terminated, truncated, info = self.env.step(0)
+        
+        if (terminated or truncated):
+            print(f"[Episode Reward] {reward}\n")
+        else:
+            print(f"[Therapy Reward] {reward}\n")
+
+        return obs, reward, terminated, truncated, info
+    
+    def benchmark(self):
+        obs, info = self.env.reset()
+        print(f"Wrapper: Benchmark (episode run with no action and no reward):")
+        
+        terminated = False
+        truncated = False
+
+        while not (terminated or truncated):
+            obs, _, terminated, truncated, info = self.env.step(0)
+
+        # reset environment
+        t_benchmark = self.env.unwrapped.simulationDays
+        self.env.unwrapped.t_benchmark = t_benchmark
+        print(f"Set t_benchmark = {t_benchmark}")
+        obs, info = self.env.reset()
+
+        return t_benchmark
+
