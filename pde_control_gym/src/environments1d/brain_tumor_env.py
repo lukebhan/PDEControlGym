@@ -136,7 +136,12 @@ class BrainTumor1D(PDEEnv1D):
             if (self.stage == "Therapy"):
                 if self.verbose:
                     print(f"\tTherapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
-                applied_dosage = control * self.remaining_dosage
+
+                break_therapy = False
+                applied_dosage = control * self.total_dosage
+                if (applied_dosage >= self.remaining_dosage):
+                    break_therapy = True
+                    applied_dosage = self.remaining_dosage
                 if self.verbose:
                     print(f"\tAction = {control}. Remaining dosage = {self.remaining_dosage}. Dosage for current timestep = {applied_dosage}")
                 self.remaining_dosage -= applied_dosage
@@ -169,13 +174,14 @@ class BrainTumor1D(PDEEnv1D):
                 if self.verbose:
                     print(f"\t{self.stage:<15} {self.time_index:<5} {f'{T1TumorRadius:.2f}' if T1TumorRadius is not None else 'None':<15} {f'{T2TumorRadius:.2f}' if T2TumorRadius is not None else 'None':<15}")
 
-                # check if therapy completed: if self.remaining_dosage < 1
-                if self.remaining_dosage < 1:
+                # check if therapy completed: if we clamp applied_dosage
+                if break_therapy or self.remaining_dosage < 0.1:
                     self.therapyDays = self.time_index - self.growthDays
                     self.firstPostTherapyDay = self.time_index + 1
                     if self.verbose:
                         print(f"\n\tTherapy completed. Begin Post-Therapy starting time_index={self.firstPostTherapyDay}\n")
                     self.stage = "Post-Therapy"
+                    
 
                 # check termination conditions
                 terminate = self.terminate()
