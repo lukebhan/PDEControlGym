@@ -25,6 +25,7 @@ class BrainTumor1D(PDEEnv1D):
         self.nt = int(round(self.T/self.dt)+1)
         self.nx = int(round(self.X/self.dx)+1)
         self.u = np.zeros((self.nt, self.nx))
+        self.dosage_vs_time = np.zeros(self.nt)
         self.xScale = np.linspace(0, self.X, self.nx) # index -> space mapping
         if self.verbose:
             print(f"nx: {self.nx}, nt: {self.nt}")
@@ -54,8 +55,8 @@ class BrainTumor1D(PDEEnv1D):
         )
 
         # Action controlled parameters
-        self.total_dosage = total_dosage
-        self.remaining_dosage = total_dosage #deducted after each action
+        self.total_dosage = float(total_dosage)
+        self.remaining_dosage = float(total_dosage) #deducted after each action
 
         # Simulation metrics
         self.stage = "Growth"
@@ -65,8 +66,6 @@ class BrainTumor1D(PDEEnv1D):
         self.postTherapyDays = 0
         self.firstTherapyDay = None
         self.firstPostTherapyDay = None
-        #self.DOT = 0 #excludes weekends
-        #self.DIT = 0 #includes weekends
         self.cDeathDay = None
         self.t_benchmark = None
 
@@ -138,12 +137,15 @@ class BrainTumor1D(PDEEnv1D):
                     print(f"\tTherapy: Perform dimensionalized finite differencing for time_index={self.time_index}")
 
                 break_therapy = False
+                control = float(np.asarray(control).squeeze())
                 applied_dosage = control * self.total_dosage
                 if (applied_dosage >= self.remaining_dosage):
                     break_therapy = True
                     applied_dosage = self.remaining_dosage
                 if self.verbose:
                     print(f"\tAction = {control}. Remaining dosage = {self.remaining_dosage}. Dosage for current timestep = {applied_dosage}")
+
+                self.dosage_vs_time[self.time_index] = applied_dosage
                 self.remaining_dosage -= applied_dosage
 
                 dArray = np.zeros_like(self.u[0])
@@ -188,7 +190,7 @@ class BrainTumor1D(PDEEnv1D):
                 truncate = self.truncate()
                 return (
                   self.u[self.time_index],
-                  self.reward_class.reward(uVec=self.u, time_index=self.time_index, terminate=terminate, truncate=truncate, action=control, verbose=self.verbose, t_benchmark = self.t_benchmark, tumor_radius=T1TumorRadius, treatment_radius=treatmentRadius, applied_dosage=applied_dosage), 
+                  self.reward_class.reward(uVec=self.u, time_index=self.time_index, terminate=terminate, truncate=truncate, action=control, verbose=self.verbose, t_benchmark = self.t_benchmark, tumor_radius=T1TumorRadius, treatment_radius=treatmentRadius, applied_dosage=applied_dosage, total_dosage=self.total_dosage), 
                   terminate,
                   truncate,
                   {"stage": self.stage},
@@ -296,6 +298,7 @@ class BrainTumor1D(PDEEnv1D):
 
         self.time_index = 0
         self.u = np.zeros((self.nt, self.nx))
+        self.dosage_vs_time = np.zeros(self.nt)
         self.u[0] = init_condition
         self.stage = "Growth"
 
@@ -306,8 +309,6 @@ class BrainTumor1D(PDEEnv1D):
         self.postTherapyDays = 0
         self.firstTherapyDay = None
         self.firstPostTherapyDay = None
-        #self.DOT = 0 #excludes weekends
-        #self.DIT = 0 #includes weekends
         self.cDeathDay = None
         self.total_dosage = self.total_dosage
         self.remaining_dosage = self.total_dosage #deducted after each action
@@ -318,14 +319,24 @@ class BrainTumor1D(PDEEnv1D):
         )
 
 class TherapyWrapper(gym.Wrapper):
-    def __init__(self, env: BrainTumor1D, verbose=True):
+    def __init__(self, env: BrainTumor1D, weekends=False, verbose=True):
         super().__init__(env)
+
         self.verbose = verbose
+        self.weekends = weekends
+
+        # tracking proportion of soft constrant violations
+        self.treatment_calls = 0
+        self.soft_constraint_violations = 0
+
+        # tracking weekends
+        self.consecutive_treatment_days = 0
     
     # Run growth stage of simulation until start of therapy
     def reset(self, seed: Optional[int]=None, options: Optional[dict]=None):
         if self.verbose:
             print(f"Wrapper: Reset environment")
+        self.consecutive_treatment_days = 0
         obs, info = self.env.reset()
 
         if self.verbose:
@@ -340,23 +351,46 @@ class TherapyWrapper(gym.Wrapper):
     
     # Returns therapy reward if normal therapy step. Otherwise return episode reward
     def step(self, control: float):
-        if self.verbose:
-            print(f"Wrapper: Therapy step()")
-        obs, reward, terminated, truncated, info = self.env.step(control)
-
-        # Internally simulate Post-Therapy until terminate or truncate
-        if not (terminated or truncated) and self.env.unwrapped.stage == "Post-Therapy":
+        # Case 1: Internally simulate Post-Therapy until terminate or truncate
+        if self.env.unwrapped.stage == "Post-Therapy":
             if self.verbose:
                 print(f"Wrapper: Post-Therapy step()")
+            terminated, truncated = False, False
             while not (terminated or truncated):
                 obs, reward, terminated, truncated, info = self.env.step(0)
-        
-        if (terminated or truncated):
+
             if self.verbose:
                 print(f"[Episode Reward] {reward}\n")
-        else:
+                print(f"Soft constraint violation rate: {(self.soft_constraint_violations / self.treatment_calls) * 100}%")
+            return obs, reward, terminated, truncated, info
+
+        # Case 2: Run single therapy step
+        if self.verbose:
+            print("Wrapper: Therapy step()")
+
+        obs, reward, terminated, truncated, info = self.env.step(control)
+
+        self.treatment_calls += 1
+        if reward < 0.0:
+            self.soft_constraint_violations += 1
+
+        if self.weekends:
+            if control > 0:
+                self.consecutive_treatment_days += 1
+            else:
+                self.consecutive_treatment_days = 0
+
+        if self.weekends and self.consecutive_treatment_days >= 5:
+            self.consecutive_treatment_days = 0
             if self.verbose:
-                print(f"[Therapy Reward] {reward}\n")
+              print("Wrapper: Force weekend")
+            for i in range(2):
+                _ = self.env.step(0)
+                if terminated or truncated:
+                    return obs, reward, terminated, truncated, info
+            
+        if self.verbose:
+            print(f"[Therapy Reward] {reward}\n")
 
         return obs, reward, terminated, truncated, info
     
@@ -375,7 +409,7 @@ class TherapyWrapper(gym.Wrapper):
         t_benchmark = self.env.unwrapped.simulationDays
         self.env.unwrapped.t_benchmark = t_benchmark
         if self.verbose:
-            print(f"Set t_benchmark = {t_benchmark}")
+            print(f"Set t_benchmark = {t_benchmark}\n\n\n")
         obs, info = self.env.reset()
 
         return t_benchmark

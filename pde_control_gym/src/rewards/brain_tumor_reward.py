@@ -21,20 +21,22 @@ class BrainTumorReward(BaseReward):
         def dmaxsafe(treatment_radius: int):
             return 116 * (treatment_radius ** -0.685)
         
-        tumor_radius = kwargs["tumor_radius"]
         treatment_radius = kwargs["treatment_radius"]
         applied_dosage = kwargs["applied_dosage"]
+        total_dosage = kwargs["total_dosage"]
 
-        lambda_control = 1
-        lambda_toxic = 0.2
-        if (tumor_radius is None):
-            r_control = 1
+        lambda_toxic = 50
+        
+        maxsafe = dmaxsafe(treatment_radius)
+        if applied_dosage <= maxsafe:
+            r_toxic = 0.0
+        elif applied_dosage >= total_dosage:
+            r_toxic = 1.0
         else:
-            r_control = 1 / (1 + tumor_radius)
-        r_toxic = max(0, (applied_dosage / dmaxsafe(treatment_radius)) - 1) ** 2
+            r_toxic = ((applied_dosage - maxsafe) / (total_dosage - maxsafe)) ** (1/3)
 
         if verbose:
-            print(f"Reward Class: l_c*r_control - l_t*r_toxic = {lambda_control * r_control} - {lambda_toxic * r_toxic}")
-            print(f"\tParams: tumor_radius={tumor_radius} treatment_radius={treatment_radius} applied_dosage={applied_dosage} dmaxsafe(treatment_radius)={dmaxsafe(treatment_radius)}")
-        return lambda_control * r_control - lambda_toxic * r_toxic
+            print(f"Reward Class: - l_t*r_toxic = {- lambda_toxic * r_toxic}")
+            print(f"\tParams: treatment_radius={treatment_radius} applied_dosage={applied_dosage} dmaxsafe(treatment_radius)={dmaxsafe(treatment_radius)}")
+        return - lambda_toxic * r_toxic
 
