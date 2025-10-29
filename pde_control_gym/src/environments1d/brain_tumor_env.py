@@ -6,6 +6,22 @@ from typing import Callable, Optional
 from pde_control_gym.src.environments1d.base_env_1d import PDEEnv1D
 
 class BrainTumor1D(PDEEnv1D):
+    r"""
+    Brain Tumor 1D PDE
+
+    This class implements the 1D Brain Tumor DPR PDE and inherits from the class :class:`PDEEnv1D`. Thus, for a full list of of arguments, first see the class :class:`PDEEnv1D` in conjunction with the arguments presented here
+
+    :param D: Diffusion coefficient in units (mm^2/day)
+    :param rho: Proliferation rate in units (1/day)
+    :param alpha: Radio-sensitivity parameter in units (Gy^-1)
+    :param alpha_beta_ratio: Radio-biologic parameter measuring fractionation sensitivity in units (Gy)
+    :param k: Carrying capacity in units (cells/mm^3)
+    :param t1_detection_radius: Radius of tumor at detection in units (mm)
+    :param t1_death_radius: Radius of tumor at patient death (mm)
+    :param reset_init_condition_func: Function that resets initial PDE condition :math:`u(x, 0)`
+    :param total_dosage: Total radiation dosage in units (Gy)
+    :param verbose: Toggles print statements
+    """
     def __init__(self,
                  D: float = 0.2,
                  rho: float = 0.03,
@@ -21,6 +37,7 @@ class BrainTumor1D(PDEEnv1D):
     ):
         super().__init__(**kwargs)
         self.verbose = verbose
+
         # Override base env 1d state size
         self.nt = int(round(self.T/self.dt)+1)
         self.nx = int(round(self.X/self.dx)+1)
@@ -31,13 +48,19 @@ class BrainTumor1D(PDEEnv1D):
             print(f"nx: {self.nx}, nt: {self.nt}")
             print(f"u.shape: {self.u.shape}")
 
-        # Override base env action space to [0, 1]
+        # Override base env action and space to [0, 1]
         self.action_space = spaces.Box(
             np.full(1, 0, dtype="float32"),
             np.full(1, 1, dtype="float32")
         )
+        # Override base env observation space
+        self.observation_space = spaces.Box(
+            np.full(self.nx, 0, dtype="float64"),
+            np.full(self.nx, k, dtype="float64"),
+            dtype=np.float64
+        )
 
-        # Simulation parameters
+        # Constant simulation parameters
         self.T1_DETECTION_THRESHOLD = 0.8
         self.T2_DETECTION_THRESHOLD = 0.16
         self.reset_init_condition_func = reset_init_condition_func
@@ -48,17 +71,12 @@ class BrainTumor1D(PDEEnv1D):
         self.k = k
         self.t1_detection_radius = t1_detection_radius
         self.t1_death_radius = t1_death_radius
-        self.observation_space = spaces.Box(
-            np.full(self.nx, 0, dtype="float64"),
-            np.full(self.nx, k, dtype="float64"),
-            dtype=np.float64
-        )
 
         # Action controlled parameters
-        self.total_dosage = float(total_dosage)
-        self.remaining_dosage = float(total_dosage) #deducted after each action
+        self.total_dosage = float(total_dosage) # Constant
+        self.remaining_dosage = float(total_dosage) # Changed after each action
 
-        # Simulation metrics
+        # Simulation recorded metrics
         self.stage = "Growth"
         self.simulationDays = 0
         self.growthDays = 0
@@ -71,6 +89,14 @@ class BrainTumor1D(PDEEnv1D):
 
     
     def getTumorRadius(self, time_index, detectionRatio):
+        """
+        getTumorRadius
+
+        Helper function determining T1/T2 tumor radius at given time_index
+
+        :param time_index: Time step to calculate radius for
+        :param detectionRatio: Proportion of carrying capacity to set as detection threshold
+        """
         densities = self.u[time_index]
         threshold = detectionRatio * self.k
         binaryMask = (densities >= threshold).astype(int)
@@ -81,8 +107,14 @@ class BrainTumor1D(PDEEnv1D):
           return tumorRadius
         return None
     
-    # Diffusion-Proliferation-Radiation with Action and Reward
     def step(self, control: float):
+        """
+        step
+
+        Moves the PDE with control action forward dt steps
+
+        :param control: Control input. Proportion of total_dosage to apply
+        """
         if self.verbose:
             print(f"\tEnvironment: Call step(). Perform dimensionalized finite differencing for time_index={self.time_index+1}")
 
@@ -243,6 +275,11 @@ class BrainTumor1D(PDEEnv1D):
 
         
     def terminate(self):
+        """
+        terminate
+
+        Determines whether episode should end if the ``T`` timesteps are reached
+        """
         if self.time_index >= self.nt - 1:
             if (self.stage == "Therapy"):
                 self.therapyDays = self.time_index - self.growthDays
@@ -264,6 +301,11 @@ class BrainTumor1D(PDEEnv1D):
             return False
         
     def truncate(self):
+        """
+        truncate
+
+        Truncates episode if patient death conditions reached
+        """
         T1TumorRadius = self.getTumorRadius(self.time_index, self.T1_DETECTION_THRESHOLD)
 
         # alert when tumor reaches deadly radius
@@ -289,6 +331,14 @@ class BrainTumor1D(PDEEnv1D):
         return False
         
     def reset(self, seed: Optional[int]=None, options: Optional[dict]=None):
+        """
+        reset
+
+        Resets the PDE environment at start of each environment setting according to parameters given during PDE environment initialization
+
+        :param seed: Allows a seed for initialization of the envioronment to be set for RL algorithms
+        :param options: Allows a set of options for the initialization of the environment to be set for RL algorithms
+        """
         try:
             init_condition = self.reset_init_condition_func(self.X, self.nx)
         except:
@@ -296,13 +346,16 @@ class BrainTumor1D(PDEEnv1D):
                 "Please pass an initial condition function"
             )
 
+        # Reset parameters
         self.time_index = 0
         self.u = np.zeros((self.nt, self.nx))
         self.dosage_vs_time = np.zeros(self.nt)
         self.u[0] = init_condition
         self.stage = "Growth"
+        self.total_dosage = self.total_dosage
+        self.remaining_dosage = self.total_dosage
 
-        # reset metrics
+        # Reset recorded metrics
         self.simulationDays = 0
         self.growthDays = 0
         self.therapyDays = 0
@@ -310,8 +363,6 @@ class BrainTumor1D(PDEEnv1D):
         self.firstTherapyDay = None
         self.firstPostTherapyDay = None
         self.cDeathDay = None
-        self.total_dosage = self.total_dosage
-        self.remaining_dosage = self.total_dosage #deducted after each action
 
         return (
             self.u[0],
@@ -319,6 +370,14 @@ class BrainTumor1D(PDEEnv1D):
         )
 
 class TherapyWrapper(gym.Wrapper):
+    """
+    Therapy Wrapper
+
+    This class implements a custom wrapper inerhting from the class gym.Wrapper. The wrapper abstracte growth stage and post-therapy stage environment activity, exposing the environment only during the treatment stage when the RL acts
+
+    :param weekends: Determines whether or not we take weekend breaks during treatment
+    :param verbose: Toggles print statements
+    """
     def __init__(self, env: BrainTumor1D, weekends=False, verbose=True):
         super().__init__(env)
 
@@ -329,11 +388,15 @@ class TherapyWrapper(gym.Wrapper):
         self.treatment_calls = 0
         self.soft_constraint_violations = 0
 
-        # tracking weekends
+        # tracking for weekends
         self.consecutive_treatment_days = 0
     
-    # Run growth stage of simulation until start of therapy
     def reset(self, seed: Optional[int]=None, options: Optional[dict]=None):
+        """
+        reset
+
+        Calls wrapped environment's reset method and runs entire growth stage
+        """
         if self.verbose:
             print(f"Wrapper: Reset environment")
         self.consecutive_treatment_days = 0
@@ -349,8 +412,14 @@ class TherapyWrapper(gym.Wrapper):
             print(f"Wrapper: End Growth Stage\n")
         return obs, info
     
-    # Returns therapy reward if normal therapy step. Otherwise return episode reward
     def step(self, control: float):
+        """
+        step
+
+        Runs 1 treatment step if during treatment stage. If during post-therapy stage, simulate until truncation or termination
+
+        :param control: Control input. Proportion of total_dosage to apply
+        """
         # Case 1: Internally simulate Post-Therapy until terminate or truncate
         if self.env.unwrapped.stage == "Post-Therapy":
             if self.verbose:
@@ -395,6 +464,12 @@ class TherapyWrapper(gym.Wrapper):
         return obs, reward, terminated, truncated, info
     
     def benchmark(self):
+        """
+        benchmark
+
+        Runs open-loop episode under the hood to set t_benchmark.
+        RUN THIS METHOD BEFORE MODEL TRAINING AND RUNNING AN EPISODE
+        """
         obs, info = self.env.reset()
         if self.verbose:
             print(f"Wrapper: Benchmark (episode run with no action and no reward):")
