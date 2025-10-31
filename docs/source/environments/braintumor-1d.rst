@@ -70,16 +70,14 @@ Radiation Therapy Schedule
 ------------------------
 
 
-The external beam radiation therapy schedule follows the standard protocol adopted by the University of Washington Medical Center, and is divided into two sequential stages:
+The external beam radiation therapy schedule follows a slightly modified version of the standard protocol adopted by the University of Washington Medical Center [1]_. 
 
-- Stage 1: 28 days of 1.8 :math:`(Gy)` each, delivered to the T2 region + a 25 mm margin
-- Stage 2: 6 days of 1.8 :math:`(Gy)` each, delivered to the T1 region + a 20 mm margin
+In our environment, the schedule spans 34 treatment days of 1.8 :math:`(Gy)` each, delivered to the T2 region + a 25 mm margin for a total of 61.2 :math:`(Gy)`.
 
-This results in a total dose of 61.2 :math:`(Gy)` delivered over 34 days of treatment.
-Radiation is administered on a 5-days-on, 2-days-off schedule to reflect standard clinical breaks for weekends.
+The environment supports both continuous treatment delivery over 34 consecutive days and a clinically realistic 5-days-on, 2-days-off schedule to account for weekend breaks.
 
 
-Model Implementation Details
+Environment Implementation Details
 ------------------------
 
 Our environment is built on mathematical modeling approaches developed in [1]_, [2]_, and [5]_, which are widely adopted in the glioblastoma modeling literature.
@@ -97,61 +95,129 @@ Although our model explicitly evolves only the tumor cell density :math:`c`, the
 Simulation Details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The simulation consists of two states :math:`c` and :math:`cBenchmark`, representing tumor progression with and without therapy, respectively. Each state is modeled as a two-dimensional array with shape :math:`(nt, nx)`, where each entry represents tumor cell density at a particular time step and spatial location. We solve the governing PDE using an explicit finite differencing scheme.
+The simulation state :math:`c` is modeled as a two-dimensional array of shape :math:`(nt, nx)`, where each entry represents the tumor cell density at a specific time step and spatial position. The governing PDE is solved using an explicit finite-difference scheme.
 
-The simulation of the therapy-treated tumor :math:`c` progresses through 3 stages:
+The simulation proceeds through 3 sequential stages:
 
-- Growth Stage: Starting from the initial condition, the tumor experiences free growth until the T1-visible radius reaches 15mm. This event marks the start of the therapy stage.
+- **Growth Stage**: Beginning from the initial condition, the tumor undergoes unconstrained proliferation until the T1 detection radius of 15mm is reached. This marks the onset of the therapy stage.
 
-- Therapy Stage: We begin the 34 day therapy schedule described above. On each treatment day, the dose distribution :math:`d(x, t)` is recalculated based on the current T1 or T2 radius.
+- **Therapy Stage**: The radiation therapy schedule described above is applied. On each treatment day, the dose distribution :math:`d(x, t)` is recalculated based on the current T2 radius, determining the spatial region receiving radiation.
 
-- Post-Therapy Stage: Following completion of therapy, the simulation continues to evolve the tumor for a given number of days to assess regrowth.
+- **Post-Therapy Stage**: After completion of therapy, the tumor continues to grow freely until the T1 death radius of 35mm is reached or the simulation reaches its final temporal step.
 
-The benchmark simulation :math:`cBenchmark` excludes the therapy phase and allows the tumor to grow unpertubed for the full duration of the simulation.
 
 Parameter Setting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Carrying capacity :math:`K = 10^5 (cells/mm^3)`
-- Alpha/beta ratio :math:`\alpha / \beta` is held constant at 10 :math:`(Gy)`
+- :math:`D` = 0.2 :math:`(mm^2/day)`
+- :math:`\rho` = 0.03 :math:`(1/day)`
+- :math:`K` = :math:`10^5 (cells/mm^3)`
+- :math:`\varphi` = 1
+- :math:`\alpha` = 0.04 :math:`(Gy^{-1})`
+- :math:`\alpha / \beta` = 10 :math:`(Gy)`
+- T1 detection radius = 15 :math:`(mm)`
+- T1 death radius = 35 :math:`(mm)`
+- Total treatment dosage = 61.2 :math:`(Gy)`
 
-Tumor-specific parameters :math:`D`, :math:`\rho`, and :math:`\alpha` are selected from the 4 representative groups derived from real patient data:
+Parameters are adopted from this paper: [5]_
 
-.. list-table:: Simulation Groups
-   :widths: 25 25 25 25
-   :header-rows: 1
+Reinforcement Learning Framework
+------------------------
 
-   * - Group
-     - :math:`D`
-     - :math:`\rho`
-     - :math:`\alpha`
-   * - high :math:`D`, high :math:`\rho`
-     - 0.2
-     - 0.1
-     - 0.09
-   * - high :math:`D`, low :math:`\rho`
-     - 0.2
-     - 0.02
-     - 0.03
-   * - low :math:`D`, high :math:`\rho`
-     - 0.04
-     - 0.1
-     - 0.09
-   * - low :math:`D`, low :math:`\rho`
-     - 0.04
-     - 0.02
-     - 0.03
-
-Empirical evidence suggests a strong correlation between :math:`\rho` and :math:`\alpha`, reflecting the biological intuition that highly proliferative tumors tend to be more radiosensitive.
-
-.. TODO
-.. Evaluation Criteria
-.. ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. A lethal threshold is defined as a T1-visible tumor radius of 35mm, in accordance with clinical findings.
-
-.. Graphs and Diagrams
+RL Formulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The radiation therapy schedule described above represents a one-size-fits-all approach applied uniformly across patients, despite individual differences in tumor growth characteristics and radiation sensitivity 
+(driven by varying diffusion coefficients, proliferation rates, and radio-sensitivity constants).
+
+In our framework, we focus on the therapy stage and model it as a reinforcement learning problem.
+Here, the tumor state :math:`c` is exposed as the observation space, and the RL agent 
+determines the action--how much radiation dosage to apply--at each treatment step. 
+
+A **hard constraint** enforces the total allowable radiation dose, whose depletion marks the end of therapy.
+A **soft constraint**, derived from the clinically safe dosage for a given treatment radius, penalizes excessive dosage that may risk patient safety. 
+The function :math:`dmaxsafe(treatmentRadius)` defining the safe dosage for a given treatment radius is extrapolated from clinical data in [6]_.
+
+Our custom reward function encodes both treatment efficacy and safety to guide the RL agent toward an optimal, patient-specific therapy schedule.
+
+Reward Function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The reward function, which the RL agent seeks to maximize, consists of two components: a large **episodic reward** and possibly negative **step reward**.
+
+.. math::
+  \begin{aligned}
+   Rew_{episode}(t) &= t - t_{benchmark}\,,  \quad && t \in \text{deathDay}\\
+  \end{aligned}
+
+.. math::
+   Rew_{step}(treatmentRadius, appliedDosage, totalDosage) =
+   \begin{cases}
+   0, & \\
+   \text{if } appliedDosage \leq dmaxsafe(treatmentRadius) \\
+   - \lambda \left(
+       \frac{appliedDosage - dmaxsafe(treatmentRadius)}
+            {totalDosage - dmaxsafe(treatmentRadius)}
+     \right)^{1/3}, & \\
+   \text{if } appliedDosage \gt dmaxsafe(treatmentRadius)
+   \end{cases}
+
+
+The episodic reward corresponds to the number of additional days the patient survives compared to a benchmark simulation with no treatment.
+
+The step reward introduces a soft safety constraint, penalizing dosage values that exceed the safe clinical threshold. The cubic root ensures a smooth but stepp increase in penalty for even small violations.
+
+The agent's objective is therefore to maximize total reward by extending survival while minimizing (ideally eliminating) violations of the safety constraint.
+
+Training Setup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We implement a wrapper class to encapsulate the growth and post-therapy stages, simulating them internally so that they remain invisible to the RL agent.
+
+The agent interacts only with the therapy stage, where it receives state observations :math:`c` and outputs a continuous action :math:`a \in [0, 1]`, representing the propotion of the remaining total dosage to apply at the current timestep.
+
+If the proposed dosage exceeds the remaining allowed dose or meets a termination threshold, the environment automatically applies the remaining dosage and transitions to the post-therapy stage.
+
+Results and Analysis
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We compare the RL policy against three baselines:
+
+1. Open Loop (No Control) - zero radiation dosage given
+2. Paper Protocol (No Weekends) - based on the above defined radiation therapy schedule
+3. Paper Protocol (Weekends) - based on the above defined radiation therapy schedule
+
+Averaging over five simulation episodes, the RL-based schedule extends patient survival by **over 20 days** compared to traditional protocols, while maintaining complicance with the soft safety constraint.
+
+Below is a summary table of the averaged results across all approaches:
+
+.. figure:: ../_static/img/brainTable.png
+   :align: center
+
+The corresponding treatment schedules for a representative episode are shown below:
+
+.. figure:: ../_static/img/brainTreatment.png
+   :align: center
+
+The figures below visualize the internal tumor state (cell density over time and space) for a representative episode of treatment approach:
+
+.. raw:: html
+
+   <table style="width:100%; text-align:center;">
+     <tr>
+       <td colspan="2" style="text-align:center;">
+         <img src="../_static/img/olState.png" width="60%">
+       </td>
+     </tr>
+     <tr>
+       <td><img src="../_static/img/pnwState.png" width="90%"></td>
+       <td><img src="../_static/img/pwState.png" width="90%"></td>
+     </tr>
+     <tr>
+       <td><img src="../_static/img/rlnwState.png" width="90%"></td>
+       <td><img src="../_static/img/rlwState.png" width="90%"></td>
+     </tr>
+   </table>
 
 Numerical Implementation
 ------------------------
@@ -198,3 +264,6 @@ References
 
 .. [5] L. Hathout, B. Ellingson, and W. Pope, “`Modeling the efficacy of the extent of surgical resection in the setting of radiation therapy for glioblastoma <https://pmc.ncbi.nlm.nih.gov/articles/PMC4982585/>`_,” 
   Cancer Science, vol. 107, no. 8, 2016.
+
+.. [6] J. M. Buatti, W. A. Friedman, S. L. Meeks, and F. J. Bova, "`PTOG 90-05: the real conclusion <https://www.redjournal.org/article/S0360-3016(99)00506-4/fulltext/>`_,"
+  International Journal of Oncology Biology Physics, vol. 47, issue 2, 2000.
