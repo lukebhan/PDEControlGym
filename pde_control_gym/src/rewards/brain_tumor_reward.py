@@ -3,10 +3,29 @@ import numpy as np
 from typing import Optional
 
 class BrainTumorReward(BaseReward):
-    """
+    r"""
     BrainTumorReward
 
-    This is a custom reward class designed for the Brain Tumor 1D PDE simulation. A per-timestep step reward (only during treatment steps) and episodic reward given at the episode end are implemented
+    This is a custom reward class designed for the Brain Tumor 1D PDE simulation. A per-timestep step reward (only during treatment steps) and episodic reward given at the episode end are implemented.
+
+    The formual for calculating the reward is given below:
+
+    .. math::
+      \begin{aligned}
+        Rew_{episode}(t) &= t - t_{benchmark},\quad \text{if } t \in \text{deathDay} \\
+        Rew_{step}(TR,AD,TD) &=
+          \begin{cases}
+            0, & \text{if } AD \le dmaxsafe(TR) \\
+            -\lambda\!\left(\dfrac{AD-dmaxsafe(TR)}{TD-dmaxsafe(TR)}\right)^{1/3},
+              & \text{if } AD \gt dmaxsafe(TR)
+          \end{cases}
+      \end{aligned}
+
+    where 
+
+      - TR - treatment radius
+      - AD - applied dose
+      - TD - total dose
     """
     
     def reward(self, uVec: np.ndarray =None, time_index: int = None, terminate: Optional[bool] =None, truncate: Optional[bool] =None, action: Optional[float] =None, verbose = True, **kwargs):
@@ -41,18 +60,12 @@ class BrainTumorReward(BaseReward):
         total_dosage = kwargs["total_dosage"]
 
         # Max safe dosage given treatment radius
-        def dmaxsafe(treatment_radius: int):
-            return 116 * (treatment_radius ** -0.685)
-        
+        dmaxsafe = lambda treatment_radius: 116 * (treatment_radius ** -0.685)
         lambda_toxic = 50
         
         maxsafe = dmaxsafe(treatment_radius)
-        if applied_dosage <= maxsafe:
-            r_toxic = 0.0
-        elif applied_dosage >= total_dosage:
-            r_toxic = 1.0
-        else:
-            r_toxic = ((applied_dosage - maxsafe) / (total_dosage - maxsafe)) ** (1/3)
+        ratio = (applied_dosage - maxsafe) / (total_dosage - maxsafe)
+        r_toxic = (min(max(ratio, 0.0), 1.0)) ** (1/3)
 
         if verbose:
             print(f"Reward Class: - l_t*r_toxic = {- lambda_toxic * r_toxic}")

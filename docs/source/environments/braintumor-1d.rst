@@ -1,26 +1,42 @@
 .. _braintumor:
 
+.. automodule:: pde_control_gym.src.environments1d
+.. automodule:: pde_control_gym.src.rewards
 
-Brain Tumor 1D PDE
+Glioblastoma 1D PDE (Brain Tumor)
 ================
+
+.. figure:: ../_static/img/glioblastomaMRI.png
+   :align: center
+   :width: 60%
+   
+   High-resoltuion MRI image of constrast-enhanced glibolastoma multiforme tumor
+
+   *Adapted from J. S. Duncan, J. Tisi (2013), licensed under CC BY 3.0*
+|
 
 This documentation describes the 1D Brain Tumor DPR (Diffusion-Proliferation-Radiation) Environment. The environment models the growth dynamics of glioblastomas–a fast-growing type of brain cancer–and their response to external beam radiation therapy (XRT). The model is governed by a partial differential equation (PDE) that includes three key terms: diffusion of tumor cells, proliferation, and radiation-induced cell death.
 
 Background
 ------------------------
 
-Glioblastoma is the most common malignant primary brain tumor, accounting for approximately 16% of all primary brain tumors [3]_.
+Glioblastoma is the most common malignant primary brain tumor, accounting for approximately 16% of all primary brain tumors [1]_.
 
-Glioblastomas are fast-growing and highly aggressive, with a median survival time of only 15 months following diagnosis [3]_. Currently the standard treatment approach involves a combination of surgical resection (when possible), external beam radiation therapy (XRT), and concurrent chemotherapy. Magnetic Resonance Imaging (MRI) is used throughout treatment to monitor tumor progression and response to therapy.
+Glioblastomas are fast-growing and highly aggressive, with a median survival time of only 15 months following diagnosis [1]_. Currently the standard treatment approach involves a combination of surgical resection (when possible), external beam radiation therapy (XRT), and concurrent chemotherapy. Magnetic Resonance Imaging (MRI) is used throughout treatment to monitor tumor progression and response to therapy.
 
 Despite known differences in tumor growth across patients, clinical radiation therapy regimens remain largely standardized. This “one-size-fits-all” approach limits the ability to tailor treatment to individual tumors. Computational models such as the DPR framework aim to simulate tumor evolution under different protocols, offering a pathway toward more personalized therapy strategies.
 
 
 
-Dimensional Model
+One Dimensional Model
 ------------------------
 
-The dimensional model describes tumor growth as occuring in three spatial dimensions and time.
+Although tumor growth occurs in three spatial dimensions and time, we make the assumption of a spherical tumor and that diffusion, proliferation, and radiation effects 
+radially symmetric-dependent only on the distance from the tumor center. Under this symmetry assumption, 
+the problem can be reduced to a one-dimensional formulation in the radial direction.
+
+This reduction lets us simulate the 3D dynamics in a 1D spatial domain with far lower computational cost, while still capturing the tumor's relevant growth and treatment behavior.
+The full nondimensionalization procedure and the derivation of the 1D model are described in detail in [2]_.
 
 Let :math:`\mathcal{B} = [0, L]` denote the one-dimensional spatial domain of the brain, where :math:`x=0` corresponds to the tumor center and :math:`x=L` is the outer boundary of the simulation domain. This domain models radial tumor expansion under the assumption of spherical symmetry. 
 
@@ -29,9 +45,9 @@ Let :math:`\mathcal{T} = [0, T]` denote the time domain of the simulation. Let :
 .. math::
 
    \begin{aligned}
-   c_t(x, t) &= \overbrace{D\nabla^2 c}^{\text{diffusion}} + \overbrace{\rho c (1 - c/K)}^{\text{proliferation}} - \overbrace{R(\alpha, \beta, d(x, t), t) c (1 - c/K)}^{\text{radiation}}\,,  \quad && (x, t) \in \mathcal{B} \times \mathcal{T} \\
-   c(x, 0) &= 0.8 K e^{-0.25x^2}, \quad && x \in \mathcal{B}  \\
-   \mathbf{n} \cdot \nabla c(x, t) &=  0\,,  \quad &&  (x, t) \in \partial \mathcal{B} \times \mathcal{T}
+   c_t(x, t) &= \overbrace{D\nabla^2 c}^{\text{diffusion}} + \overbrace{\rho c (1 - c/K)}^{\text{proliferation}} - \overbrace{R(\alpha, \beta, d(x, t), t) c (1 - c/K)}^{\text{radiation}},  && (x, t) &\in \mathcal{B} \times \mathcal{T} \\
+   c(x, 0) &= 0.8 K e^{-0.25x^2}, && x &\in \mathcal{B}  \\
+   \mathbf{n} \cdot \nabla c(x, t) &=  0, &&  (x, t) &\in \partial \mathcal{B} \times \mathcal{T}
    \end{aligned}
 
 where a zero-flux (Neumann) boundary condition is imposed at the spatial boundaries to ensure that no tumor cells enter or leave the domain during the simulation. :math:`\nabla c` is the spatial gradient of the tumor concentration and :math:`\mathbf{n}` is the outward-pointing unit normal vector at the boundary :math:`\partial \mathcal{B}` of the spatial domain.
@@ -39,20 +55,18 @@ where a zero-flux (Neumann) boundary condition is imposed at the spatial boundar
 The radiation term :math:`R` is given by:
 
 .. math::
-   R(\alpha, \beta,  d(x, t), t) =
+   \begin{aligned}
+   R(\alpha, \beta, d(x, t), t) &=
    \begin{cases}
-   1 - S(\alpha, \beta, d(x, t)), & \text{if } t \in \mathcal{T}_{\text{therapy}} \\ 
+   1 - S(\alpha, \beta, d(x, t)), & \text{if } t \in \mathcal{T}_{\text{therapy}} \\
    0, & \text{otherwise}
-   \end{cases}
-
-.. math::
-  \begin{aligned}
+   \end{cases} \\
    S(\alpha, \beta, d(x, t)) &= e^{-\alpha \cdot \gamma(\alpha, \beta, d(x, t))} \\
-   \gamma(\alpha, \beta, d(x, t)) &= \varphi \cdot d(x,t) \cdot \left( 1 + \frac{d(x, t)}{\alpha / \beta} \right)
-  \end{aligned}
+   \gamma(\alpha, \beta, d(x, t)) &= \varphi \cdot d(x, t) \left( 1 + \frac{d(x, t)}{\alpha / \beta} \right)
+   \end{aligned}
 
 
-**Definitions:**
+where we provide the physical interpretation of all the environment variables below:
 
 - :math:`D`: diffusion coefficient in units :math:`(mm^2/day)`
 - :math:`\rho`: proliferation rate in units :math:`(1/day)`
@@ -70,22 +84,20 @@ Radiation Therapy Schedule
 ------------------------
 
 
-The external beam radiation therapy schedule follows a slightly modified version of the standard protocol adopted by the University of Washington Medical Center [1]_. 
-
+The external beam radiation therapy schedule follows a slightly modified version of the standard protocol adopted by the University of Washington Medical Center [2]_. 
 In our environment, the schedule spans 34 treatment days of 1.8 :math:`(Gy)` each, delivered to the T2 region + a 25 mm margin for a total of 61.2 :math:`(Gy)`.
-
 The environment supports both continuous treatment delivery over 34 consecutive days and a clinically realistic 5-days-on, 2-days-off schedule to account for weekend breaks.
 
 
 Environment Implementation Details
 ------------------------
 
-Our environment is built on mathematical modeling approaches developed in [1]_, [2]_, and [5]_, which are widely adopted in the glioblastoma modeling literature.
+Our environment is built on mathematical modeling approaches developed in [2]_, [3]_, and [4]_, which are widely adopted in the glioblastoma modeling literature.
 
 Simulated MRI Scans
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Glioblastoma diagnosis and treatment monitoring are typically performed using two types of MRI scans: gadolinium enhanced T1-weighted and T2-weighted imaging (referred to here as T1 and T2, respectively). While these scans do not directly measure tumor cell density, prior modeling studies have established heuristic thresholds that map simulated tumor density to visible MRI regions [4]_:
+Glioblastoma diagnosis and treatment monitoring are typically performed using two types of MRI scans: gadolinium enhanced T1-weighted and T2-weighted imaging (referred to here as T1 and T2, respectively). While these scans do not directly measure tumor cell density, prior modeling studies have established heuristic thresholds that map simulated tumor density to visible MRI regions [5]_:
 
 - The T1 region corresponds to areas of high tumor cell density, typically >80% of the carrying capacity
 - The T2 region corresponds to areas of moderate tumor cell density, typically >16% of the carrying capacity
@@ -106,8 +118,7 @@ The simulation proceeds through 3 sequential stages:
 - **Post-Therapy Stage**: After completion of therapy, the tumor continues to grow freely until the T1 death radius of 35mm is reached or the simulation reaches its final temporal step.
 
 
-Parameter Setting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Parameters (taken from [4]_)
 
 - :math:`D` = 0.2 :math:`(mm^2/day)`
 - :math:`\rho` = 0.03 :math:`(1/day)`
@@ -118,8 +129,6 @@ Parameter Setting
 - T1 detection radius = 15 :math:`(mm)`
 - T1 death radius = 35 :math:`(mm)`
 - Total treatment dosage = 61.2 :math:`(Gy)`
-
-Parameters are adopted from this paper: [5]_
 
 Reinforcement Learning Framework
 ------------------------
@@ -136,7 +145,7 @@ determines the action--how much radiation dosage to apply--at each treatment ste
 
 A **hard constraint** enforces the total allowable radiation dose, whose depletion marks the end of therapy.
 A **soft constraint**, derived from the clinically safe dosage for a given treatment radius, penalizes excessive dosage that may risk patient safety. 
-The function :math:`dmaxsafe(treatmentRadius)` defining the safe dosage for a given treatment radius is extrapolated from clinical data in [6]_.
+The function ``dmaxsafe(treatmentRadius)`` defining the safe dosage for a given treatment radius is extrapolated from clinical data in [6]_.
 
 Our custom reward function encodes both treatment efficacy and safety to guide the RL agent toward an optimal, patient-specific therapy schedule.
 
@@ -147,21 +156,20 @@ The reward function, which the RL agent seeks to maximize, consists of two compo
 
 .. math::
   \begin{aligned}
-   Rew_{episode}(t) &= t - t_{benchmark}\,,  \quad && t \in \text{deathDay}\\
+    Rew_{episode}(t) &= t - t_{benchmark},\quad \text{if } t \in \text{deathDay} \\
+    Rew_{step}(TR,AD,TD) &=
+      \begin{cases}
+        0, & \text{if } AD \le dmaxsafe(TR) \\
+        -\lambda\!\left(\dfrac{AD-dmaxsafe(TR)}{TD-dmaxsafe(TR)}\right)^{1/3},
+          & \text{if } AD \gt dmaxsafe(TR)
+      \end{cases}
   \end{aligned}
 
-.. math::
-   Rew_{step}(treatmentRadius, appliedDosage, totalDosage) =
-   \begin{cases}
-   0, & \\
-   \text{if } appliedDosage \leq dmaxsafe(treatmentRadius) \\
-   - \lambda \left(
-       \frac{appliedDosage - dmaxsafe(treatmentRadius)}
-            {totalDosage - dmaxsafe(treatmentRadius)}
-     \right)^{1/3}, & \\
-   \text{if } appliedDosage \gt dmaxsafe(treatmentRadius)
-   \end{cases}
+where:
 
+- :math:`TR` - treatment radius in units :math:`(mm)`
+- :math:`AD` - applied dose in units :math:`(Gy)`
+- :math:`TD` - total dose in units :math:`(Gy)`
 
 The episodic reward corresponds to the number of additional days the patient survives compared to a benchmark simulation with no treatment.
 
@@ -184,14 +192,14 @@ Results and Analysis
 We compare the RL policy against three baselines:
 
 1. Open Loop (No Control) - zero radiation dosage given
-2. Paper Protocol (No Weekends) - based on the above defined radiation therapy schedule
-3. Paper Protocol (Weekends) - based on the above defined radiation therapy schedule
+2. Paper Protocol (No Weekend Breaks) - based on the above defined radiation therapy schedule where patient gets no weekend breaks
+3. Paper Protocol (Weekend Breaks) - based on the above defined radiation therapy schedule where patient gets weekend breaks
 
 Averaging over five simulation episodes, the RL-based schedule extends patient survival by **over 20 days** compared to traditional protocols, while maintaining complicance with the soft safety constraint.
 
 Below is a summary table of the averaged results across all approaches:
 
-.. figure:: ../_static/img/brainTable.png
+.. figure:: ../_static/img/brainChart.png
    :align: center
 
 The corresponding treatment schedules for a representative episode are shown below:
@@ -206,16 +214,16 @@ The figures below visualize the internal tumor state (cell density over time and
    <table style="width:100%; text-align:center;">
      <tr>
        <td colspan="2" style="text-align:center;">
-         <img src="../_static/img/olState.png" width="60%">
+         <img src="../_static/img/olInternal.png" width="60%">
        </td>
      </tr>
      <tr>
-       <td><img src="../_static/img/pnwState.png" width="90%"></td>
-       <td><img src="../_static/img/pwState.png" width="90%"></td>
+       <td><img src="../_static/img/pnwInternal.png" width="90%"></td>
+       <td><img src="../_static/img/pwInternal.png" width="90%"></td>
      </tr>
      <tr>
-       <td><img src="../_static/img/rlnwState.png" width="90%"></td>
-       <td><img src="../_static/img/rlwState.png" width="90%"></td>
+       <td><img src="../_static/img/rlnwInternal.png" width="90%"></td>
+       <td><img src="../_static/img/rlwInternal.png" width="90%"></td>
      </tr>
    </table>
 
@@ -247,23 +255,20 @@ The last thing to consider is the boundary conditions for finding :math:`c_{j}^{
 References
 ------------------------
 
-.. [1] R. Rockne, E. C. Alvord, J. K. Rockhill, and K. R. Swanson, "`A mathematical model for brain tumor response to radiation therapy <https://pubmed.ncbi.nlm.nih.gov/18815786/>`_," 
-  Journal of Mathematical Biology, vol. 58, no. 4-5, 2009.
-
-
-.. [2] R. Rockne et al., "`Predicting efficacy of radiotherapy in individual glioblastoma patients in vivo: a mathematical modeling approach <https://pubmed.ncbi.nlm.nih.gov/20484781/>`_," 
-  Physics in Medicine and Biology, vol. 55, no. 12, 2010.
-
-
-.. [3] A. F. Tamimi, M. Juweid, "`Epidemiology and Outcome of Glioblastoma <https://www.ncbi.nlm.nih.gov/books/NBK470003/>`_," 
+.. [1] A. F. Tamimi, M. Juweid, "`Epidemiology and Outcome of Glioblastoma <https://www.ncbi.nlm.nih.gov/books/NBK470003/>`_," 
   PubMed, 2017.
 
+.. [2] R. Rockne, E. C. Alvord, J. K. Rockhill, and K. R. Swanson, "`A mathematical model for brain tumor response to radiation therapy <https://pubmed.ncbi.nlm.nih.gov/18815786/>`_," 
+  Journal of Mathematical Biology, vol. 58, no. 4-5, 2009.
 
-.. [4] K. R. Swanson, R. C. Rostomily, and E. C. Alvord, "`A mathematical modelling tool for predicting survival of individual patients following resection of glioblastoma: a proof of principle <https://pubmed.ncbi.nlm.nih.gov/18059395/>`_," 
-  British Journal of Cancer, vol. 98, no. 1, 2007.
+.. [3] R. Rockne et al., "`Predicting efficacy of radiotherapy in individual glioblastoma patients in vivo: a mathematical modeling approach <https://pubmed.ncbi.nlm.nih.gov/20484781/>`_," 
+  Physics in Medicine and Biology, vol. 55, no. 12, 2010.
 
-.. [5] L. Hathout, B. Ellingson, and W. Pope, “`Modeling the efficacy of the extent of surgical resection in the setting of radiation therapy for glioblastoma <https://pmc.ncbi.nlm.nih.gov/articles/PMC4982585/>`_,” 
+.. [4] L. Hathout, B. Ellingson, and W. Pope, “`Modeling the efficacy of the extent of surgical resection in the setting of radiation therapy for glioblastoma <https://pmc.ncbi.nlm.nih.gov/articles/PMC4982585/>`_,” 
   Cancer Science, vol. 107, no. 8, 2016.
+
+.. [5] K. R. Swanson, R. C. Rostomily, and E. C. Alvord, "`A mathematical modelling tool for predicting survival of individual patients following resection of glioblastoma: a proof of principle <https://pubmed.ncbi.nlm.nih.gov/18059395/>`_," 
+  British Journal of Cancer, vol. 98, no. 1, 2007.
 
 .. [6] J. M. Buatti, W. A. Friedman, S. L. Meeks, and F. J. Bova, "`PTOG 90-05: the real conclusion <https://www.redjournal.org/article/S0360-3016(99)00506-4/fulltext/>`_,"
   International Journal of Oncology Biology Physics, vol. 47, issue 2, 2000.
