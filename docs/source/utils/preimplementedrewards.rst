@@ -35,7 +35,13 @@ where :math:`u(x, t)` is the solution vector, T is final simulation time, `contr
 .. autoclass:: TunedReward1D
    :members:
 
+Glioblastoma 1D PDE (Brain Tumor) Reward
+-------------------------------------------
 
+This implements the reward used in the Glioblastoma 1D PDE environment.
+
+.. autoclass:: BrainTumorReward
+   :members: 
 
 NS Reward 
 ----------------------

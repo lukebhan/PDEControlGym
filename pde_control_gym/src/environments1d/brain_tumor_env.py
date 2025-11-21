@@ -11,11 +11,11 @@ class BrainTumor1D(PDEEnv1D):
 
     This class implements the 1D Brain Tumor DPR PDE and inherits from the class :class:`PDEEnv1D`. Thus, for a full list of of arguments, first see the class :class:`PDEEnv1D` in conjunction with the arguments presented here
 
-    This implementation was inspired by prior work:
+    This implementation was inspired by prior work (see documentation "References" section for more details):
 
-      - Rockne et al. (2009): `A mathematical model for brain tumor response to radiation therapy <https://pubmed.ncbi.nlm.nih.gov/18815786>`_
-      - Rockne et al. (2010): `Predicting efficacy of radiotherapy in individual glioblastoma patients in vivo: a mathematical modeling approach <https://pubmed.ncbi.nlm.nih.gov/20484781>`_
-      - Hathout et al. (2016): `Modeling the efficacy of the extent of surgical resection in the setting of radiation therapy for glioblastoma <https://pmc.ncbi.nlm.nih.gov/articles/PMC4982585>`_
+      - Rockne et al. (2009)
+      - Rockne et al. (2010)
+      - Hathout et al. (2016)
 
     :param t1_detection_threshold: Fraction of carrying capacity k used to define the T1 region
     :param t2_detection_threshold: Fraction of carrying capacity k used to define the T2 region
@@ -33,6 +33,7 @@ class BrainTumor1D(PDEEnv1D):
     def __init__(self,
                  t1_detection_threshold: float = 0.8,
                  t2_detection_threshold: float = 0.16,
+                 dosage_termination_threshold: float = 0.1,
                  D: float = 0.2,
                  rho: float = 0.03,
                  alpha: float = 0.04,
@@ -50,6 +51,8 @@ class BrainTumor1D(PDEEnv1D):
 
         self.nx = int(round(self.X/self.dx)+1) # total grid points = last observable index + 1
         self.u = np.zeros((self.nt, self.nx))
+        self.t1_radius_idx_vs_time = np.zeros(self.nt)
+        self.t1_radius_idx_vs_time[0] = np.nan
         self.dosage_vs_time = np.zeros(self.nt)
         self.xScale = np.linspace(0, self.X, self.nx) # index -> space mapping
         if self.verbose:
@@ -72,6 +75,7 @@ class BrainTumor1D(PDEEnv1D):
         # Constant simulation parameters
         self.t1_detection_threshold = t1_detection_threshold
         self.t2_detection_threshold = t2_detection_threshold
+        self.dosage_termination_threshold = dosage_termination_threshold
         self.reset_init_condition_func = reset_init_condition_func
         self.D = D
         self.rho = rho
@@ -164,7 +168,7 @@ class BrainTumor1D(PDEEnv1D):
 
                 T1, T2 = self._log_radii()
                 # end therapy when remaining dosage exhausted or almost exhausted
-                if (self.remaining_dosage < 0.1):
+                if (self.remaining_dosage < self.dosage_termination_threshold):
                     self.therapyDays = self.time_index - self.growthDays
                     self.firstPostTherapyDay = self.time_index + 1
                     if self.verbose:
@@ -268,6 +272,8 @@ class BrainTumor1D(PDEEnv1D):
         """
 
         T1TumorRadius = self.getTumorRadius(self.time_index, self.t1_detection_threshold)
+        T1RadiusIdx = T1TumorRadius / self.dx if T1TumorRadius is not None else None
+        self.t1_radius_idx_vs_time[self.time_index] = T1RadiusIdx
         T2TumorRadius = self.getTumorRadius(self.time_index, self.t2_detection_threshold)
         if self.verbose:
             t1r = float('nan') if T1TumorRadius is None else T1TumorRadius
@@ -381,7 +387,7 @@ class TherapyWrapper(gym.Wrapper):
     """
     Therapy Wrapper
 
-    This class implements a custom wrapper inerhting from the class gym.Wrapper. The wrapper abstracte growth stage and post-therapy stage environment activity, exposing the environment only during the treatment stage when the RL acts
+    This class implements a custom wrapper inheriting from the class gym.Wrapper. The wrapper abstracte growth stage and post-therapy stage environment activity, exposing the environment only during the treatment stage when the RL acts
 
     :param weekends: Determines whether or not we take weekend breaks during treatment
     :param verbose: Toggles print statements
@@ -475,8 +481,9 @@ class TherapyWrapper(gym.Wrapper):
         """
         benchmark
 
-        Runs open-loop episode under the hood to set t_benchmark.
-        RUN THIS METHOD BEFORE MODEL TRAINING AND RUNNING AN EPISODE
+        Runs open-loop episode under the hood to set t_benchmark, the baseline survival time
+
+        *Run this method before running episodes and before model training*
         """
         obs, info = self.env.reset()
         if self.verbose:

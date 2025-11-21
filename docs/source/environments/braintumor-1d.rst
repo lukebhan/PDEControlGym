@@ -1,19 +1,15 @@
 .. _braintumor:
 
 .. automodule:: pde_control_gym.src.environments1d
-.. automodule:: pde_control_gym.src.rewards
 
 Glioblastoma 1D PDE (Brain Tumor)
-================
+================================================
 
 .. figure:: ../_static/img/glioblastomaMRI.png
    :align: center
    :width: 60%
    
-   High-resoltuion MRI image of constrast-enhanced glibolastoma multiforme tumor
-
-   *Adapted from J. S. Duncan, J. Tisi (2013), licensed under CC BY 3.0*
-|
+   High-resolution MRI image of constrast-enhanced glioblastoma multiforme tumor. Adapted from J. S. Duncan, J. Tisi (2013)
 
 This documentation describes the 1D Brain Tumor DPR (Diffusion-Proliferation-Radiation) Environment. The environment models the growth dynamics of glioblastomas–a fast-growing type of brain cancer–and their response to external beam radiation therapy (XRT). The model is governed by a partial differential equation (PDE) that includes three key terms: diffusion of tumor cells, proliferation, and radiation-induced cell death.
 
@@ -81,7 +77,7 @@ where we provide the physical interpretation of all the environment variables be
 
 
 Radiation Therapy Schedule
-------------------------
+--------------------------------------
 
 
 The external beam radiation therapy schedule follows a slightly modified version of the standard protocol adopted by the University of Washington Medical Center [2]_. 
@@ -90,7 +86,7 @@ The environment supports both continuous treatment delivery over 34 consecutive 
 
 
 Environment Implementation Details
-------------------------
+--------------------------------------
 
 Our environment is built on mathematical modeling approaches developed in [2]_, [3]_, and [4]_, which are widely adopted in the glioblastoma modeling literature.
 
@@ -131,7 +127,7 @@ Parameters (taken from [4]_)
 - Total treatment dosage = 61.2 :math:`(Gy)`
 
 Reinforcement Learning Framework
-------------------------
+--------------------------------------
 
 RL Formulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -156,8 +152,8 @@ The reward function, which the RL agent seeks to maximize, consists of two compo
 
 .. math::
   \begin{aligned}
-    Rew_{episode}(t) &= t - t_{benchmark},\quad \text{if } t \in \text{deathDay} \\
-    Rew_{step}(TR,AD,TD) &=
+    R_{episode}(t) &= t - t_{benchmark},\quad \text{if } t \in deathday \\
+    R_{step}(TR,AD,TD) &=
       \begin{cases}
         0, & \text{if } AD \le dmaxsafe(TR) \\
         -\lambda\!\left(\dfrac{AD-dmaxsafe(TR)}{TD-dmaxsafe(TR)}\right)^{1/3},
@@ -177,14 +173,21 @@ The step reward introduces a soft safety constraint, penalizing dosage values th
 
 The agent's objective is therefore to maximize total reward by extending survival while minimizing (ideally eliminating) violations of the safety constraint.
 
-Training Setup
+Training Details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We implement a wrapper class to encapsulate the growth and post-therapy stages, simulating them internally so that they remain invisible to the RL agent.
-
-The agent interacts only with the therapy stage, where it receives state observations :math:`c` and outputs a continuous action :math:`a \in [0, 1]`, representing the propotion of the remaining total dosage to apply at the current timestep.
-
+We train a PPO agent on this environment. The agent interacts only during the therapy stage, observing the current tumor state :math:`c` and choosing a continuous action :math:`a \in [0, 1]`, the proportion of total dosage to apply at the current timestep.
 If the proposed dosage exceeds the remaining allowed dose or meets a termination threshold, the environment automatically applies the remaining dosage and transitions to the post-therapy stage.
+A wrapper class is used to encapsulate the growth and post-therapy stages, simulating them internally so that they remain invisible to the PPO agent.
+
+For all experiments, we train the PPO agent for a total of :math:`10^6` environment steps.
+
+The graph below shows the resulting train reward curve.
+The solid line indicates the mean episodic reward over 4 independent training runs, while the shaded region represents the 95% confidence interval.
+The agent rapidly improves after approximately :math:`3\times10^5` steps, and converges to a stable high-reward policy by the end of training.
+
+.. figure:: ../_static/img/brainRewCurve.png
+   :align: center
 
 Results and Analysis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -195,40 +198,47 @@ We compare the RL policy against three baselines:
 2. Paper Protocol (No Weekend Breaks) - based on the above defined radiation therapy schedule where patient gets no weekend breaks
 3. Paper Protocol (Weekend Breaks) - based on the above defined radiation therapy schedule where patient gets weekend breaks
 
-Averaging over five simulation episodes, the RL-based schedule extends patient survival by **over 20 days** compared to traditional protocols, while maintaining complicance with the soft safety constraint.
+Below is a table summarizing results for each approach. For each approach, we run five simulation episiodes and average days lived, total reward, and the violation rate. 
+Violation rate is defined as proportion of total therapy steps where our soft constraint is violated, that is, when our applied radiation dose is greater than ``dmaxsafe(treatmentRadius)`` allows. 
 
-Below is a summary table of the averaged results across all approaches:
+What the table shows is that our RL-based schedule extends patient survival by **over 20 days** compared to traditional protocols while maintaining complicance with the soft safety constraint.
 
-.. figure:: ../_static/img/brainChart.png
+.. figure:: ../_static/img/brainTable.png
    :align: center
 
-The corresponding treatment schedules for a representative episode are shown below:
+The corresponding treatment schedules for a representative episode are shown below. Dose in Gy is plotted against given treatment day:
 
-.. figure:: ../_static/img/brainTreatment.png
+.. figure:: ../_static/img/brainSchedule.png
    :align: center
 
-The figures below visualize the internal tumor state (cell density over time and space) for a representative episode of treatment approach:
+The figures below visualize the internal tumor state (cell density over time and space) for a representative episode of treatment approach.
+The time domain for each graph depends on patient survival time.
 
 .. raw:: html
 
    <table style="width:100%; text-align:center;">
-     <tr>
+    <tr>
        <td colspan="2" style="text-align:center;">
-         <img src="../_static/img/olInternal.png" width="60%">
+         <img src="../_static/img/brainGraphLegend.png" width="60%">
        </td>
      </tr>
      <tr>
-       <td><img src="../_static/img/pnwInternal.png" width="90%"></td>
-       <td><img src="../_static/img/pwInternal.png" width="90%"></td>
+       <td colspan="2" style="text-align:center;">
+         <img src="../_static/img/olGraph.png" width="60%">
+       </td>
      </tr>
      <tr>
-       <td><img src="../_static/img/rlnwInternal.png" width="90%"></td>
-       <td><img src="../_static/img/rlwInternal.png" width="90%"></td>
+       <td><img src="../_static/img/pnwGraph.png" width="100%"></td>
+       <td><img src="../_static/img/pwGraph.png" width="100%"></td>
+     </tr>
+     <tr>
+       <td><img src="../_static/img/rlnwGraph.png" width="100%"></td>
+       <td><img src="../_static/img/rlwGraph.png" width="100%"></td>
      </tr>
    </table>
 
 Numerical Implementation
-------------------------
+--------------------------------------
 
 We derive the numerical implementation scheme for those looking for inner details of the environment. We use a first-order finite-difference scheme to approxiate the dimensionless PDE:
 
@@ -251,6 +261,20 @@ where :math:`\Delta t = dt = \text{time step}`, :math:`\Delta x= dx = \text{spat
   c_{j}^{n+1} = c_{j}^{n} + \Delta t (D \cdot (\frac{c_{j+1}^n - 2c_j^n + c_{j-1}^n}{(\Delta x)^2}) + \rho c_{j}^n (1 - c_{j}^n/K) - R(\alpha, \beta, d(x,t), t) c_{j}^n (1 - c_{j}^n/K))
 
 The last thing to consider is the boundary conditions for finding :math:`c_{j}^{n+1}` when :math:`j = 0` or :math:`j = Nx`. In these cases, we set :math:`c_{0}^{n} = c_{1}^{n}` and :math:`c_{Nx}^{n} = c_{Nx-1}^{n}` respectively to create a symmetric and mirrored concentration field across the boundary to satisfy the no-flux boundary condition.
+
+API Reference
+------------------------
+
+This section provides detailed documentation of the Python classes, methods, and utilities implementing the Glioblastoma 1D PDE environment and reinforcement learning interface.
+
+See the Utilies -> Pre-implemented Rewards section for the API reference for the environment's corresponding reward class.
+
+.. autoclass:: BrainTumor1D
+  :members:
+
+.. autoclass:: TherapyWrapper
+  :members:
+
 
 References
 ------------------------
