@@ -12,54 +12,74 @@ class NeuronPDE1D(PDEEnv1D):
 
     This class implements the Neuron Growth Control PDE.
 
-    :param c_infty: Represents the equilibrium of the tubulin concentration in the cone.
-    :param lsubs: Represents the desired length of the axon in the x-coordinate.
+    :param cInfty: Represents the equilibrium of the tubulin concentration in the cone.
+    :param LSubS: Represents the desired length of the axon in the x-coordinate.
     :param k1: Represents a gain parameter 
     :param k2: Represents a gain parameter 
+    :param LSubZero: Represents the initial length of the axon.
+    :param LSubC: Represents the growth ratio.
+    :param a: Represents the tubulin velocity constant.
+    :param g: Represents the tubulin degradation rate.
+    :param D: Represents the tubulin diffusion constant.
+    :param TildeRSubG: Represents the reaction rate to create microtubules.
+    :param RSubG: Represents a lumped parameter that depends on the density of assembled microtubules and the effective area of created microtubules growth.
+    :param limit_pde_state_size: This is a boolean which will terminate the episode early if :math:`\|u(x, t)\|_{L_2} \geq` ``max_state_value``.
+    :param max_state_value: Only used when ``limit_pde_state_size`` is ``True``. Then, this sets the value for which the :math:`L_2` norm of the PDE will be compared to at each step asin ``limit_pde_state_size``.
      
     """
 
     def __init__(self,  
-                 c_infty: float = 0.0119,
-                 lsubs: float = 12e-6,
+                 cInfty: float = 0.0119,
+                 LSubS: float = 12e-6,
                  k1: float = -1e3,
                  k2: float = 1e13,
+                 LSubZero: float = 1e-6,
+                 LSubC: float = 4e-6,
+                 a: float = 1e-8,
+                 g: float = 5e-7,
+                 D: float = 10e-12,
+                 TildeRSubG: float = 0.053,
+                 RSubG: float = 1.783e-5,
+                 limit_pde_state_size: bool = False,
+                 max_state_value: float = 1e10,
                  **kwargs):
         super().__init__(**kwargs)
-    
+        self.limit_pde_state_size = limit_pde_state_size
+        self.max_state_value = max_state_value
+
         # Initializes all physical parameters
         
-        self.lsubs = lsubs
-        self.c_infty = self.c_infty
+        self.LSubS = LSubS
+        self.cInfty = cInfty
         self.k1 = k1
         self.k2 = k2
-        self.lsubzero = 1e-6
-        self.lsubc = 4e-6
-        self.a = 1e-8
-        self.g = 5e-7
-        self.D = 10e-12
-        self.tildeRsubg = 0.053
+        self.LSubZero = LSubZero
+        self.LSubC = LSubC
+        self.a = a
+        self.g = g
+        self.D = D
+        self.TildeRSubG = TildeRSubG
+        self.RSubG = RSubG
         self.gamma = (self.a/self.D)*10
-        self.rsubg = 1.783e-5
         self.H = np.zeros([2,1])
         self.H[0,0] = 1
-        self.H[1,0] = -1*(((self.a - self.g*self.lsubc)*(c_infty))/self.D)
-        self.atilde1 = ((self.a - self.rsubg*c_infty)/self.lsubc) - self.g - self.tildeRsubg
-        self.atilde3 = (self.a**2 + self.D*self.g - self.a*self.g*self.lsubc) / (self.D*2)
-        self.Asub1 = np.array([[self.atilde1, 0.0],
-                       [self.rsubg, 0.0]])
-        self.beta = self.D/self.lsubc
+        self.H[1,0] = -1*(((self.a - self.g*self.LSubC)*(cInfty))/self.D)
+        self.aTilde1 = ((self.a - self.RSubG*cInfty)/self.LSubC) - self.g - self.TildeRSubG
+        self.aTilde3 = (self.a**2 + self.D*self.g - self.a*self.g*self.LSubC) / (self.D*2)
+        self.Asub1 = np.array([[self.aTilde1, 0.0],
+                       [self.RSubG, 0.0]])
+        self.beta = self.D/self.LSubC
         self.B = np.zeros([2,1])
         self.B[0,0] = -1*self.beta
-        self.lambda_minus = self.a - np.sqrt(self.a**2 + 4*self.D*self.g)
-        self.lambda_minus = self.lambda_minus/(2*self.D)
-        self.lambda_plus = self.a + np.sqrt(self.a**2 + 4*self.D*self.g)
-        self.lambda_plus = self.lambda_plus/(2*self.D)
-        self.Kminus = self.a - 2*self.g*self.lsubc
+        self.LambdaMinus = self.a - np.sqrt(self.a**2 + 4*self.D*self.g)
+        self.LambdaMinus = self.LambdaMinus/(2*self.D)
+        self.LambdaPlus = self.a + np.sqrt(self.a**2 + 4*self.D*self.g)
+        self.LambdaPlus = self.LambdaPlus/(2*self.D)
+        self.Kminus = self.a - 2*self.g*self.LSubC
         self.Kminus = self.Kminus/2
         self.Kminus = self.Kminus/(np.sqrt(self.a**2 + 4*self.D*self.g))
         self.Kminus = 0.5 - self.Kminus
-        self.Kplus = self.a - 2*self.g*self.lsubc
+        self.Kplus = self.a - 2*self.g*self.LSubC
         self.Kplus = self.Kplus/2
         self.Kplus = self.Kplus/(np.sqrt(self.a**2 + 4*self.D*self.g))
         self.Kplus = 0.5 + self.Kplus
@@ -71,13 +91,13 @@ class NeuronPDE1D(PDEEnv1D):
 
         # find length of spatial grid
         self.length = self.X
-        self.spatial_to_real_scale = 1
+        self.SpatialToRealScale = 1
         while self.length < 1:
             self.length = self.length*10
-            self.spatial_to_real_scale = self.spatial_to_real_scale/10
+            self.SpatialToRealScale = self.SpatialToRealScale/10
 
         # Initializes necessary simulation values
-        self.dxreal = self.dx*self.lsubzero 
+        self.dxreal = self.dx*self.LSubZero 
 
         # Define N1, used to calculate p, phi, and phi prime
 
@@ -90,13 +110,13 @@ class NeuronPDE1D(PDEEnv1D):
         
         # Define phi constants
 
-        self.row_vector_1 = np.zeros((1,2))
-        self.row_vector_1 = np.hstack([
+        self.RowVector1 = np.zeros((1,2))
+        self.RowVector1 = np.hstack([
             self.H.T,                                  # (1,2)
             self.K.T - ((self.H.T @ self.B @ self.H.T)/self.D) # (1,2)
             ]) 
-        self.identity_vector = np.vstack([self.I2, np.zeros((2,2))])  # (4,2)
-        self.identity_vector_flipped = np.vstack([np.zeros((2,2)),self.I2])
+        self.IdentityVector = np.vstack([self.I2, np.zeros((2,2))])  # (4,2)
+        self.IdentityVectorFlipped = np.vstack([np.zeros((2,2)),self.I2])
 
 
         # Define control input constants
@@ -114,44 +134,40 @@ class NeuronPDE1D(PDEEnv1D):
         # Initializes error system
         self.u = np.zeros([self.M,1])
 
-        # Initialize csubeq using spatial grid
-        self.csubeq = np.zeros([self.M, 1])
-        self.distance_from_tip = (self.spatial_to_real_scale*x) - lsubs
-        self.csubeq[:, 0] = c_infty * (
-            self.Kplus * np.exp(self.lambda_plus * self.distance_from_tip) +
-            self.Kminus * np.exp(self.lambda_minus * self.distance_from_tip)
+        # Initialize CSubEq using spatial grid
+        self.CSubEq = np.zeros([self.M, 1])
+        self.DistanceFromTip = (self.SpatialToRealScale*x) - self.LSubS
+        self.CSubEq[:, 0] = self.cInfty * (
+            self.Kplus * np.exp(self.LambdaPlus * self.DistanceFromTip) +
+            self.Kminus * np.exp(self.LambdaMinus * self.DistanceFromTip)
         )
 
         #Initial Condition of Z
-        self.Z[0,0] = self.c_infty
-        self.Z[1,0] = self.lsubzero - self.lsubs
+        self.Z[0,0] = self.cInfty
+        self.Z[1,0] = self.LSubZero - self.LSubS
 
 
         #Calculate L
-        self.lt = self.Z[1,0] + lsubs
-        self.W = 1/self.spatial_to_real_scale  # conversion from physical length -> code length
-        self.lt_code = float(self.W * self.lt)            # convert length to code units
-        self.L_raw   = int(round(self.lt_code / self.dx))      # map to grid index
-        self.L  = max(1, min(self.M - 1, self.L_raw))     # keeps L inside [1, M-1] so that it doesn't index out of bounds
+        self.L  = NeuronPDE1D.Conversion(self.Z[1,0],self.LSubS,self.SpatialToRealScale,self.dx,self.M)     # keeps L inside [1, M-1] so that it doesn't index out of bounds
 
 
         #Initial Condition of u
         for i in range(0,self.M):
-            self.u[i,0] = 2*self.c_infty - self.csubeq[i,0]
+            self.u[i,0] = 2*self.cInfty - self.CSubEq[i,0]
 
         # Initialize and set up phi
         self.phi = np.zeros((self.M, 2))
         for i in range(self.M):
-            self.phi[i, :] = (self.row_vector_1 @ expm(-1*self.spatial_to_real_scale*(x[i])*self.N1) @ self.identity_vector).ravel()
+            self.phi[i, :] = (self.RowVector1 @ expm(-1*self.SpatialToRealScale*(x[i])*self.N1) @ self.IdentityVector).ravel()
         # Initialize and set up phi prime
-        self.phi_prime = np.zeros((self.M, 2))
+        self.PhiPrime = np.zeros((self.M, 2))
         for i in range(self.M):
-            self.phi_prime[i, :] = (self.row_vector_1 @ expm(-1*(self.spatial_to_real_scale)*(x[i])*self.N1) @ self.identity_vector_flipped).ravel()
+            self.PhiPrime[i, :] = (self.RowVector1 @ expm(-1*(self.SpatialToRealScale)*(x[i])*self.N1) @ self.IdentityVectorFlipped).ravel()
 
         # Initialize and set up p(x)
         self.p = np.zeros((self.M, 2))
         for i in range(self.M):
-            self.p[i, :] = (self.phi_prime[i, :]) - (self.gamma * self.phi[i, :])
+            self.p[i, :] = (self.PhiPrime[i, :]) - (self.gamma * self.phi[i, :])
             
 
 
@@ -169,30 +185,29 @@ class NeuronPDE1D(PDEEnv1D):
         dx = self.dx # spatial step size for spatial grid
         dt = self.dt # step size for time
         self.time_index += dt # time update, increases every time that step() runs
-        self.lt = self.Z[1,0] + self.lsubs # Computes length of axon at the current time step
+        self.lt = self.Z[1,0] + self.LSubS # Computes length of axon at the current time step
         self.dxreal = self.dx*self.lt # physical spatial step size for finite difference scheme calculations
         
         
         # Storing values for u(x,t), Z(t), and spatial index L before they get overwritten
         self.temp = self.u.copy() # copy of u(x,t)
-        self.Z_old = self.Z.copy() # copy of Z(t)
-        self.L_old = int(self.L) # copy of L
+        self.ZOld = self.Z.copy() # copy of Z(t)
+        self.LOld = int(self.L) # copy of L
+        self.LMinusOne = self.L-1
+        self.LMinusTwo = self.L-2
 
         # New value for Z[0]
-        self.Z[0] = (self.atilde1*self.Z_old[0] 
-                       - (self.beta) * ((3*self.u[self.L] - 4*self.u[self.L-1] + self.u[self.L-2])/(2*self.dxreal))
-                       ) * dt + self.Z_old[0]
+        self.Z[0] = (self.atilde1*self.ZOld[0] 
+                       - (self.beta) * ((3*self.u[self.L] - 4*self.u[self.LMinusOne] + self.u[self.LMinusTwo])/(2*self.dxreal))
+                       ) * dt + self.ZOld[0]
         
         # New value for Z[0]
-        self.Z[1] = (self.rsubg*self.Z_old[0]) * dt + self.Z_old[1]
+        self.Z[1] = (self.RSubG*self.ZOld[0]) * dt + self.ZOld[1]
        
 
         # To compute new spatial index L, given that l(t) changed
-        self.lt_new = self.Z[1,0] + self.lsubs # computes new l(t)
-        self.lt_code = float(self.W * self.lt_new) # converts length to code units
-        self.L_raw   = int(round(self.lt_code / self.dx)) # maps to grid index L
-        self.L  = max(1, min(self.M - 1, self.L_raw))     # keep L inside [1, M-1]
-        self.L_new = int(self.L) # Stores new L in L_new
+        self.L = NeuronPDE1D.Conversion(self.Z[1,0],self.LSubS,self.SpatialToRealScale,self.dx,self.M)
+        self.LNew = self.L
 
         
         # Steps to calculate the backstepping control input
@@ -203,25 +218,31 @@ class NeuronPDE1D(PDEEnv1D):
             self.sum += self.dxreal*(self.p[i,:] @ self.B)*self.u[i]
 
         # Builds U(t)
-        self.middle_term = (((self.dxreal)*(self.p[0,:] @ self.B)*self.u[0])/2) + self.sum + ((self.dxreal/2)*(self.p[self.L,:] @ self.B)*self.u[self.L]) # trapezoidal sum
-        self.middle_term = self.middle_term/self.D
-        self.control_input = self.lt * (((self.H.T @ self.B)/self.D + self.gamma) * self.u[0] - self.middle_term + (self.p[self.L,:] @ self.Z))
+        self.MiddleTerm = ((((self.dxreal)*(self.p[0,:] @ self.B)*self.u[0])/2) + self.sum + ((self.dxreal/2)*(self.p[self.L,:] @ self.B)*self.u[self.L])) / self.D # trapezoidal sum
+        self.ControlInput = self.lt * (((self.H.T @ self.B)/self.D + self.gamma) * self.u[0] - self.MiddleTerm + (self.p[self.L,:] @ self.Z))
 
         # Set U(t) equal to the leftmost boundary
-        self.ufic = self.u[1] - self.control_input*self.dxreal*2
+        self.ufic = self.u[1] - self.ControlInput*self.dxreal*2
         self.u[0] = ((self.D/(self.dxreal**2)) * (self.u[1] - 2*self.u[0] + self.ufic) - self.a/(2*self.dxreal) * (self.u[1] - self.ufic) - self.g * self.u[0]) * dt + self.u[0]
 
 
         # New u's for next time step (excluding the boundaries)
-        for n in range(1,self.L_new):
+        for n in range(1,self.LNew):
             uxx = (self.temp[n+1,0] - 2*self.temp[n,0] + self.temp[n-1,0]) / (self.dxreal**2)
             ux  = ((self.temp[n+1] - self.temp[n-1])) / self.dxreal   # see (2) below
-            self.u[n,0] = self.temp[n,0] + self.dt * ( self.D*uxx + (((n-1)/self.lt) * (self.rsubg*self.Z_old[0]) * (self.temp[n+1] - self.temp[n-1])/2)  - self.a*ux/(2) - self.g*self.temp[n,0] )
+            self.u[n,0] = self.temp[n,0] + self.dt * ( self.D*uxx + (((n-1)/self.lt) * (self.RSubG*self.ZOld[0]) * (self.temp[n+1] - self.temp[n-1])/2)  - self.a*ux/(2) - self.g*self.temp[n,0] )
 
         # Rightmost boundary condition
-        self.u[self.L_new, 0] = float(self.H.T @ self.Z)
+        self.u[self.LNew, 0] = self.H.T @ self.Z
 
-        return self.u
+        terminate = self.terminate()
+        truncate = self.truncate()
+        return (
+            self.reward_class.reward(self.u, self.time_index, terminate, truncate),
+            terminate,
+            truncate, 
+            {},
+        )
     
     def terminate(self):
         """
@@ -234,3 +255,26 @@ class NeuronPDE1D(PDEEnv1D):
             return True
         else:
             return False
+        
+    def truncate(self):
+        """
+        truncate 
+
+        Determines whether to truncate the episode based on the PDE state size and the vairable ``limit_pde_state_size`` given in the PDE environment intialization.
+        """
+        if (
+            self.limit_pde_state_size
+            and np.linalg.norm(self.u, 2)  >= self.max_state_value
+        ):
+            return True
+        else:
+            return False
+        
+    #Helper functions
+    @staticmethod
+    def Conversion(ZSecond,TargetLength,scale,dx,M):
+        LengthAtT = ZSecond + TargetLength
+        W = float(1/scale)  # conversion from physical length -> code length
+        LtCode = float(W * LengthAtT)            # convert length to code units
+        LRaw   = int(round(LtCode / dx))      # map to grid index
+        return max(1, min(M - 1, LRaw))
