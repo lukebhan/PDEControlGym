@@ -2,6 +2,4 @@
 *~
 *.swp
 *.swo
-*.zip
-build/
-*.egg-info/
+**/*.ipynb_checkpoints/
