@@ -46,6 +46,7 @@ Main Features
 
   environments/hyperbolic-1d
   environments/parabolic-1d
+  environments/braintumor-1d
   environments/navierstokes2d
   environments/Trafficarz1d
   environments/neuron-1d

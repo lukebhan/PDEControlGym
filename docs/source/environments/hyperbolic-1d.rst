@@ -45,7 +45,7 @@ Consider the first-order taylor approximation as
         u(x, t+1) = u(x, t) + \Delta t u_t(x, t)\,,
     \end{eqnarray}
 
-with finite spatial derviatves approximated by first-order diffrences
+with finite spatial derviatves approximated by first-order differences where :math:`u_{j}^{n}` is shorthand for :math:`u(x_{j}, t_{n})`
 
 .. math:: 
     :nowrap:
