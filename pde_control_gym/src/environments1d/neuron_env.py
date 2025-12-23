@@ -12,6 +12,7 @@ class NeuronPDE1D(PDEEnv1D):
 
     This class implements the Neuron Growth Control PDE.
 
+    :param sensing_noise_func: Takes in a function that can add sensing noise into the system. Must return the same sensing vector as given as a parameter.
     :param cInfty: Represents the equilibrium of the tubulin concentration in the cone.
     :param LSubS: Represents the desired length of the axon in the x-coordinate.
     :param k1: Represents a gain parameter 
@@ -25,10 +26,14 @@ class NeuronPDE1D(PDEEnv1D):
     :param RSubG: Represents a lumped parameter that depends on the density of assembled microtubules and the effective area of created microtubules growth.
     :param limit_pde_state_size: This is a boolean which will terminate the episode early if :math:`\|u(x, t)\|_{L_2} \geq` ``max_state_value``.
     :param max_state_value: Only used when ``limit_pde_state_size`` is ``True``. Then, this sets the value for which the :math:`L_2` norm of the PDE will be compared to at each step asin ``limit_pde_state_size``.
-     
+    :param max_control_value: Sets the maximum control value input as between [``-max_control_value``, ``max_control_value``] and is used in the normalization of action inputs.
+    :param control_type: The control location can either be given as a ``"Dirchilet"`` or ``"Neumann"`` boundary conditions and is always at the ``X`` point. 
+    :param sensing_type: Only used when ``sensing_loc`` is set to ``opposite``. In this case, the sensing can be either given as ``"Dirchilet"`` or ``"Neumann"`` and is given at the ``0`` point. 
+    :param sensing_loc: Sets the sensing location as either ``"full"``, ``"collocated"``, or ``"opposite"`` which indicates whether the full state, the boundary at the same side of the control, or boundary at the opposite side of control is given as the observation at each time step.
+
     """
 
-    def __init__(self,  
+    def __init__(self, sensing_noise_func: Callable[[np.ndarray], np.ndarray], 
                  cInfty: float = 0.0119,
                  LSubS: float = 12e-6,
                  k1: float = -1e3,
@@ -42,10 +47,19 @@ class NeuronPDE1D(PDEEnv1D):
                  RSubG: float = 1.783e-5,
                  limit_pde_state_size: bool = False,
                  max_state_value: float = 1e10,
+                 max_control_value: float = 20,
+                 control_type: str= "Neumann", 
+                 sensing_type: str = "Neumann",
+                 sensing_loc: str = "Full",
                  **kwargs):
         super().__init__(**kwargs)
         self.limit_pde_state_size = limit_pde_state_size
         self.max_state_value = max_state_value
+        self.max_control_value = max_control_value
+        self.control_type = control_type
+        self.sensing_type = sensing_type
+        self.sensing_loc = sensing_loc
+        self.sensing_noise_func = sensing_noise_func
 
         # Initializes all physical parameters
         
@@ -88,6 +102,68 @@ class NeuronPDE1D(PDEEnv1D):
         self.K = np.zeros([2,1])
         self.K[0,0] = self.k1
         self.K[1,0] = self.k2
+
+        # Setup configurations for control and sensing. Messy, but done once, explicitly before runtime to setup return and control functions
+        # There is a trick here where noise is a function call itself. Important that noise is a single argument function that returns a single argument
+        match self.control_type:
+            case "Neumann":
+                self.control_update = lambda control, state, dx: control * dx + state
+                match self.sensing_loc:
+                    # Neumann control u_x(1), full state measurement
+                    case "full":
+                        self.sensing_update = lambda state, dx, noise: noise(state)
+                    # Neumann control u_x(1), Dirchilet sensing u(1)
+                    case "collocated":
+                        self.sensing_update = lambda state, dx, noise: noise(state[-1])
+                    case "opposite":
+                        match self.sensing_type:
+                            # Neumann control u_x(1), Neumann sensing u_x(0)
+                            case "Neumann":
+                                self.sensing_update = lambda state, dx, noise: noise(
+                                    (state[1] - state[0]) / dx
+                                )
+                            # Neumann control u_x(1), Dirchilet sensing u(0)
+                            case "Dirchilet":
+                                self.sensing_update = lambda state, dx, noise: noise(state[0])
+                            case _:
+                                raise Exception(
+                                    "Invalid sensing_type parameter. Please use 'Neumann' or 'Dirchilet'. See documentation for details."
+                                )
+                    case _:
+                        raise Exception(
+                            "Invalid sensing_loc parameter. Please use 'full', 'collocated', or 'opposite'. See documentation for details."
+                        )
+            case "Dirchilet":
+                self.control_update = lambda control, state, dt: control
+                match self.sensing_loc:
+                    # Dichilet control u(1), full state measurement
+                    case "full":
+                        self.sensing_update = lambda state, dx, noise: noise(state)
+                    # Dichilet control u(1), Neumann sensing u_x(1)
+                    case "collocated":
+                        self.sensing_update = lambda state, dx, noise: noise(
+                            (state[-1] - state[-2]) / dx
+                        )
+                    case "opposite":
+                        match self.sensing_type:
+                            # Dichilet control u(1), Neumann sensing u_x(0)
+                            case "Neumann":
+                                self.sensing_update = lambda state, dx, noise: noise(
+                                    (state[1] - state[0]) / dx
+                                )
+                            # Dirchilet control u(1), Dirchilet sensing u(0)
+                            case "Dirchilet":
+                                self.sensing_update = lambda state, dx, noise: noise(
+                                    state[0]
+                                )
+                            case _:
+                                raise Exception(
+                                    "Invalid sensing_type parameter. Please use 'Neumann' or 'Dirchilet'. See documentation for details."
+                                )
+            case _:
+                raise Exception(
+                    "Invalid control_type parameter. Please use 'Neumann' or 'Dirchilet'. See documentation for details."
+                )
 
         # find length of spatial grid
         self.length = self.X
@@ -168,6 +244,31 @@ class NeuronPDE1D(PDEEnv1D):
         self.p = np.zeros((self.M, 2))
         for i in range(self.M):
             self.p[i, :] = (self.PhiPrime[i, :]) - (self.gamma * self.phi[i, :])
+
+        # Observation space changes depending on sensing
+        match self.sensing_loc:
+            case "full":
+                self.observation_space = spaces.Box(
+                    np.full(self.M, -self.max_state_value, dtype="float32"),
+                    np.full(self.M, self.max_state_value, dtype="float32"),
+                )
+            case "collocated" | "opposite":
+                self.observation_space = spaces.Box(
+                    np.full(1, -self.max_state_value, dtype="float32"),
+                    np.full(1, self.max_state_value, dtype="float32"),
+                )
+            case _:
+                raise Exception(
+                    "Invalid sensing_loc parameter. Please use 'full', 'collocated', or 'opposite'. See documentation for details."
+                )
+            
+        # Action space
+        self.action_space = spaces.Box(
+            low=np.array([-self.max_control_value], dtype="float32"),
+            high=np.array([ self.max_control_value], dtype="float32"),
+            shape=(1,),        
+            dtype="float32"
+        )
             
 
 
@@ -178,7 +279,11 @@ class NeuronPDE1D(PDEEnv1D):
         Updates the PDE state based on the action taken and returns the new state. The PDE is solved using finite differencing explained in docs.
 
         :return:
-            - observation: The error vector :math:`u(x,t) = c(x,t) - c_eq(x)` containing density (`r`) and velocity (`v`) after taking action.
+            - sensing update: maps the true environment state → what the agent sees
+            - reward (float): The reward computed based on deviation from desired state vector after action.
+            - terminate (bool): Whether the simulation should terminate.
+            - truncate (bool): Whether the simulation was truncated as desired state has been achieved.
+            - info (dict): Additional information about the current state for debugging.
         """
 
         # Initialize space and time parameters for each step
@@ -222,6 +327,9 @@ class NeuronPDE1D(PDEEnv1D):
         self.ControlInput = self.lt * (((self.H.T @ self.B)/self.D + self.gamma) * self.u[0] - self.MiddleTerm + (self.p[self.L,:] @ self.Z))
 
         # Set U(t) equal to the leftmost boundary
+        self.normalize(self.control_update(
+                self.ControlInput, self.u[1], dx), self.max_control_value
+            )
         self.ufic = self.u[1] - self.ControlInput*self.dxreal*2
         self.u[0] = ((self.D/(self.dxreal**2)) * (self.u[1] - 2*self.u[0] + self.ufic) - self.a/(2*self.dxreal) * (self.u[1] - self.ufic) - self.g * self.u[0]) * dt + self.u[0]
 
@@ -235,10 +343,19 @@ class NeuronPDE1D(PDEEnv1D):
         # Rightmost boundary condition
         self.u[self.LNew, 0] = self.H.T @ self.Z
 
+        # Builds u vector with values that are within the boundary (doesn't include values outside of l(t))
+        # This is done so it can be an input for sensing_update, which sometimes requires the last elements of u, which are determined by L
+        self.new_u = self.u[:self.LNew]
+
         terminate = self.terminate()
         truncate = self.truncate()
         return (
-            self.reward_class.reward(self.u, self.time_index, terminate, truncate),
+            self.sensing_update(
+                self.new_u,
+                self.dx,
+                self.sensing_noise_func,
+            ),
+            self.reward_class.reward(self.u, self.time_index, terminate, truncate, self.u[self.LNew]),
             terminate,
             truncate, 
             {},

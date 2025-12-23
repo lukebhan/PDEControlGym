@@ -5,11 +5,11 @@
 Traffic ARZ 1D PDE
 =========================
 
-This documentation provides a detailed description of the ARZ PDE model for traffic control and its implementation.
+This documentation provides a detailed description of the Traffic ARZ PDE model for traffic control and its implementation.
 
 Traffic congestion remains a major challenge as the world's population is rapidly growing. One particularly common form of congestion is stop-and-go traffic, which frequently occurs on busy freeways. Stop-and-go traffic is a result of delayed drivers response to changes in traffic flow. It makes the traffic flow across a freeway similiar to ocilliatory waves and this leads to unsafe driving conditions, increased fuel consumption, and higher emissions. Thus, it is crucial to develop effective control strategies to mitigate stop-and-go traffic in freeways. 
 
-The ARZ PDE model is a well-known model for simulating stop-and-go traffic behavior on freeways as shown in the below figure. It consists of a system of coupled hyperbolic PDEs that describe how traffic density evolves over time and space.
+The `Traffic Aw–Rascle–Zhang (Traffic ARZ) PDE model <https://www.sciencedirect.com/science/article/abs/pii/S0005109818305144>`_ is a well-known model for simulating stop-and-go traffic behavior on freeways as shown in the below figure. It consists of a system of coupled hyperbolic PDEs that describe how traffic density evolves over time and space.
 
 
 .. figure:: ../_static/img/trafficARZFreeway.png
@@ -42,8 +42,7 @@ Where, :math:`v_m` and :math:`\rho_{m}` are the maximum permissible velocity and
 
 The first equation (1) represents the conservation of vehicles which ensures that no vehicles appear or disappear within the road segment. On the otherhand second equation (2) captures the effect of velocity changes in response to traffic density variations.
 
-
-The primary control objective is to regulate traffic flow in freeway around a steady-state :math:`(ρ^\star, v^\star)` that satisfies the equilibrium condition :math:`v^\star = V(ρ^\star)`. This is achieved by applying a control input :math:`u(t)` at the boundaries :math:`x = 0` and :math:`x=L` (entrance and exit) of the freeway. In practice, traffic flux :math:`q(x,t) = \rho(x, t) v(x, t)` is the most practical parameter to control on freeways. This can be achieved through ramp metering (controlling the rate vehicles enter or exit) or by adjusting speed limits at boundaries as shown in the above figure. We consider traffic flux as our primary control action. If we were to use speed limits are the control mechanism, then the control velocity can be determined directly from the traffic flux using Equation (3). Thus, the control action is given by:
+The primary control objective is to regulate traffic flow in freeway around a steady-state :math:`(ρ^\star, v^\star)` that satisfies the equilibrium condition :math:`v^\star = V(ρ^\star)`. This is achieved by applying a control input :math:`u(t)` at the boundaries :math:`x = 0` and :math:`x=L` (entrance and exit) of the freeway. In practice, traffic flux :math:`q(x,t) = \rho(x, t) v(x, t)` is the most practical parameter to control on freeways. This can be achieved through ramp metering (controlling the rate vehicles enter or exit) or by adjusting speed limits at boundaries as shown in the above figure. We consider traffic flux as our primary control action. If we were to use speed limits are the control mechanism, then the control velocity can be determined directly from the traffic flux using Equation (4). Thus, the control action is given by:
 
 .. math::
     :nowrap:
