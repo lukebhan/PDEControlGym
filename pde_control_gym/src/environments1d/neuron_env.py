@@ -5,13 +5,10 @@ from gymnasium import spaces
 from typing import Callable, Optional
 import matplotlib.pyplot as plt
 from pde_control_gym.src.environments1d.base_env_1d import PDEEnv1D
-
 class NeuronPDE1D(PDEEnv1D):
     r""" 
     Neuron Growth Control PDE
-
     This class implements the Neuron Growth Control PDE.
-
     :param sensing_noise_func: Takes in a function that can add sensing noise into the system. Must return the same sensing vector as given as a parameter.
     :param cInfty: Represents the equilibrium of the tubulin concentration in the cone.
     :param LSubS: Represents the desired length of the axon in the x-coordinate.
@@ -97,7 +94,6 @@ class NeuronPDE1D(PDEEnv1D):
         self.Kplus = self.Kplus/2
         self.Kplus = self.Kplus/(np.sqrt(self.a**2 + 4*self.D*self.g))
         self.Kplus = 0.5 + self.Kplus
-
         # Gain vector and respective gain kernels
         self.K = np.zeros([2,1])
         self.K[0,0] = self.k1
@@ -176,7 +172,6 @@ class NeuronPDE1D(PDEEnv1D):
         self.dxreal = self.dx*self.LSubZero 
 
         # Define N1, used to calculate p, phi, and phi prime
-
         self.I2 = np.eye(2)
         self.Z2 = np.zeros((2,2))
         self.TR = (1.0/self.D) * (self.g*self.I2 + self.Asub1 + (self.a/self.D) * (self.B @ self.H.T))   # top-right (2x2)
@@ -185,7 +180,6 @@ class NeuronPDE1D(PDEEnv1D):
                [self.I2, self.BR]])
         
         # Define phi constants
-
         self.RowVector1 = np.zeros((1,2))
         self.RowVector1 = np.hstack([
             self.H.T,                                  # (1,2)
@@ -196,20 +190,14 @@ class NeuronPDE1D(PDEEnv1D):
 
 
         # Define control input constants
-
         self.coefficient = ((self.H.T @ self.B)/self.D) + self.gamma
-
-
         # Initializes Z
         self.Z = np.zeros([2,1])
-
         # Intializes spatial grid
         x = np.arange(0,self.length + self.dx,self.dx)
         self.M = len(x) # Maximum index of the spatial grid
-
         # Initializes error system
         self.u = np.zeros([self.M,1])
-
         # Initialize CSubEq using spatial grid
         self.CSubEq = np.zeros([self.M, 1])
         self.DistanceFromTip = (self.SpatialToRealScale*x) - self.LSubS
@@ -217,7 +205,6 @@ class NeuronPDE1D(PDEEnv1D):
             self.Kplus * np.exp(self.LambdaPlus * self.DistanceFromTip) +
             self.Kminus * np.exp(self.LambdaMinus * self.DistanceFromTip)
         )
-
         #Initial Condition of Z
         self.Z[0,0] = self.cInfty
         self.Z[1,0] = self.LSubZero - self.LSubS
@@ -239,7 +226,6 @@ class NeuronPDE1D(PDEEnv1D):
         self.PhiPrime = np.zeros((self.M, 2))
         for i in range(self.M):
             self.PhiPrime[i, :] = (self.RowVector1 @ expm(-1*(self.SpatialToRealScale)*(x[i])*self.N1) @ self.IdentityVectorFlipped).ravel()
-
         # Initialize and set up p(x)
         self.p = np.zeros((self.M, 2))
         for i in range(self.M):
@@ -275,9 +261,7 @@ class NeuronPDE1D(PDEEnv1D):
     def step(self):
         """
         step
-
         Updates the PDE state based on the action taken and returns the new state. The PDE is solved using finite differencing explained in docs.
-
         :return:
             - sensing update: maps the true environment state → what the agent sees
             - reward (float): The reward computed based on deviation from desired state vector after action.
@@ -300,7 +284,6 @@ class NeuronPDE1D(PDEEnv1D):
         self.LOld = int(self.L) # copy of L
         self.LMinusOne = self.L-1
         self.LMinusTwo = self.L-2
-
         # New value for Z[0]
         self.Z[0] = (self.atilde1*self.ZOld[0] 
                        - (self.beta) * ((3*self.u[self.L] - 4*self.u[self.LMinusOne] + self.u[self.LMinusTwo])/(2*self.dxreal))
@@ -309,11 +292,9 @@ class NeuronPDE1D(PDEEnv1D):
         # New value for Z[0]
         self.Z[1] = (self.RSubG*self.ZOld[0]) * dt + self.ZOld[1]
        
-
         # To compute new spatial index L, given that l(t) changed
         self.L = NeuronPDE1D.Conversion(self.Z[1,0],self.LSubS,self.SpatialToRealScale,self.dx,self.M)
         self.LNew = self.L
-
         
         # Steps to calculate the backstepping control input
         
@@ -321,7 +302,6 @@ class NeuronPDE1D(PDEEnv1D):
         self.sum = 0
         for i in range(1,self.L):
             self.sum += self.dxreal*(self.p[i,:] @ self.B)*self.u[i]
-
         # Builds U(t)
         self.MiddleTerm = ((((self.dxreal)*(self.p[0,:] @ self.B)*self.u[0])/2) + self.sum + ((self.dxreal/2)*(self.p[self.L,:] @ self.B)*self.u[self.L])) / self.D # trapezoidal sum
         self.ControlInput = self.lt * (((self.H.T @ self.B)/self.D + self.gamma) * self.u[0] - self.MiddleTerm + (self.p[self.L,:] @ self.Z))
@@ -333,13 +313,11 @@ class NeuronPDE1D(PDEEnv1D):
         self.ufic = self.u[1] - self.ControlInput*self.dxreal*2
         self.u[0] = ((self.D/(self.dxreal**2)) * (self.u[1] - 2*self.u[0] + self.ufic) - self.a/(2*self.dxreal) * (self.u[1] - self.ufic) - self.g * self.u[0]) * dt + self.u[0]
 
-
         # New u's for next time step (excluding the boundaries)
         for n in range(1,self.LNew):
             uxx = (self.temp[n+1,0] - 2*self.temp[n,0] + self.temp[n-1,0]) / (self.dxreal**2)
             ux  = ((self.temp[n+1] - self.temp[n-1])) / self.dxreal   # see (2) below
             self.u[n,0] = self.temp[n,0] + self.dt * ( self.D*uxx + (((n-1)/self.lt) * (self.RSubG*self.ZOld[0]) * (self.temp[n+1] - self.temp[n-1])/2)  - self.a*ux/(2) - self.g*self.temp[n,0] )
-
         # Rightmost boundary condition
         self.u[self.LNew, 0] = self.H.T @ self.Z
 
@@ -364,7 +342,6 @@ class NeuronPDE1D(PDEEnv1D):
     def terminate(self):
         """
         terminate
-
         Determines whether the episode should end if the ``T`` timesteps are reached
         """
         if (self.time_index >= self.nt):
@@ -376,7 +353,6 @@ class NeuronPDE1D(PDEEnv1D):
     def truncate(self):
         """
         truncate 
-
         Determines whether to truncate the episode based on the PDE state size and the vairable ``limit_pde_state_size`` given in the PDE environment intialization.
         """
         if (
