@@ -201,7 +201,3 @@ The discretized form of :math:`u` and :math:`Z` at the grid points :math:`(x_n, 
     u^{j+1}_{L} = H^{T}Z^{j+1} \tag{13}
     \end{align}
 
-
-
-
-
