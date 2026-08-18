@@ -39,7 +39,6 @@ Main Features
 
   tutorials/hyperbolic-1d_tutorial
   tutorials/Trafficarz1d_tutorial
-  tutorials/vlasovpoisson-1d_tutorial
 
 .. toctree::
   :maxdepth: 2
