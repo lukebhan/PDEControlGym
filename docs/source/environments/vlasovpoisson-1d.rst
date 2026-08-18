@@ -194,15 +194,18 @@ metric.
 Rescaling by the amplitude is not merely a trick. Section 2.1 of the paper shows via the
 Pontryagin maximum principle that the optimal control for the linearized system is a
 *linear* functional of :math:`\delta f`, hence positively homogeneous in it, so a single
-set of weights represents the law at every amplitude once the scale is factored out. The
-same result argues for a **linear policy** (``net_arch=[]``) as the default.
+set of weights represents the law at every amplitude once the scale is factored out.
 
-An MLP reaches the same final performance, but pays for capacity the problem does not use.
-Over three seeds on the notebook's configuration, the late-phase growth factor averaged
-1.33 for the linear policy and 1.27 for ``net_arch=[64, 64]`` at ``lr=3e-4``, a tie; but
-the linear policy first dropped below a growth factor of 2.0 after 100k to 150k steps
-against the MLP's 200k to 450k, and it tolerates a three times larger learning rate. The
-MLP is markedly more brittle: at the linear policy's ``lr=1e-3`` it diverges, reaching
-growth factors of 74 and 135 by 400k steps on two seeds, ``net_arch=[256, 256]`` settles
-around 900, and a ReLU activation in place of tanh is worse again. This is what one should
-expect when the optimum is a 400-parameter linear map.
+The notebook and ``vlasovPoisson1Dppo.py`` train ``net_arch=[64, 64]`` with tanh at
+``lr=3e-4``, reaching a growth factor of about 1.2 after 600k steps against 117 with no
+control. The learning rate is tied to the architecture and cannot be carried over from
+elsewhere: at ``lr=1e-3`` the same network diverges, reaching growth factors of 74 and 135
+by 400k steps on two seeds, ``net_arch=[256, 256]`` settles around 900, which is worse
+than applying no control at all, and a ReLU activation in place of tanh is worse again.
+
+If you want a smaller hypothesis class, ``net_arch=[]`` is well matched to the problem,
+since the optimal control for the linearized system provably is a linear functional of
+:math:`\delta f`. It trains stably at ``lr=1e-3`` and reaches the same growth factor in
+roughly a third of the samples. Measured over three seeds out to 1.2M steps the late-phase
+growth factor averaged 1.33 for the linear policy against 1.27 for the MLP, which is a
+tie; the difference between them is conditioning and sample efficiency, not capacity.

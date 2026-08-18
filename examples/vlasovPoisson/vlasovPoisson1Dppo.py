@@ -25,7 +25,7 @@ T, dt = 30.0, 0.2
 # An action of +-1 corresponds to this many multiples of the observed field magnitude.
 GAIN = 3.0
 N_ENVS = 4
-TOTAL_TIMESTEPS = 200_000
+TOTAL_TIMESTEPS = 600_000
 
 fbarFunc = twoStreamEquilibrium(vbar=2.4)
 fbar = fbarFunc(np.linspace(0, X, nx, endpoint=False), np.linspace(-V, V, nv))
@@ -136,16 +136,16 @@ if __name__ == "__main__":
         seed=0,
         n_steps=256,
         batch_size=256,
-        learning_rate=1e-3,
+        # The learning rate is tied to the architecture here and cannot be carried over
+        # from elsewhere: at 1e-3 this network diverges, and wider ones are worse still.
+        # Keep the activation at tanh, which starts close to a linear map.
+        learning_rate=3e-4,
         ent_coef=0.0,
         tensorboard_log="./tb/",
-        # A linear policy, because Section 2.1 of the paper shows the optimal control for
-        # the linearized system is a linear functional of the perturbation. An MLP reaches
-        # the same final performance but needs two to three times the samples and a
-        # smaller learning rate; at the rate used here it diverges. log_std_init keeps the
-        # initial exploration below the useful control amplitude, without which
-        # exploration destabilizes the plasma faster than the learning signal accumulates.
-        policy_kwargs=dict(net_arch=[], log_std_init=-1.5),
+        # log_std_init keeps the initial exploration below the useful control amplitude,
+        # without which exploration destabilizes the plasma faster than the learning
+        # signal accumulates.
+        policy_kwargs=dict(net_arch=[64, 64], log_std_init=-1.5),
     )
     model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
     model.save("vlasovPoisson1Dppo")
