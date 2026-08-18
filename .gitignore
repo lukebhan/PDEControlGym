@@ -3,3 +3,4 @@
 *.swp
 *.swo
 **/*.ipynb_checkpoints/
+*.egg-info/

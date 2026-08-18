@@ -9,8 +9,11 @@ register(
 )
 
 register(
-    id="PDEControlGym-BrainTumor1D", entry_point="pde_control_gym.src:BrainTumor1D"
     id="PDEControlGym-TrafficPDE1D", entry_point="pde_control_gym.src:TrafficPDE1D"
+)
+
+register(
+    id="PDEControlGym-VlasovPoisson1D", entry_point="pde_control_gym.src:VlasovPoisson1D"
 )
 
 register(
