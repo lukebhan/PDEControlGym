@@ -15,8 +15,28 @@ For style guidelines, we use <a href=https://github.com/psf/black>black</a> as o
 #### Documentation
 Contributions to the documentation are always welcome. The documentation is built on Sphinx using autobuild. Please ensure that your contribution to the documentation is not insignificant (ie a small one line typo is not something worth spending time on, but explaining all the parameters of a new feature certainly is).
 
-To setup the documentation, download the packages in the requirements.txt. Then, one can run the documentation locally from the \docs\ folder with
+To set up the documentation, create an environment and install the packages in `docs/requirements.txt`. Installing the gym itself as well is what lets `autodoc` pull in the environment and reward docstrings.
+
 ```
-sphinx-autobuild source build
+python3 -m venv .venv-docs
+source .venv-docs/bin/activate
+pip install -r docs/requirements.txt
+pip install -e .
 ```
+
+A one-off build, run from the `docs/` folder, writes HTML to `docs/build/html`:
+
+```
+cd docs
+make html
+```
+
+Open `docs/build/html/index.html` in a browser to read it. While editing, `sphinx-autobuild` rebuilds on save and serves the result at http://127.0.0.1:8000:
+
+```
+cd docs
+sphinx-autobuild source build/html
+```
+
+`make clean` removes the build directory if a stale build needs clearing. Note that the build currently emits a number of pre-existing warnings from the BrainTumor, Neuron and Traffic pages, so check that your contribution has not *added* warnings rather than expecting a silent build.
 

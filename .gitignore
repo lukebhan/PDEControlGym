@@ -6,3 +6,5 @@
 *.egg-info/
 examples/*/logsPPO/
 examples/*/tb/
+.venv-docs/
+docs/build/
