@@ -163,10 +163,37 @@ Examples
 
 ``examples/vlasovPoisson`` contains:
 
+- ``VlasovPoisson1DExample.ipynb``, a worked notebook that identifies which harmonics are
+  actually unstable, builds both baselines, and trains a PPO agent against them,
 - ``vlasovPoisson1Dcancellation.py``, which reproduces the two-stream experiment of
   Section 4 with the training-free feedback law
   :math:`H = -\delta E + \gamma \int \delta f \partial_v \bar f dv`,
-- ``vlasovPoisson1Dppo.py``, which trains a PPO agent under density-only sensing and modal
-  actuation,
+- ``vlasovPoisson1Dppo.py``, the script form of the notebook's training run,
 - ``vlasovPoisson1DtestSolver.py``, which checks the invariants, the two budget
   identities, linear Landau damping, and the reachability limits described above.
+
+
+Reinforcement learning on this environment
+------------------------------------------
+
+Handed to an RL algorithm unmodified, this environment trains poorly, and the reasons are
+structural rather than incidental. An unstable perturbation grows by two to three orders
+of magnitude within one episode, so the observation spans that range and the quadratic
+cost spans its square; a fixed set of network weights cannot respond usefully at both
+ends. The useful control amplitude is also small and phase-sensitive, so Gaussian
+exploration at a scale comparable to the correct action drives the instability rather than
+damping it, and most rollouts come out worse than doing nothing.
+
+``examples/vlasovPoisson/utils.py`` provides ``ScaleFreeVlasov``, a wrapper that addresses
+this: it divides the observation by its own magnitude and appends the
+:math:`\log_{10}` of that magnitude, interprets the action as a multiple of the same
+magnitude, and replaces the reward by the per-step log growth factor. The paper's
+quadratic cost stays available under ``info["paper_reward"]`` so it remains the reported
+metric.
+
+Rescaling by the amplitude is not merely a trick. Section 2.1 of the paper shows via the
+Pontryagin maximum principle that the optimal control for the linearized system is a
+*linear* functional of :math:`\delta f`, hence positively homogeneous in it, so a single
+set of weights represents the law at every amplitude once the scale is factored out. The
+same result argues for a **linear policy** (``net_arch=[]``), which in practice trains
+substantially faster here than an MLP.

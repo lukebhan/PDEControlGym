@@ -1,4 +1,6 @@
 import numpy as np
+import gymnasium as gym
+from gymnasium import spaces
 
 # np.trapz was renamed to np.trapezoid in numpy 2.0 and removed in later releases.
 _trapz = getattr(np, "trapezoid", None) or np.trapz
@@ -131,3 +133,106 @@ class CancellationController:
         dissipation = self.gamma * _trapz(df * env.dvfbar, dx=env.dv, axis=1)
         H = -dE + dissipation
         return self.projector @ H / self.scale
+
+
+class ScaleFreeVlasov(gym.Wrapper):
+    r"""
+    Conditions the Vlasov-Poisson environment for reinforcement learning.
+
+    The raw problem is badly scaled for a fixed-precision policy network. An unstable
+    perturbation grows by two to three orders of magnitude over a single episode and the
+    running cost :math:`-\frac{1}{2}\|\delta f\|^2` therefore ranges over five or six, so a
+    network that responds usefully at reset saturates once the instability develops, and
+    the value function spends its capacity on the tail. This wrapper makes three changes.
+
+    First, the observation is divided by its own largest magnitude and the discarded
+    amplitude is appended as :math:`\log_{10}` of the scale, so the policy sees an
+    :math:`O(1)` shape plus a slowly varying level.
+
+    Second, the action is interpreted as a multiple of that same scale rather than an
+    absolute field, so the policy also only has to produce a shape. This matches the
+    structure of the problem rather than papering over it: Section 2.1 of
+    arXiv:2509.23063 shows via the Pontryagin maximum principle that the optimal control
+    for the linearized system is a *linear* functional of :math:`\delta f`, hence
+    positively homogeneous, which is exactly what the rescaling makes representable at
+    every amplitude by a single set of weights. It is also why a linear policy
+    (``net_arch=[]``) tends to train faster here than an MLP.
+
+    Third, the reward is replaced by the per-step log growth factor
+    :math:`-\log(\|\delta f(t)\|_2 / \|\delta f(t - \Delta t)\|_2)`, whose episode sum is
+    the negative log of the overall growth. This is bounded, dense, and roughly linear in
+    the exponential growth rate, which is the quantity actually being controlled. The
+    original quadratic cost is still computed and returned under the ``paper_reward`` key
+    of the ``info`` dict, so the objective of the paper remains the reported metric even
+    though it is not the training signal.
+
+    :param env: A :class:`VlasovPoisson1D` environment, ideally with
+        ``sensing_type="field"`` so that the observation is the very field the control has
+        to cancel, and with ``normalize=False`` so that this wrapper owns the action
+        scaling outright.
+    :param gain: How many multiples of the observed field magnitude an action of
+        :math:`\pm 1` corresponds to. Sets the control authority available to the agent.
+    """
+
+    def __init__(self, env, gain=3.0):
+        super().__init__(env)
+        self.gain = gain
+        unwrapped = env.unwrapped
+        if unwrapped.normalize_actions:
+            raise Exception(
+                "ScaleFreeVlasov owns the action scaling, so build the environment with normalize=False."
+            )
+        shape = unwrapped.observation_space.shape
+        if len(shape) != 1:
+            raise Exception(
+                "ScaleFreeVlasov expects a flat observation, so use sensing_type 'density' or 'field'."
+            )
+        self.observation_space = spaces.Box(
+            -np.inf, np.inf, shape=(shape[0] + 1,), dtype=np.float64
+        )
+        self.action_space = spaces.Box(
+            -1.0, 1.0, shape=(unwrapped.action_dim,), dtype=np.float32
+        )
+
+    def observation(self, raw):
+        r"""
+        Splits ``raw`` into a unit-magnitude shape and an appended :math:`\log_{10}` level.
+        """
+        self.scale = max(np.abs(raw).max(), 1e-14)
+        return np.concatenate([raw / self.scale, [np.log10(self.scale)]])
+
+    def reset(self, **kwargs):
+        raw, info = self.env.reset(**kwargs)
+        self.previous = max(info["l2_perturbation"], 1e-30)
+        return self.observation(raw), info
+
+    def step(self, action):
+        physical = np.asarray(action, dtype=np.float64).ravel() * self.scale * self.gain
+        raw, reward, terminate, truncate, info = self.env.step(physical)
+        current = max(info["l2_perturbation"], 1e-30)
+        shaped = -np.log(current / self.previous)
+        self.previous = current
+        info["paper_reward"] = reward
+        return self.observation(raw), shaped, terminate, truncate, info
+
+
+def runEpisode(env, policy):
+    r"""
+    Runs one episode and returns the accumulated reward together with per-step traces.
+
+    :param env: The environment, wrapped or not.
+    :param policy: A callable mapping the observation to an action.
+    """
+    obs, info = env.reset()
+    trace = {k: [info[k]] for k in ("l2_perturbation", "electric_energy", "momentum")}
+    fields, paper = [], 0.0
+    terminate = truncate = False
+    while not (terminate or truncate):
+        obs, reward, terminate, truncate, info = env.step(policy(obs))
+        paper += info.get("paper_reward", reward)
+        for k in trace:
+            trace[k].append(info[k])
+        fields.append(info["H"])
+    trace = {k: np.array(v) for k, v in trace.items()}
+    trace["H"] = np.array(fields)
+    return paper, trace

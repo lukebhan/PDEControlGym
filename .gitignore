@@ -4,3 +4,5 @@
 *.swo
 **/*.ipynb_checkpoints/
 *.egg-info/
+examples/*/logsPPO/
+examples/*/tb/
