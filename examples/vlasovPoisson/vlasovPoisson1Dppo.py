@@ -140,8 +140,10 @@ if __name__ == "__main__":
         ent_coef=0.0,
         tensorboard_log="./tb/",
         # A linear policy, because Section 2.1 of the paper shows the optimal control for
-        # the linearized system is a linear functional of the perturbation. log_std_init
-        # keeps the initial exploration below the useful control amplitude, without which
+        # the linearized system is a linear functional of the perturbation. An MLP reaches
+        # the same final performance but needs two to three times the samples and a
+        # smaller learning rate; at the rate used here it diverges. log_std_init keeps the
+        # initial exploration below the useful control amplitude, without which
         # exploration destabilizes the plasma faster than the learning signal accumulates.
         policy_kwargs=dict(net_arch=[], log_std_init=-1.5),
     )
