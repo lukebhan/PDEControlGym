@@ -3,3 +3,5 @@
 *.swp
 *.swo
 **/*.ipynb_checkpoints/
+.python-version
+*.egg-info/
