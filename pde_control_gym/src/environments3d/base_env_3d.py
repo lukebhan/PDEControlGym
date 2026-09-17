@@ -10,7 +10,6 @@ from pde_control_gym.src.rewards import BaseReward
 class PDEEnv3D(gym.Env):
     """
     This is the base env for all 3D PDE problems. All 3D custom environments should inherit this environment and implement the according methods.
-    The grids/state use ``'ij'`` (matrix) indexing so index 0 is the ``x`` axis.
 
     :param T: The end time of the simulation.
     :param dt: The temporal timestep of the simulation.
@@ -38,8 +37,7 @@ class PDEEnv3D(gym.Env):
         self.dt = dt
         self.state_dim = state_dim
 
-        # Spatial grids. 'ij' indexing keeps axis 0 aligned with x (length),
-        # matching the staggered FFD solver's convention.
+        # Spatial grids. 'ij' indexing keeps axis 0 aligned with x (length); the default meshgrid option swaps the x and y axes.
         self.x = np.linspace(0, X, self.nx)
         self.y = np.linspace(0, Y, self.ny)
         self.z = np.linspace(0, Z, self.nz)
