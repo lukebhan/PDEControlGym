@@ -1,5 +1,5 @@
 """Underfloor plenum model + VanGilder pressure-shift tile-flow solve
-(Han et al. 2021 Sec. 2.2.2.3, plan milestone D4).
+(Han et al. 2021 Sec. 2.2.2.3).
 
 The plenum is its own one-way-coupled domain (see the plan's design-question
 answer): AHU supply enters through the short-side walls (`layout.plenum_inlets`)

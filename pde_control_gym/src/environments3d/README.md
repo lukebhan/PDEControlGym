@@ -3,7 +3,7 @@
 3D PDE control environments for PDEControlGym. All concrete 3D environments
 inherit `PDEEnv3D` (`base_env_3d.py`).
 
-## Data-center thermal model (in progress)
+## Data-center thermal model
 
 A reinforcement-learning environment around the **Han et al. (2021)** Fast Fluid
 Dynamics data-center model:
@@ -39,17 +39,6 @@ pip install pdecontrolgym[datacenter]
   if it is not installed, the solver falls back automatically to the scipy-only
   sparse LU (`lu_mmd`) with identical results (see `ffd_upwind/solver.py`,
   `_make_pressure_solver`).
-
-### Status
-
-- [x] `PDEEnv3D` base class.
-- [x] Vendored FFD-Upwind solver + data-center modules (importable as a
-      sub-package; plenum solve verified end-to-end).
-- [x] Concrete `DataCenter3D` gym environment on `PDEEnv3D`
-      (`datacenter3d.py`) + default `DataCenterReward`
-      (`../rewards/dc_reward.py`). Registered as `PDEControlGym-DataCenter3D`.
-- [ ] Time-varying IT load (per-step rack-power updates) for richer sequential
-      dynamics; regression tests; validation harness wiring.
 
 ### `DataCenter3D` at a glance
 

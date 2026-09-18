@@ -1,6 +1,6 @@
 """White-space (above-floor room) model: tiles as prescribed-velocity inlets,
 ceiling as a fixed-flow outlet, racks as flow-through solids with a Han
-Eq. 12 exhaust, and the Eq. 10 tile body force (plan milestone D5).
+Eq. 12 exhaust, and the Eq. 10 tile body force.
 
 Unlike the plenum, the white space does not iterate its own boundary
 condition: `tile_flows` (Han's coupling variable, normally the converged

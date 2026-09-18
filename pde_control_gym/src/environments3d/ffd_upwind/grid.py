@@ -1,15 +1,5 @@
 """Structured, non-uniform, staggered (MAC) grid for the FFD-Upwind solver.
-
-Layout (finite-volume, staggered / marker-and-cell):
-    * scalars (p, T) live at cell centers             -> shape (nx, ny, nz)
-    * u (x-velocity) lives on x-faces                 -> shape (nx+1, ny, nz)
-    * v (y-velocity) lives on y-faces                 -> shape (nx, ny+1, nz)
-    * w (z-velocity) lives on z-faces                 -> shape (nx, ny, nz+1)
-
-The grid is defined by the 1-D face-coordinate arrays xf, yf, zf. Everything
-else (cell centers, widths, center-to-center distances) is derived, so uniform
-and stretched meshes share one code path.
-
+Scalars (p, T) live at cell center. (u, v, w) lives on (x, y, z)-faces
 Coordinate convention for the room cases: x = length, y = width, z = height.
 """
 from __future__ import annotations
@@ -26,14 +16,11 @@ class Axis1D:
             raise ValueError("faces must be a 1-D array with >= 2 entries")
         if np.any(np.diff(faces) <= 0):
             raise ValueError("face coordinates must be strictly increasing")
-        self.f = faces                          # (n+1,) face coordinates
+        self.f = faces                           # (n+1,) face coordinates
         self.n = faces.size - 1                  # number of cells
-        self.c = 0.5 * (faces[:-1] + faces[1:])  # (n,) cell centers
-        self.d = np.diff(faces)                  # (n,) cell widths
+        self.c = 0.5 * (faces[:-1] + faces[1:])
+        self.d = np.diff(faces)                
 
-        # Distance between adjacent cell centers, including the half-cells to the
-        # domain boundaries. dc has length n+1: dc[0] is center[0]-face[0],
-        # dc[i] (1..n-1) is center[i]-center[i-1], dc[n] is face[n]-center[n-1].
         centers_ext = np.empty(self.n + 2)
         centers_ext[0] = faces[0]
         centers_ext[1:-1] = self.c
@@ -63,7 +50,7 @@ def stretched_faces(
     Builds a smooth cell-width distribution that reaches ~`min_dx` at the
     refined end(s) and expands toward the interior, then rescales so the widths
     sum exactly to `length`. Used to reproduce Han et al.'s near-inlet / near-
-    wall refinement (min mesh ~0.5-1 cm) inside the 40^3 mesh.
+    wall refinement (min mesh ~0.5-1 cm) for the validation case mesh.
     """
     if not (refine_lo or refine_hi):
         return uniform_faces(length, n, origin)
@@ -100,7 +87,6 @@ class Grid:
         self.nx, self.ny, self.nz = self.x.n, self.y.n, self.z.n
         self.shape = (self.nx, self.ny, self.nz)
 
-    # --- factory helpers -------------------------------------------------
     @classmethod
     def uniform(cls, lengths, ncells, origin=(0.0, 0.0, 0.0)) -> "Grid":
         lx, ly, lz = lengths

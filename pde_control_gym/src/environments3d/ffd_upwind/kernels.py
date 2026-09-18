@@ -1,10 +1,5 @@
 """Numba-compiled inner loops for the FFD-Upwind solver.
 
-The only genuinely hot loop is the point-Jacobi sweep over a 7-point stencil,
-which is shared by every implicitly-solved field (u, v, w momentum). Assembly of
-the coefficients is done in vectorized NumPy elsewhere for readability; this file
-holds just the sweep and a residual reduction.
-
 Coefficient convention for a cell (i, j, k):
 
     aP * psi = aE*psi[i+1] + aW*psi[i-1]
@@ -48,9 +43,7 @@ def _jacobi_pass(psi, out, aP, aE, aW, aN, aS, aF, aB, b, fixed):
 
 def jacobi(psi, aP, aE, aW, aN, aS, aF, aB, b, fixed, n_sweeps):
     """Run `n_sweeps` point-Jacobi passes in place; returns the updated array.
-
-    Uses a double buffer internally (true Jacobi, not Gauss-Seidel). The result
-    is written back into `psi` so callers keep their reference.
+    The result is written back into `psi` so callers keep their reference.
     """
     tmp = np.empty_like(psi)
     a, bff = psi, tmp
@@ -64,11 +57,7 @@ def jacobi(psi, aP, aE, aW, aN, aS, aF, aB, b, fixed, n_sweeps):
 
 @njit(parallel=True, cache=True, fastmath=True)
 def linf_residual(psi, aP, aE, aW, aN, aS, aF, aB, b, fixed):
-    """Max-norm of the linear-system residual b - A psi over non-fixed cells.
-
-    Each i-plane reduces into its own slot of `part` before the serial max over
-    `part`: a plain scalar `if a > r` across `prange` threads is not a
-    reduction numba recognizes and silently returns 0.0."""
+    """Max-norm of the linear-system residual b - A psi over non-fixed cells."""
     nx, ny, nz = psi.shape
     part = np.zeros(nx)
     for i in prange(nx):

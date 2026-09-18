@@ -1,4 +1,4 @@
-"""Tile-aligned structured grid builder for data-center cases (plan milestone D3).
+"""Tile-aligned structured grid builder for data-center cases.
 
 White space and plenum share the same in-plane (x, y) scheme: uniform cells,
 `cells_per_tile` per tile edge, so every tile boundary, rack footprint and
@@ -10,9 +10,9 @@ The white-space z-axis is uniform at `dz = tile_m / cells_per_tile` from 0 to
 `height_m`, with extra faces forced in at every distinct solid top height
 (both rack heights in `layout.rack_height_m`, and the PDU height) so those
 tops always land on a face too, regardless of whether a solid of that height
-is actually present in a given layout (mirrors Case 2's box-faces-always-cut
-convention in `ffd_upwind/room_grid.py`). A generated face closer than
-`0.25 * dz` to an inserted one is dropped, per the plan.
+is actually present in a given layout (so a solid of a given height always
+lands on cell faces the same way regardless of the layout). A generated face
+closer than `0.25 * dz` to an inserted one is dropped, per the plan.
 
 The plenum z-axis is always `PLENUM_NZ` (6) uniform layers, independent of
 depth and of the white-space `cells_per_tile` profile: Han meshed the plenum

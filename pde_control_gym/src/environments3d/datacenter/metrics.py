@@ -1,5 +1,5 @@
 """Rack-inlet sampling, PRD_*, RCI_*, T_max_in, energy closure (Han et al. 2021
-Eqs. 14-16, 18-22; plan milestone D6).
+Eqs. 14-16, 18-22).
 
 Pure post-processing: every function here takes a solved `Solver`/`grid`/
 `layout` (or, for the RCI/PRD/count functions, plain arrays) and returns
