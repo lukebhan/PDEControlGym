@@ -7,6 +7,7 @@ condition: `tile_flows` (Han's coupling variable, normally the converged
 `PlenumResult.Q_m3s` from `plenum.run_plenum`) is a fixed input, so this
 module only has to build the case and march it to steady state.
 """
+
 from __future__ import annotations
 
 import os
@@ -49,7 +50,7 @@ def build_whitespace(layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, pow
     tile_mask = tile_index >= 0
     ceiling_mask = tile_cell_mask(grid, layout, layout.ceiling_tiles)
 
-    A_tile = layout.tile_m ** 2
+    A_tile = layout.tile_m**2
     n_ceil = len(layout.ceiling_tiles)
     W_out = Q_sup_m3s / (n_ceil * A_tile)
 
@@ -60,15 +61,25 @@ def build_whitespace(layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, pow
 
     bcs = {
         "zlo": Boundary("inlet", mask=tile_mask, vel_map=W_in, temp_map=T_in),
-        "zhi": Boundary("inlet", mask=ceiling_mask,
-                         vel_map=np.full((grid.nx, grid.ny), W_out)),
+        "zhi": Boundary(
+            "inlet", mask=ceiling_mask, vel_map=np.full((grid.nx, grid.ny), W_out)
+        ),
     }
 
     solids = solids_from_layout(layout, grid, powers_kW=powers_kW)
 
-    cfg = Config(dt=0.2, bcs=bcs, turb_model="chen", solve_energy=True,
-                 T_ref=T_sup_C, T_init=T_sup_C, beta=1.0 / 295.15,
-                 outlet_mode="pressure", pressure_solver="amg", solids=solids)
+    cfg = Config(
+        dt=0.2,
+        bcs=bcs,
+        turb_model="chen",
+        solve_energy=True,
+        T_ref=T_sup_C,
+        T_init=T_sup_C,
+        beta=1.0 / 295.15,
+        outlet_mode="pressure",
+        pressure_solver="amg",
+        solids=solids,
+    )
     solver = Solver(grid, cfg)
 
     h = grid.z.dc[1]
@@ -81,15 +92,26 @@ def build_whitespace(layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, pow
     return grid, solver
 
 
-def run_whitespace(layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, powers_kW,
-                    profile=None, tol=5e-5, check_every=100, max_steps=2000):
+def run_whitespace(
+    layout,
+    cells_per_tile,
+    tile_flows,
+    T_sup_C,
+    Q_sup_m3s,
+    powers_kW,
+    profile=None,
+    tol=5e-5,
+    check_every=100,
+    max_steps=2000,
+):
     """March the white space to steady state; report CONVERGED/NOT CONVERGED."""
     if profile is None:
         profile = f"cpt{cells_per_tile}"
     grid, solver = build_whitespace(
-        layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, powers_kW)
+        layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, powers_kW
+    )
 
-    A_tile = layout.tile_m ** 2
+    A_tile = layout.tile_m**2
     U_ref = max(1e-9, max(tile_flows[i] for i in range(len(layout.tiles))) / A_tile)
     dT_ref = 14.0  # K, Han's typical rack rise -- fixed reference, not derived per-run
 
@@ -112,17 +134,28 @@ def run_whitespace(layout, cells_per_tile, tile_flows, T_sup_C, Q_sup_m3s, power
     wall_time_s = time.perf_counter() - t0
 
     status = "CONVERGED" if converged else "NOT CONVERGED"
-    print(f"whitespace {layout.name}: {status} at step {step} "
-          f"(t={step * solver.cfg.dt:.1f}s), du/step={du:.2e}, dT/step={dT:.2e} "
-          f"({wall_time_s:.1f}s)")
+    print(
+        f"whitespace {layout.name}: {status} at step {step} "
+        f"(t={step * solver.cfg.dt:.1f}s), du/step={du:.2e}, dT/step={dT:.2e} "
+        f"({wall_time_s:.1f}s)"
+    )
 
     npz_path = _save_npz(layout, profile, Q_sup_m3s, T_sup_C, grid, solver)
-    rack_csv_path = rack_inlet_csv(solver, grid, layout, _rack_csv_path(layout, profile, Q_sup_m3s, T_sup_C))
+    rack_csv_path = rack_inlet_csv(
+        solver, grid, layout, _rack_csv_path(layout, profile, Q_sup_m3s, T_sup_C)
+    )
 
     return WhitespaceResult(
-        layout_name=layout.name, profile=profile, steps=step, converged=converged,
-        du_per_step=float(du), dT_per_step=float(dT), wall_time_s=wall_time_s,
-        npz_path=npz_path, rack_csv_path=rack_csv_path)
+        layout_name=layout.name,
+        profile=profile,
+        steps=step,
+        converged=converged,
+        du_per_step=float(du),
+        dT_per_step=float(dT),
+        wall_time_s=wall_time_s,
+        npz_path=npz_path,
+        rack_csv_path=rack_csv_path,
+    )
 
 
 def _result_stem(layout, profile, Q_sup_m3s, T_sup_C):
@@ -132,14 +165,27 @@ def _result_stem(layout, profile, Q_sup_m3s, T_sup_C):
 def _save_npz(layout, profile, Q_sup_m3s, T_sup_C, grid, solver):
     out_dir = os.path.join("results", "dc")
     os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, _result_stem(layout, profile, Q_sup_m3s, T_sup_C) + ".npz")
+    path = os.path.join(
+        out_dir, _result_stem(layout, profile, Q_sup_m3s, T_sup_C) + ".npz"
+    )
     Uc, Vc, Wc = solver.velocity_at_centers()
-    np.savez(path, xc=grid.x.c, yc=grid.y.c, zc=grid.z.c,
-              Uc=Uc, Vc=Vc, Wc=Wc, T=solver.T, solid=solver.solid)
+    np.savez(
+        path,
+        xc=grid.x.c,
+        yc=grid.y.c,
+        zc=grid.z.c,
+        Uc=Uc,
+        Vc=Vc,
+        Wc=Wc,
+        T=solver.T,
+        solid=solver.solid,
+    )
     return path
 
 
 def _rack_csv_path(layout, profile, Q_sup_m3s, T_sup_C):
     out_dir = os.path.join("results", "dc")
     os.makedirs(out_dir, exist_ok=True)
-    return os.path.join(out_dir, _result_stem(layout, profile, Q_sup_m3s, T_sup_C) + "_racks.csv")
+    return os.path.join(
+        out_dir, _result_stem(layout, profile, Q_sup_m3s, T_sup_C) + "_racks.csv"
+    )

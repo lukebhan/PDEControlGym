@@ -10,6 +10,7 @@ Neighbor coefficients that point outside the array (or at a wall) must be set to
 0 by the assembler; the sweep additionally guards the array bounds. `fixed` marks
 Dirichlet cells (boundary velocity nodes, solid cells) whose value is held.
 """
+
 from __future__ import annotations
 
 import numpy as np

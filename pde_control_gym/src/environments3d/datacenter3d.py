@@ -25,6 +25,7 @@ Design (see environments3d/README.md for the full rationale):
 - **Reward**: pluggable via ``reward_class`` (defaults to
   :class:`~pde_control_gym.src.rewards.dc_reward.DataCenterReward`).
 """
+
 from __future__ import annotations
 
 import os
@@ -39,9 +40,15 @@ from pde_control_gym.src.environments3d.datacenter.layout import load_layout
 from pde_control_gym.src.environments3d.datacenter.plenum import run_plenum
 from pde_control_gym.src.environments3d.datacenter.whitespace import build_whitespace
 from pde_control_gym.src.environments3d.datacenter.mesh import (
-    whitespace_grid, tile_cell_index, tile_cell_mask)
+    whitespace_grid,
+    tile_cell_index,
+    tile_cell_mask,
+)
 from pde_control_gym.src.environments3d.datacenter.tiles import body_force
-from pde_control_gym.src.environments3d.datacenter.racks import assign_powers, rack_flow_m3s
+from pde_control_gym.src.environments3d.datacenter.racks import (
+    assign_powers,
+    rack_flow_m3s,
+)
 from pde_control_gym.src.environments3d.datacenter.units import m3h_to_m3s
 from pde_control_gym.src.environments3d.datacenter import metrics
 
@@ -78,23 +85,35 @@ class DataCenter3D(PDEEnv3D):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, layout: str = "mini", cells_per_tile: int = 2,
-                 flow_bounds_m3h: Optional[tuple] = None,
-                 temp_bounds_C: tuple = (14.0, 22.0),
-                 plenum_mode: str = "scaled", plenum_beta: Optional[float] = None,
-                 solve_tol: float = 5e-5, max_solve_steps: int = 1500,
-                 min_solve_steps: int = 100, check_every: int = 100,
-                 warm_start: bool = True, sensing: str = "rack_inlet",
-                 sensing_noise_func: Optional[Callable] = None,
-                 load_profile: Optional[Callable[[int], float]] = None,
-                 episode_steps: int = 100,
-                 reward_class=None):
+    def __init__(
+        self,
+        layout: str = "mini",
+        cells_per_tile: int = 2,
+        flow_bounds_m3h: Optional[tuple] = None,
+        temp_bounds_C: tuple = (14.0, 22.0),
+        plenum_mode: str = "scaled",
+        plenum_beta: Optional[float] = None,
+        solve_tol: float = 5e-5,
+        max_solve_steps: int = 1500,
+        min_solve_steps: int = 100,
+        check_every: int = 100,
+        warm_start: bool = True,
+        sensing: str = "rack_inlet",
+        sensing_noise_func: Optional[Callable] = None,
+        load_profile: Optional[Callable[[int], float]] = None,
+        episode_steps: int = 100,
+        reward_class=None,
+    ):
         self.layout_name = layout
-        layout_path = layout if os.path.isdir(layout) else os.path.join(LAYOUT_DIR, layout)
+        layout_path = (
+            layout if os.path.isdir(layout) else os.path.join(LAYOUT_DIR, layout)
+        )
         self.layout = load_layout(layout_path)
         self.cells_per_tile = cells_per_tile
         self.plenum_mode = plenum_mode
-        self.plenum_beta = self.layout.tile_open_area if plenum_beta is None else plenum_beta
+        self.plenum_beta = (
+            self.layout.tile_open_area if plenum_beta is None else plenum_beta
+        )
         self.solve_tol = solve_tol
         self.max_solve_steps = max_solve_steps
         self.min_solve_steps = min_solve_steps
@@ -109,24 +128,37 @@ class DataCenter3D(PDEEnv3D):
         if flow_bounds_m3h is None:
             self.flow_bounds = (0.5 * self.Q_nom_m3s, 1.5 * self.Q_nom_m3s)
         else:
-            self.flow_bounds = (m3h_to_m3s(flow_bounds_m3h[0]), m3h_to_m3s(flow_bounds_m3h[1]))
+            self.flow_bounds = (
+                m3h_to_m3s(flow_bounds_m3h[0]),
+                m3h_to_m3s(flow_bounds_m3h[1]),
+            )
         self.temp_bounds = tuple(float(t) for t in temp_bounds_C)
 
         # Base IT load (constant unless load_profile overrides it per step).
         self._base_powers = assign_powers(
-            self.layout.racks, self.layout.total_it_power_kW, self.layout.power_mode)
+            self.layout.racks, self.layout.total_it_power_kW, self.layout.power_mode
+        )
         self.p_it_nom_kW = float(sum(self._base_powers.values()))
         self.load_profile = load_profile
         # Powered racks in the order the solver's flow-through racks are built
         # (non-empty racks in layout order -- see datacenter.mesh.solids_from_layout);
         # used to push a time-varying load into the live warm-started solver.
-        self._powered_racks = [r for r in self.layout.racks
-                               if not getattr(r, "empty", False)]
+        self._powered_racks = [
+            r for r in self.layout.racks if not getattr(r, "empty", False)
+        ]
 
         # Precompute the plenum tile-flow fractions (self-similar in supply flow).
-        pr = run_plenum(self.layout, cells_per_tile, self.layout.plenum_depth_m,
-                        self.plenum_beta, self.Q_nom_m3s, max_steps=2000)
-        self._tile_fractions = np.asarray(pr.Q_m3s, dtype=float) / float(np.sum(pr.Q_m3s))
+        pr = run_plenum(
+            self.layout,
+            cells_per_tile,
+            self.layout.plenum_depth_m,
+            self.plenum_beta,
+            self.Q_nom_m3s,
+            max_steps=2000,
+        )
+        self._tile_fractions = np.asarray(pr.Q_m3s, dtype=float) / float(
+            np.sum(pr.Q_m3s)
+        )
         self._n_tiles = len(self.layout.tiles)
 
         # White-space grid geometry (needed for observation_space; the solver
@@ -141,27 +173,39 @@ class DataCenter3D(PDEEnv3D):
         Y = self.layout.room_tiles[1] * self.layout.tile_m
         Z = self.layout.height_m
         super().__init__(
-            T=float(episode_steps), dt=1.0, X=X, dx=self.layout.tile_m,
-            Y=Y, dy=self.layout.tile_m, Z=Z, dz=Z, action_dim=2,
-            reward_class=reward_class, normalize=False, state_dim=4)
+            T=float(episode_steps),
+            dt=1.0,
+            X=X,
+            dx=self.layout.tile_m,
+            Y=Y,
+            dy=self.layout.tile_m,
+            Z=Z,
+            dz=Z,
+            action_dim=2,
+            reward_class=reward_class,
+            normalize=False,
+            state_dim=4,
+        )
         self.U = None  # Option B holds the live solver, not a full time history.
 
         self.n_racks = len(self.layout.racks)
         if sensing == "full":
             self.observation_space = spaces.Box(
-                -np.inf, np.inf, shape=(gnx, gny, gnz, 4), dtype=np.float32)
+                -np.inf, np.inf, shape=(gnx, gny, gnz, 4), dtype=np.float32
+            )
         elif sensing == "rack_inlet":
             # [per-rack inlet T, supply flow, supply T, total IT load]
             self.observation_space = spaces.Box(
-                -np.inf, np.inf, shape=(self.n_racks + 3,), dtype=np.float32)
+                -np.inf, np.inf, shape=(self.n_racks + 3,), dtype=np.float32
+            )
         else:
             raise ValueError("sensing must be 'rack_inlet' or 'full'")
 
         # Default reward normalized to this layout.
         if reward_class is None:
             self.reward_class = DataCenterReward(
-                q_nom_m3s=self.Q_nom_m3s, p_it_nom_kW=self.p_it_nom_kW,
-                nt=episode_steps)
+                q_nom_m3s=self.Q_nom_m3s, p_it_nom_kW=self.p_it_nom_kW, nt=episode_steps
+            )
 
         self._grid = None
         self._solver = None
@@ -171,15 +215,25 @@ class DataCenter3D(PDEEnv3D):
     def _denormalize(self, action):
         """Map an action in [-1, 1]^2 to (supply_flow_m3s, supply_T_C)."""
         a = np.clip(np.asarray(action, dtype=float).reshape(-1), -1.0, 1.0)
-        Q = self.flow_bounds[0] + 0.5 * (a[0] + 1.0) * (self.flow_bounds[1] - self.flow_bounds[0])
-        T = self.temp_bounds[0] + 0.5 * (a[1] + 1.0) * (self.temp_bounds[1] - self.temp_bounds[0])
+        Q = self.flow_bounds[0] + 0.5 * (a[0] + 1.0) * (
+            self.flow_bounds[1] - self.flow_bounds[0]
+        )
+        T = self.temp_bounds[0] + 0.5 * (a[1] + 1.0) * (
+            self.temp_bounds[1] - self.temp_bounds[0]
+        )
         return float(Q), float(T)
 
     def _tile_flows(self, Q_sup_m3s):
         """Per-tile flow [m^3/s] for a supply flow, keyed like build_whitespace."""
         if self.plenum_mode == "full":
-            pr = run_plenum(self.layout, self.cells_per_tile, self.layout.plenum_depth_m,
-                            self.plenum_beta, Q_sup_m3s, max_steps=2000)
+            pr = run_plenum(
+                self.layout,
+                self.cells_per_tile,
+                self.layout.plenum_depth_m,
+                self.plenum_beta,
+                Q_sup_m3s,
+                max_steps=2000,
+            )
             q = np.asarray(pr.Q_m3s, dtype=float)
         else:  # "scaled"
             q = self._tile_fractions * Q_sup_m3s
@@ -190,7 +244,7 @@ class DataCenter3D(PDEEnv3D):
         force for a new (supply flow, supply temperature) without rebuilding it."""
         solver, grid = self._solver, self._grid
         tile_flows = self._tile_flows(Q_sup)
-        A_tile = self.layout.tile_m ** 2
+        A_tile = self.layout.tile_m**2
         h = grid.z.dc[1]
 
         # Tile inlets (zlo): prescribed upward velocity per tile + supply temp.
@@ -225,7 +279,11 @@ class DataCenter3D(PDEEnv3D):
             if step % self.check_every == 0:
                 du = np.abs(solver.u - u_prev).max() / self._U_ref / self.check_every
                 dT = np.abs(solver.T - T_prev).max() / 14.0 / self.check_every
-                if du < self.solve_tol and dT < self.solve_tol and step >= self.min_solve_steps:
+                if (
+                    du < self.solve_tol
+                    and dT < self.solve_tol
+                    and step >= self.min_solve_steps
+                ):
                     converged = True
                     break
                 u_prev = solver.u.copy()
@@ -236,18 +294,24 @@ class DataCenter3D(PDEEnv3D):
 
     def _rack_inlet_temps(self):
         return np.array(
-            [metrics.rack_inlet_temperature(self._solver, self._grid, self.layout, r)
-             for r in self.layout.racks], dtype=float)
+            [
+                metrics.rack_inlet_temperature(self._solver, self._grid, self.layout, r)
+                for r in self.layout.racks
+            ],
+            dtype=float,
+        )
 
     def _get_obs(self):
         if self.sensing == "full":
             Uc, Vc, Wc = self._solver.velocity_at_centers()
             obs = np.stack([Uc, Vc, Wc, self._solver.T], axis=-1).astype(np.float32)
         else:
-            obs = np.concatenate([
-                self._rack_inlet_temps(),
-                [self.cur_Q, self.cur_T, self._p_it_kW],
-            ]).astype(np.float32)
+            obs = np.concatenate(
+                [
+                    self._rack_inlet_temps(),
+                    [self.cur_Q, self.cur_T, self._p_it_kW],
+                ]
+            ).astype(np.float32)
         if self.sensing_noise_func is not None:
             obs = self.sensing_noise_func(obs)
         return obs
@@ -284,10 +348,11 @@ class DataCenter3D(PDEEnv3D):
         tile_flows = self._tile_flows(Q_sup)
 
         self._grid, self._solver = build_whitespace(
-            self.layout, self.cells_per_tile, tile_flows, T_sup, Q_sup, powers)
+            self.layout, self.cells_per_tile, tile_flows, T_sup, Q_sup, powers
+        )
         self._tile_index = tile_cell_index(self._grid, self.layout)
         self._n_ceil = len(self.layout.ceiling_tiles)
-        A_tile = self.layout.tile_m ** 2
+        A_tile = self.layout.tile_m**2
         self._U_ref = max(1e-9, max(tile_flows.values()) / A_tile)
         self.cur_Q, self.cur_T = Q_sup, T_sup
 
@@ -305,8 +370,13 @@ class DataCenter3D(PDEEnv3D):
         if not self.warm_start:
             # Cold restart: rebuild from a uniform field each step.
             self._grid, self._solver = build_whitespace(
-                self.layout, self.cells_per_tile, self._tile_flows(Q_sup),
-                T_sup, Q_sup, powers)
+                self.layout,
+                self.cells_per_tile,
+                self._tile_flows(Q_sup),
+                T_sup,
+                Q_sup,
+                powers,
+            )
             self._tile_index = tile_cell_index(self._grid, self.layout)
         elif self.load_profile is not None:
             # Warm start: the solver is not rebuilt, so push the new load in place.
@@ -319,14 +389,21 @@ class DataCenter3D(PDEEnv3D):
         terminate = self.control_step >= self.episode_steps
         truncate = False
         reward = self.reward_class.reward(
-            rack_inlet_temps=rack_T, action=np.array([Q_sup, T_sup]),
-            p_it_kW=self._p_it_kW, terminate=terminate, truncate=truncate,
-            time_index=self.control_step)
+            rack_inlet_temps=rack_T,
+            action=np.array([Q_sup, T_sup]),
+            p_it_kW=self._p_it_kW,
+            terminate=terminate,
+            truncate=truncate,
+            time_index=self.control_step,
+        )
 
         obs = self._get_obs()
         info = {
-            "converged": converged, "solve_steps": nsteps,
-            "Q_sup_m3s": Q_sup, "T_sup_C": T_sup, "p_it_kW": self._p_it_kW,
+            "converged": converged,
+            "solve_steps": nsteps,
+            "Q_sup_m3s": Q_sup,
+            "T_sup_C": T_sup,
+            "p_it_kW": self._p_it_kW,
             "t_max_in_C": float(metrics.t_max_in(rack_T)),
             "rci_hi": float(metrics.rci_hi(rack_T)),
         }

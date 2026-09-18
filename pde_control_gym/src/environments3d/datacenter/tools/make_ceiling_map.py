@@ -13,22 +13,23 @@ possible along each band.
 
 Run:  ../../.venv/bin/python3 make_ceiling_map.py <layout_dir> <n_tiles>
 """
+
 import csv
 import json
 import os
 import sys
 
-_FACING_DELTA = {'+x': (1, 0), '-x': (-1, 0), '+y': (0, 1), '-y': (0, -1)}
+_FACING_DELTA = {"+x": (1, 0), "-x": (-1, 0), "+y": (0, 1), "-y": (0, -1)}
 
 
 def _load_racks_and_size(layout_dir):
-    with open(os.path.join(layout_dir, 'site.json')) as f:
+    with open(os.path.join(layout_dir, "site.json")) as f:
         site = json.load(f)
-    nx, ny = site['room_tiles']
+    nx, ny = site["room_tiles"]
     racks = []
-    with open(os.path.join(layout_dir, 'racks.csv'), newline='') as f:
+    with open(os.path.join(layout_dir, "racks.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            racks.append((int(row['tile_ix']), int(row['tile_iy']), row['facing']))
+            racks.append((int(row["tile_ix"]), int(row["tile_iy"]), row["facing"]))
     return racks, nx, ny
 
 
@@ -45,9 +46,9 @@ def hot_aisle_bands(racks):
         dx, dy = _FACING_DELTA[facing]
         rear_x, rear_y = ix - dx, iy - dy
         if dx != 0:
-            key, pos = ('x', rear_x), iy
+            key, pos = ("x", rear_x), iy
         else:
-            key, pos = ('y', rear_y), ix
+            key, pos = ("y", rear_y), ix
         bands.setdefault(key, set()).add(pos)
     return {k: sorted(v) for k, v in sorted(bands.items())}
 
@@ -69,8 +70,11 @@ def _evenly_spaced_indices(n_available, n_pick):
         return []
     if n_pick >= n_available:
         return list(range(n_available))
-    return sorted({round(i * (n_available - 1) / (n_pick - 1)) for i in range(n_pick)}
-                  if n_pick > 1 else {n_available // 2})
+    return sorted(
+        {round(i * (n_available - 1) / (n_pick - 1)) for i in range(n_pick)}
+        if n_pick > 1
+        else {n_available // 2}
+    )
 
 
 def make_ceiling_grid(layout_dir, n_tiles):
@@ -79,15 +83,15 @@ def make_ceiling_grid(layout_dir, n_tiles):
     counts = {key: len(positions) for key, positions in bands.items()}
     alloc = _largest_remainder(counts, n_tiles)
 
-    grid = [['.'] * nx for _ in range(ny)]
+    grid = [["."] * nx for _ in range(ny)]
     placed = 0
     for key, positions in bands.items():
         axis, fixed = key
         k = alloc[key]
         for idx in _evenly_spaced_indices(len(positions), k):
             p = positions[idx]
-            ix, iy = (fixed, p) if axis == 'x' else (p, fixed)
-            grid[iy][ix] = 'C'
+            ix, iy = (fixed, p) if axis == "x" else (p, fixed)
+            grid[iy][ix] = "C"
             placed += 1
     assert placed == n_tiles, f"placed {placed} != requested {n_tiles}"
     return grid, nx, ny
@@ -95,16 +99,19 @@ def make_ceiling_grid(layout_dir, n_tiles):
 
 def write_ceiling_map(layout_dir, n_tiles):
     grid, nx, ny = make_ceiling_grid(layout_dir, n_tiles)
-    out_path = os.path.join(layout_dir, 'ceiling_map.txt')
-    with open(out_path, 'w') as f:
+    out_path = os.path.join(layout_dir, "ceiling_map.txt")
+    with open(out_path, "w") as f:
         for row_index in range(ny - 1, -1, -1):
-            f.write(''.join(grid[row_index]) + '\n')
+            f.write("".join(grid[row_index]) + "\n")
     return out_path
 
 
-if __name__ == '__main__':
-    layout_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-        os.path.dirname(__file__), '..', 'layouts', 'han_reference')
+if __name__ == "__main__":
+    layout_dir = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else os.path.join(os.path.dirname(__file__), "..", "layouts", "han_reference")
+    )
     n_tiles = int(sys.argv[2]) if len(sys.argv) > 2 else 42
     path = write_ceiling_map(layout_dir, n_tiles)
     print(f"wrote {path} ({n_tiles} ceiling tiles)")

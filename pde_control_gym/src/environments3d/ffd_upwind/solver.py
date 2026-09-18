@@ -24,6 +24,7 @@ zero-equation turbulence model (M2), internal solid blocks with Dirichlet-
 temperature surfaces (the heated box, M3), a cell-centered energy transport
 equation, and Boussinesq buoyancy in the z-momentum (M3).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -64,9 +65,9 @@ class Boundary:
     kind: str
     vel: tuple = (0.0, 0.0, 0.0)
     mask_fn: object = None
-    temp: float = None        # Dirichlet T at the opening / wall face
+    temp: float = None  # Dirichlet T at the opening / wall face
     #                           (None -> adiabatic, zero-gradient in energy)
-    wall_temp: float = None   # Dirichlet T on the *solid remainder* of an
+    wall_temp: float = None  # Dirichlet T on the *solid remainder* of an
     #                           inlet/outlet face (the wall around the slot)
     mask: np.ndarray = None
     vel_map: np.ndarray = None
@@ -119,10 +120,10 @@ FACES = ("xlo", "xhi", "ylo", "yhi", "zlo", "zhi")
 
 @dataclass
 class Config:
-    nu: float = 1.5e-5          # kinematic (molecular) viscosity [m^2/s]
-    dt: float = 0.05            # time step [s]
-    rho: float = 1.2            # density [kg/m^3] (only for reporting)
-    n_mom_sweeps: int = 4       # Jacobi sweeps per momentum solve per step
+    nu: float = 1.5e-5  # kinematic (molecular) viscosity [m^2/s]
+    dt: float = 0.05  # time step [s]
+    rho: float = 1.2  # density [kg/m^3] (only for reporting)
+    n_mom_sweeps: int = 4  # Jacobi sweeps per momentum solve per step
     bcs: dict = field(default_factory=dict)  # face name -> Boundary
     # Turbulence: Chen & Xu (1998) zero-equation, nu_t = C * |V| * l with l the
     # distance to the nearest wall. `turb_model=None` -> laminar (nu_t = 0).
@@ -134,7 +135,7 @@ class Config:
     # Neumann pressure BC everywhere.  Both give the same profiles to within
     # 0.04 NRMSD points; 'pressure' is numerically cleaner (max|div| ~25x lower
     # on Case 2) and is what the drivers use.
-    outlet_mode: str = "pressure"   # 'pressure' or 'velocity'
+    outlet_mode: str = "pressure"  # 'pressure' or 'velocity'
     # Pressure Poisson solver. The operator is built once and reused every step,
     # so this only changes *how* the same linear system is solved, never the
     # system itself; all direct options agree to ~1e-14 relative residual.
@@ -153,9 +154,9 @@ class Config:
     # with no pressure outlet at all, e.g. a data-center case) -- the pin zeros
     # both its row and column (see _build_pressure_operator).
     pressure_solver: str = "cholesky"
-    pressure_tol: float = 1e-10     # relative residual; 'amg' only
-    turb_model: str = None      # None or 'chen'
-    turb_C: float = 0.03874     # Chen zero-equation coefficient
+    pressure_tol: float = 1e-10  # relative residual; 'amg' only
+    turb_model: str = None  # None or 'chen'
+    turb_C: float = 0.03874  # Chen zero-equation coefficient
     # Dhoot et al. approximate wall function: cells adjacent to a domain
     # boundary (wall or inlet/outlet opening) or an internal solid use a
     # reduced coefficient instead of turb_C. Values (chen_a, jim_a) and the
@@ -164,10 +165,10 @@ class Config:
     # code behind Han et al.'s Table 2 numbers) -- Han's paper cites the wall
     # function [42] but never states its formula, so this is sourced from the
     # implementation, not tuned to our own NRMSD.
-    turb_C_wall: float = 0.0185     # isat_ffd's `jim_a`
+    turb_C_wall: float = 0.0185  # isat_ffd's `jim_a`
     # Energy equation + Boussinesq buoyancy (all ignored unless solve_energy).
     solve_energy: bool = False
-    alpha: float = 2.1e-5       # molecular thermal diffusivity [m^2/s] (Pr~0.71)
+    alpha: float = 2.1e-5  # molecular thermal diffusivity [m^2/s] (Pr~0.71)
     # No turbulent-Prandtl division: isat_ffd's diff_T kernel (Kernels_3D.cl,
     # same source as turb_C_wall above) reuses the momentum eddy viscosity
     # nu_t UNDIVIDED for the temperature equation's diffusion coefficient
@@ -176,12 +177,12 @@ class Config:
     # in this flow) but match their turbulent term exactly, since that is the
     # numerically significant, code-sourced part.
     beta: float = 1.0 / 295.15  # thermal expansion coefficient [1/K]
-    g: float = 9.81             # gravitational acceleration [m/s^2]
-    T_ref: float = 22.2         # Boussinesq reference temperature (T units)
-    T_init: float = None        # initial uniform T (default: T_ref)
-    n_energy_sweeps: int = 4    # Jacobi sweeps per energy solve per step
-    cp: float = 1006.0          # specific heat [J/kg K] (rack exhaust carry-through)
-    solids: list = field(default_factory=list)   # internal Solid blocks
+    g: float = 9.81  # gravitational acceleration [m/s^2]
+    T_ref: float = 22.2  # Boussinesq reference temperature (T units)
+    T_init: float = None  # initial uniform T (default: T_ref)
+    n_energy_sweeps: int = 4  # Jacobi sweeps per energy solve per step
+    cp: float = 1006.0  # specific heat [J/kg K] (rack exhaust carry-through)
+    solids: list = field(default_factory=list)  # internal Solid blocks
 
 
 class Solver:
@@ -195,8 +196,8 @@ class Solver:
         self.v = np.zeros((nx, ny + 1, nz))
         self.w = np.zeros((nx, ny, nz + 1))
         self.p = np.zeros((nx, ny, nz))
-        self.nu_t = np.zeros((nx, ny, nz))          # eddy viscosity (0 => laminar)
-        self._nue = np.full((nx, ny, nz), cfg.nu)   # effective viscosity nu + nu_t
+        self.nu_t = np.zeros((nx, ny, nz))  # eddy viscosity (0 => laminar)
+        self._nue = np.full((nx, ny, nz), cfg.nu)  # effective viscosity nu + nu_t
         self._alpha_eff = np.full((nx, ny, nz), cfg.alpha)  # alpha + nu_t
         # Temperature field (cell centers). Solid cells are pinned to their
         # surface temperature; fluid starts uniform at T_init (default T_ref).
@@ -222,9 +223,9 @@ class Solver:
         self.dx, self.dy, self.dz = g.x.d, g.y.d, g.z.d
         self.dxc, self.dyc, self.dzc = g.x.dc, g.y.dc, g.z.dc
         # CV widths for the staggered momentum control volumes.
-        self.wxu = g.x.dc            # u-CV width in x, length nx+1
-        self.wyv = g.y.dc            # v-CV width in y, length ny+1
-        self.wzw = g.z.dc            # w-CV width in z, length nz+1
+        self.wxu = g.x.dc  # u-CV width in x, length nx+1
+        self.wyv = g.y.dc  # v-CV width in y, length ny+1
+        self.wzw = g.z.dc  # w-CV width in z, length nz+1
 
     # ------------------------------------------------------------------
     # Internal solids (heated box, M3)
@@ -250,8 +251,7 @@ class Solver:
         rack_masks = []
         for sol in self.cfg.solids:
             x0, x1, y0, y1, z0, z1 = sol.bounds
-            m = ((Xc > x0) & (Xc < x1) & (Yc > y0) & (Yc < y1)
-                 & (Zc > z0) & (Zc < z1))
+            m = (Xc > x0) & (Xc < x1) & (Yc > y0) & (Yc < y1) & (Zc > z0) & (Zc < z1)
             self.solid |= m
             if sol.temp is not None:
                 self.solid_temp[m] = sol.temp
@@ -318,8 +318,9 @@ class Solver:
 
         for label, idx in (("front", front_idx), ("rear", rear_outside_idx)):
             if not (0 <= idx < n_axis):
-                raise ValueError(f"rack {spec}: {label} face is at the domain "
-                                  f"boundary")
+                raise ValueError(
+                    f"rack {spec}: {label} face is at the domain " f"boundary"
+                )
             if self.solid[axis_slice(idx)][footprint].any():
                 raise ValueError(f"rack {spec}: {label} cell is not fluid")
 
@@ -331,8 +332,18 @@ class Solver:
         vel[axis_slice(front_face)][footprint] = sign * V
         vel[axis_slice(rear_face)][footprint] = sign * V
 
-        return (spec, ax, front_idx, rear_idx, footprint, V,
-                front_face, rear_face, sign, A_front)
+        return (
+            spec,
+            ax,
+            front_idx,
+            rear_idx,
+            footprint,
+            V,
+            front_face,
+            rear_face,
+            sign,
+            A_front,
+        )
 
     def _axis_slice(self, ax, idx):
         sl = [slice(None)] * 3
@@ -368,10 +379,24 @@ class Solver:
         if len(powers_W) != len(self._racks) or len(flows_m3s) != len(self._racks):
             raise ValueError(
                 f"set_rack_powers: expected {len(self._racks)} racks, got "
-                f"{len(powers_W)} powers / {len(flows_m3s)} flows")
-        for (spec, ax, front_idx, rear_idx, footprint, _V,
-             front_face, rear_face, sign, A_front), P, Q in zip(
-                self._racks, powers_W, flows_m3s):
+                f"{len(powers_W)} powers / {len(flows_m3s)} flows"
+            )
+        for (
+            (
+                spec,
+                ax,
+                front_idx,
+                rear_idx,
+                footprint,
+                _V,
+                front_face,
+                rear_face,
+                sign,
+                A_front,
+            ),
+            P,
+            Q,
+        ) in zip(self._racks, powers_W, flows_m3s):
             spec.power_W = float(P)
             spec.Q_m3s = float(Q)
             V = float(Q) / A_front
@@ -407,17 +432,21 @@ class Solver:
         solid cells get l = 0.
         """
         from scipy.spatial import cKDTree
+
         g = self.g
         xc, yc, zc = g.x.c, g.y.c, g.z.c
         # per face: (in-plane axis-a coords, axis-b coords, normal coord, order)
         face_geom = {
-            "xlo": (yc, zc, g.x.f[0], "yz"), "xhi": (yc, zc, g.x.f[-1], "yz"),
-            "ylo": (xc, zc, g.y.f[0], "xz"), "yhi": (xc, zc, g.y.f[-1], "xz"),
-            "zlo": (xc, yc, g.z.f[0], "xy"), "zhi": (xc, yc, g.z.f[-1], "xy"),
+            "xlo": (yc, zc, g.x.f[0], "yz"),
+            "xhi": (yc, zc, g.x.f[-1], "yz"),
+            "ylo": (xc, zc, g.y.f[0], "xz"),
+            "yhi": (xc, zc, g.y.f[-1], "xz"),
+            "zlo": (xc, yc, g.z.f[0], "xy"),
+            "zhi": (xc, yc, g.z.f[-1], "xy"),
         }
         pts = []
         for face, (a, b, n_coord, order) in face_geom.items():
-            wall = ~self._opening_face_mask(face, a, b)   # True where face is wall
+            wall = ~self._opening_face_mask(face, a, b)  # True where face is wall
             if not wall.any():
                 continue
             A, B = np.meshgrid(a, b, indexing="ij")
@@ -479,9 +508,12 @@ class Solver:
         m[:, 0, :] = m[:, ny - 1, :] = True
         m[:, :, 0] = m[:, :, nz - 1] = True
         S = self.solid
-        m[:-1, :, :] |= S[1:, :, :]; m[1:, :, :] |= S[:-1, :, :]
-        m[:, :-1, :] |= S[:, 1:, :]; m[:, 1:, :] |= S[:, :-1, :]
-        m[:, :, :-1] |= S[:, :, 1:]; m[:, :, 1:] |= S[:, :, :-1]
+        m[:-1, :, :] |= S[1:, :, :]
+        m[1:, :, :] |= S[:-1, :, :]
+        m[:, :-1, :] |= S[:, 1:, :]
+        m[:, 1:, :] |= S[:, :-1, :]
+        m[:, :, :-1] |= S[:, :, 1:]
+        m[:, :, 1:] |= S[:, :, :-1]
         self._near_bnd = m
 
     def update_turbulence(self):
@@ -544,9 +576,14 @@ class Solver:
                 return np.ones_like(A, dtype=np.bool_)
             return np.asarray(bc.mask_fn(A, B), dtype=np.bool_)
 
-        inplane = {"xlo": (yc, zc), "xhi": (yc, zc),
-                   "ylo": (xc, zc), "yhi": (xc, zc),
-                   "zlo": (xc, yc), "zhi": (xc, yc)}
+        inplane = {
+            "xlo": (yc, zc),
+            "xhi": (yc, zc),
+            "ylo": (xc, zc),
+            "yhi": (xc, zc),
+            "zlo": (xc, yc),
+            "zhi": (xc, yc),
+        }
         self._facemask = {f: opening_mask(f, *inplane[f]) for f in FACES}
 
         # Pressure BC per boundary face.  Walls and inlets are always Neumann:
@@ -556,15 +593,18 @@ class Solver:
         # outflow (and makes the system nonsingular without a pin cell); under
         # 'velocity' every face is Neumann and _enforce_global_mass imposes the
         # balance by hand instead.
-        self._pdir = {f: np.zeros_like(self._facemask[f], dtype=np.bool_)
-                      for f in FACES}
+        self._pdir = {
+            f: np.zeros_like(self._facemask[f], dtype=np.bool_) for f in FACES
+        }
         if self.cfg.outlet_mode == "pressure":
             for f in FACES:
                 if self.bc[f].kind == "outlet":
                     self._pdir[f] = self._facemask[f].copy()
         elif self.cfg.outlet_mode != "velocity":
-            raise ValueError(f"outlet_mode must be 'pressure' or 'velocity', "
-                             f"got {self.cfg.outlet_mode!r}")
+            raise ValueError(
+                f"outlet_mode must be 'pressure' or 'velocity', "
+                f"got {self.cfg.outlet_mode!r}"
+            )
 
     def _setup_energy_bcs(self):
         """Per-domain-face temperature BC: which face cells are Dirichlet and
@@ -580,7 +620,7 @@ class Solver:
             return
         for face in FACES:
             bc = self.bc[face]
-            m = self._facemask[face]                     # opening (slot) mask
+            m = self._facemask[face]  # opening (slot) mask
             is_dir = np.zeros_like(m, dtype=np.bool_)
             Tval = np.zeros_like(m, dtype=np.float64)
             if bc.kind in ("wall",):
@@ -588,17 +628,17 @@ class Solver:
                     is_dir[:] = True
                     Tval[:] = bc.temp
             elif bc.kind == "inlet":
-                if bc.temp_map is not None:               # per-cell supply temp
+                if bc.temp_map is not None:  # per-cell supply temp
                     is_dir[m] = True
                     Tval[m] = bc.temp_map[m]
-                elif bc.temp is not None:                 # slot: supply air temp
+                elif bc.temp is not None:  # slot: supply air temp
                     is_dir[m] = True
                     Tval[m] = bc.temp
-                if bc.wall_temp is not None:             # wall around the slot
+                if bc.wall_temp is not None:  # wall around the slot
                     is_dir[~m] = True
                     Tval[~m] = bc.wall_temp
             elif bc.kind == "outlet":
-                if bc.wall_temp is not None:             # wall around the exhaust
+                if bc.wall_temp is not None:  # wall around the exhaust
                     is_dir[~m] = True
                     Tval[~m] = bc.wall_temp
                 # opening cells stay Neumann (zero-gradient outflow)
@@ -614,17 +654,17 @@ class Solver:
             bc = self.bc[face]
             m = self._facemask[face]
             if bc.kind == "inlet":
-                self.u[iface, :, :] = 0.0            # solid part of the face
+                self.u[iface, :, :] = 0.0  # solid part of the face
                 if bc.vel_map is not None:
                     self.u[iface][m] = bc.vel_map[m]  # per-cell prescribed vel
                 else:
-                    self.u[iface][m] = bc.vel[0]     # opening: prescribed normal vel
+                    self.u[iface][m] = bc.vel[0]  # opening: prescribed normal vel
             elif bc.kind in ("wall", "slip"):
-                self.u[iface, :, :] = 0.0            # no through-flow
+                self.u[iface, :, :] = 0.0  # no through-flow
             elif bc.kind == "outlet":
                 src = self.u[1, :, :] if iface == 0 else self.u[nx - 1, :, :]
-                self.u[iface, :, :] = 0.0            # solid part of the face
-                self.u[iface][m] = src[m]            # opening: zero-gradient
+                self.u[iface, :, :] = 0.0  # solid part of the face
+                self.u[iface][m] = src[m]  # opening: zero-gradient
 
         for face, jface in (("ylo", 0), ("yhi", ny)):
             bc = self.bc[face]
@@ -683,9 +723,9 @@ class Solver:
         if self.cfg.outlet_mode == "pressure":
             return
         nx, ny, nz = self.g.nx, self.g.ny, self.g.nz
-        Ax = self.dy[:, None] * self.dz[None, :]     # (ny,nz)
-        Ay = self.dx[:, None] * self.dz[None, :]     # (nx,nz)
-        Az = self.dx[:, None] * self.dy[None, :]     # (nx,ny)
+        Ax = self.dy[:, None] * self.dz[None, :]  # (ny,nz)
+        Ay = self.dx[:, None] * self.dz[None, :]  # (nx,nz)
+        Az = self.dx[:, None] * self.dy[None, :]  # (nx,ny)
 
         inflow = 0.0
         outflow_faces = []  # (array_slice_setter, current_flux, area)
@@ -720,8 +760,11 @@ class Solver:
         for face, (comp, idx), area, sign in outlets:
             m = self._facemask[face]
             arr = getattr(self, comp)
-            plane = arr[idx, :, :] if comp == "u" else (
-                arr[:, idx, :] if comp == "v" else arr[:, :, idx])
+            plane = (
+                arr[idx, :, :]
+                if comp == "u"
+                else (arr[:, idx, :] if comp == "v" else arr[:, :, idx])
+            )
             cur += sign * np.sum(plane[m] * area[m])
             a_open += np.sum(area[m])
         if a_open <= 0.0:
@@ -731,8 +774,11 @@ class Solver:
         for face, (comp, idx), area, sign in outlets:
             m = self._facemask[face]
             arr = getattr(self, comp)
-            plane = arr[idx, :, :] if comp == "u" else (
-                arr[:, idx, :] if comp == "v" else arr[:, :, idx])
+            plane = (
+                arr[idx, :, :]
+                if comp == "u"
+                else (arr[:, idx, :] if comp == "v" else arr[:, :, idx])
+            )
             plane[m] += sign * (inflow - cur) / a_open
 
     # ------------------------------------------------------------------
@@ -750,9 +796,9 @@ class Solver:
         def idx(i, j, k):
             return (i * ny + j) * nz + k
 
-        Ax = np.multiply.outer(self.dy, self.dz)   # (ny,nz)
-        Ay = np.multiply.outer(self.dx, self.dz)   # (nx,nz)
-        Az = np.multiply.outer(self.dx, self.dy)   # (nx,ny)
+        Ax = np.multiply.outer(self.dy, self.dz)  # (ny,nz)
+        Ay = np.multiply.outer(self.dx, self.dz)  # (nx,nz)
+        Az = np.multiply.outer(self.dx, self.dy)  # (nx,ny)
 
         # A face contributes a coefficient A/dist unless it's a domain-boundary
         # face with a Neumann pressure BC (wall/inlet) -> no term. Outlet faces
@@ -782,7 +828,9 @@ class Solver:
                     if i + 1 < nx:
                         if not S[i + 1, j, k]:
                             c = Ax[j, k] / self.dxc[i + 1]
-                            rows.append(P); cols.append(idx(i + 1, j, k)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i + 1, j, k))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["xhi"][j, k]:
                         diag[P] += Ax[j, k] / (self.dx[i] * 0.5)
@@ -790,7 +838,9 @@ class Solver:
                     if i - 1 >= 0:
                         if not S[i - 1, j, k]:
                             c = Ax[j, k] / self.dxc[i]
-                            rows.append(P); cols.append(idx(i - 1, j, k)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i - 1, j, k))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["xlo"][j, k]:
                         diag[P] += Ax[j, k] / (self.dx[i] * 0.5)
@@ -798,7 +848,9 @@ class Solver:
                     if j + 1 < ny:
                         if not S[i, j + 1, k]:
                             c = Ay[i, k] / self.dyc[j + 1]
-                            rows.append(P); cols.append(idx(i, j + 1, k)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i, j + 1, k))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["yhi"][i, k]:
                         diag[P] += Ay[i, k] / (self.dy[j] * 0.5)
@@ -806,7 +858,9 @@ class Solver:
                     if j - 1 >= 0:
                         if not S[i, j - 1, k]:
                             c = Ay[i, k] / self.dyc[j]
-                            rows.append(P); cols.append(idx(i, j - 1, k)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i, j - 1, k))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["ylo"][i, k]:
                         diag[P] += Ay[i, k] / (self.dy[j] * 0.5)
@@ -814,7 +868,9 @@ class Solver:
                     if k + 1 < nz:
                         if not S[i, j, k + 1]:
                             c = Az[i, j] / self.dzc[k + 1]
-                            rows.append(P); cols.append(idx(i, j, k + 1)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i, j, k + 1))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["zhi"][i, j]:
                         diag[P] += Az[i, j] / (self.dz[k] * 0.5)
@@ -822,7 +878,9 @@ class Solver:
                     if k - 1 >= 0:
                         if not S[i, j, k - 1]:
                             c = Az[i, j] / self.dzc[k]
-                            rows.append(P); cols.append(idx(i, j, k - 1)); vals.append(-c)
+                            rows.append(P)
+                            cols.append(idx(i, j, k - 1))
+                            vals.append(-c)
                             diag[P] += c
                     elif pdir["zlo"][i, j]:
                         diag[P] += Az[i, j] / (self.dz[k] * 0.5)
@@ -835,10 +893,12 @@ class Solver:
         # pure-Neumann domain (a data-center case with no pressure outlet)
         # without falling back to an unsymmetric solver.
         any_dirichlet = any(pdir[f].any() for f in FACES)
-        rows.extend(range(N)); cols.extend(range(N)); vals.extend(diag)
+        rows.extend(range(N))
+        cols.extend(range(N))
+        vals.extend(diag)
         L = sp.csc_matrix((vals, (rows, cols)), shape=(N, N))
         if not any_dirichlet:
-            pin = int(np.argmin(S.reshape(-1)))   # first fluid cell
+            pin = int(np.argmin(S.reshape(-1)))  # first fluid cell
             L = L.tolil()
             L[pin, :] = 0.0
             L[:, pin] = 0.0
@@ -869,14 +929,19 @@ class Solver:
                 want = "lu_mmd"
             else:
                 coo = L.tocoo()
-                chol = CholeskySolverD(N, coo.row.astype(np.int32),
-                                       coo.col.astype(np.int32),
-                                       coo.data.astype(np.float64), MatrixType.COO)
+                chol = CholeskySolverD(
+                    N,
+                    coo.row.astype(np.int32),
+                    coo.col.astype(np.int32),
+                    coo.data.astype(np.float64),
+                    MatrixType.COO,
+                )
                 buf = np.empty(N)
 
                 def solve(rhs, _c=chol, _b=buf):
                     _c.solve(np.ascontiguousarray(rhs, dtype=np.float64), _b)
-                    return _b.copy()        # caller keeps the result as self.p
+                    return _b.copy()  # caller keeps the result as self.p
+
                 self.pressure_solver_used = "cholesky"
                 return solve
         if want == "amg":
@@ -896,6 +961,7 @@ class Solver:
                     x = _ml.solve(rhs, x0=_s["x"], tol=_t, accel="cg", maxiter=200)
                     _s["x"] = x
                     return x
+
                 self.pressure_solver_used = "amg"
                 return solve
         if want == "lu_mmd":
@@ -1011,7 +1077,7 @@ class Solver:
                 if val != 0.0:
                     B[sl] += coeff[sl] * val
             elif mode == "slip":
-                AP[sl] -= coeff[sl]   # remove the wall diffusion (zero stress)
+                AP[sl] -= coeff[sl]  # remove the wall diffusion (zero stress)
 
     def _assemble_u(self):
         g = self.g
@@ -1023,22 +1089,22 @@ class Solver:
         wxu = self.wxu
 
         # Interior u-nodes: i = 1 .. nx-1
-        Ax = np.multiply.outer(dy, dz)                         # (ny,nz) x-face area
-        wx = wxu[1:nx]                                          # (nx-1,) CV x-width
-        An = wx[:, None, None] * dz[None, None, :]              # (nx-1,1?,nz) y-face area
+        Ax = np.multiply.outer(dy, dz)  # (ny,nz) x-face area
+        wx = wxu[1:nx]  # (nx-1,) CV x-width
+        An = wx[:, None, None] * dz[None, None, :]  # (nx-1,1?,nz) y-face area
         An = wx[:, None, None] * np.ones(ny)[None, :, None] * dz[None, None, :]
         Az = wx[:, None, None] * dy[None, :, None] * np.ones(nz)[None, None, :]
 
         # Convecting fluxes (volumetric)
-        ue = 0.5 * (u[1:nx, :, :] + u[2:nx + 1, :, :])
-        uw = 0.5 * (u[0:nx - 1, :, :] + u[1:nx, :, :])
+        ue = 0.5 * (u[1:nx, :, :] + u[2 : nx + 1, :, :])
+        uw = 0.5 * (u[0 : nx - 1, :, :] + u[1:nx, :, :])
         Fe = ue * Ax[None, :, :]
         Fw = uw * Ax[None, :, :]
-        v_at = 0.5 * (v[0:nx - 1, :, :] + v[1:nx, :, :])        # (nx-1,ny+1,nz)
-        Fn = v_at[:, 1:ny + 1, :] * An
+        v_at = 0.5 * (v[0 : nx - 1, :, :] + v[1:nx, :, :])  # (nx-1,ny+1,nz)
+        Fn = v_at[:, 1 : ny + 1, :] * An
         Fs = v_at[:, 0:ny, :] * An
-        w_at = 0.5 * (w[0:nx - 1, :, :] + w[1:nx, :, :])        # (nx-1,ny,nz+1)
-        Ff = w_at[:, :, 1:nz + 1] * Az
+        w_at = 0.5 * (w[0 : nx - 1, :, :] + w[1:nx, :, :])  # (nx-1,ny,nz+1)
+        Ff = w_at[:, :, 1 : nz + 1] * Az
         Fb = w_at[:, :, 0:nz] * Az
 
         # Effective viscosity (nu + nu_t). The x-faces of the u control volume
@@ -1046,15 +1112,15 @@ class Solver:
         # (y-, z-) faces sit at the u-node, so use nu interpolated there.
         ne = self._nue
         ne_e = ne[1:nx, :, :]
-        ne_w = ne[0:nx - 1, :, :]
+        ne_w = ne[0 : nx - 1, :, :]
         ne_u = 0.5 * (ne_e + ne_w)
 
         # Diffusion
         De = ne_e * Ax[None, :, :] / dx[1:nx][:, None, None]
-        Dw = ne_w * Ax[None, :, :] / dx[0:nx - 1][:, None, None]
-        Dn = ne_u * An / dyc[1:ny + 1][None, :, None]
+        Dw = ne_w * Ax[None, :, :] / dx[0 : nx - 1][:, None, None]
+        Dn = ne_u * An / dyc[1 : ny + 1][None, :, None]
         Ds = ne_u * An / dyc[0:ny][None, :, None]
-        Df = ne_u * Az / dzc[1:nz + 1][None, None, :]
+        Df = ne_u * Az / dzc[1 : nz + 1][None, None, :]
         Db = ne_u * Az / dzc[0:nz][None, None, :]
 
         AE = De + np.maximum(-Fe, 0.0)
@@ -1070,15 +1136,20 @@ class Solver:
         B = AP0 * u[1:nx, :, :]
 
         # Tangential BCs on the y- and z-boundaries (u is tangential there)
-        self._apply_tangential_bcs("u", AP, B, (
-            ("ylo", AS, (slice(None), 0, slice(None))),
-            ("yhi", AN, (slice(None), ny - 1, slice(None))),
-            ("zlo", AB, (slice(None), slice(None), 0)),
-            ("zhi", AF, (slice(None), slice(None), nz - 1))))
+        self._apply_tangential_bcs(
+            "u",
+            AP,
+            B,
+            (
+                ("ylo", AS, (slice(None), 0, slice(None))),
+                ("yhi", AN, (slice(None), ny - 1, slice(None))),
+                ("zlo", AB, (slice(None), slice(None), 0)),
+                ("zhi", AF, (slice(None), slice(None), nz - 1)),
+            ),
+        )
 
         # Scatter interior into full-shape coefficient arrays
-        return self._pack(u.shape, AP, AE, AW, AN, AS, AF, AB, B,
-                          islice=slice(1, nx))
+        return self._pack(u.shape, AP, AE, AW, AN, AS, AF, AB, B, islice=slice(1, nx))
 
     def _assemble_v(self):
         g = self.g
@@ -1089,34 +1160,34 @@ class Solver:
         dxc, dyc, dzc = self.dxc, self.dyc, self.dzc
         wyv = self.wyv
 
-        wy = wyv[1:ny]                                          # (ny-1,) CV y-width
-        Ay = np.multiply.outer(dx, dz)                         # (nx,nz) y-face area
+        wy = wyv[1:ny]  # (ny-1,) CV y-width
+        Ay = np.multiply.outer(dx, dz)  # (nx,nz) y-face area
         Ax = wy[None, :, None] * dz[None, None, :] * np.ones(nx)[:, None, None]
         Az = dx[:, None, None] * wy[None, :, None] * np.ones(nz)[None, None, :]
 
-        u_at = 0.5 * (u[:, 0:ny - 1, :] + u[:, 1:ny, :])        # (nx+1,ny-1,nz)
-        Fe = u_at[1:nx + 1, :, :] * Ax
+        u_at = 0.5 * (u[:, 0 : ny - 1, :] + u[:, 1:ny, :])  # (nx+1,ny-1,nz)
+        Fe = u_at[1 : nx + 1, :, :] * Ax
         Fw = u_at[0:nx, :, :] * Ax
-        vn = 0.5 * (v[:, 1:ny, :] + v[:, 2:ny + 1, :])
-        vs = 0.5 * (v[:, 0:ny - 1, :] + v[:, 1:ny, :])
+        vn = 0.5 * (v[:, 1:ny, :] + v[:, 2 : ny + 1, :])
+        vs = 0.5 * (v[:, 0 : ny - 1, :] + v[:, 1:ny, :])
         Fn = vn * Ay[:, None, :]
         Fs = vs * Ay[:, None, :]
-        w_at = 0.5 * (w[:, 0:ny - 1, :] + w[:, 1:ny, :])        # (nx,ny-1,nz+1)
-        Ff = w_at[:, :, 1:nz + 1] * Az
+        w_at = 0.5 * (w[:, 0 : ny - 1, :] + w[:, 1:ny, :])  # (nx,ny-1,nz+1)
+        Ff = w_at[:, :, 1 : nz + 1] * Az
         Fb = w_at[:, :, 0:nz] * Az
 
         # y-faces of the v control volume sit at cell centers j-1 and j; the
         # transverse (x-, z-) faces sit at the v-node.
         ne = self._nue
         ne_n = ne[:, 1:ny, :]
-        ne_s = ne[:, 0:ny - 1, :]
+        ne_s = ne[:, 0 : ny - 1, :]
         ne_v = 0.5 * (ne_n + ne_s)
 
-        De = ne_v * Ax / dxc[1:nx + 1][:, None, None]
+        De = ne_v * Ax / dxc[1 : nx + 1][:, None, None]
         Dw = ne_v * Ax / dxc[0:nx][:, None, None]
         Dn = ne_n * Ay[:, None, :] / dy[1:ny][None, :, None]
-        Ds = ne_s * Ay[:, None, :] / dy[0:ny - 1][None, :, None]
-        Df = ne_v * Az / dzc[1:nz + 1][None, None, :]
+        Ds = ne_s * Ay[:, None, :] / dy[0 : ny - 1][None, :, None]
+        Df = ne_v * Az / dzc[1 : nz + 1][None, None, :]
         Db = ne_v * Az / dzc[0:nz][None, None, :]
 
         AE = De + np.maximum(-Fe, 0.0)
@@ -1131,14 +1202,19 @@ class Solver:
         AP = AE + AW + AN + AS + AF + AB + AP0 + conv
         B = AP0 * v[:, 1:ny, :]
 
-        self._apply_tangential_bcs("v", AP, B, (
-            ("xlo", AW, (0, slice(None), slice(None))),
-            ("xhi", AE, (nx - 1, slice(None), slice(None))),
-            ("zlo", AB, (slice(None), slice(None), 0)),
-            ("zhi", AF, (slice(None), slice(None), nz - 1))))
+        self._apply_tangential_bcs(
+            "v",
+            AP,
+            B,
+            (
+                ("xlo", AW, (0, slice(None), slice(None))),
+                ("xhi", AE, (nx - 1, slice(None), slice(None))),
+                ("zlo", AB, (slice(None), slice(None), 0)),
+                ("zhi", AF, (slice(None), slice(None), nz - 1)),
+            ),
+        )
 
-        return self._pack(v.shape, AP, AE, AW, AN, AS, AF, AB, B,
-                          jslice=slice(1, ny))
+        return self._pack(v.shape, AP, AE, AW, AN, AS, AF, AB, B, jslice=slice(1, ny))
 
     def _assemble_w(self, source=None):
         g = self.g
@@ -1149,19 +1225,19 @@ class Solver:
         dxc, dyc, dzc = self.dxc, self.dyc, self.dzc
         wzw = self.wzw
 
-        wz = wzw[1:nz]                                          # (nz-1,)
-        Az = np.multiply.outer(dx, dy)                         # (nx,ny) z-face area
+        wz = wzw[1:nz]  # (nz-1,)
+        Az = np.multiply.outer(dx, dy)  # (nx,ny) z-face area
         Ax = wz[None, None, :] * dy[None, :, None] * np.ones(nx)[:, None, None]
         Ay = dx[:, None, None] * wz[None, None, :] * np.ones(ny)[None, :, None]
 
-        u_at = 0.5 * (u[:, :, 0:nz - 1] + u[:, :, 1:nz])        # (nx+1,ny,nz-1)
-        Fe = u_at[1:nx + 1, :, :] * Ax
+        u_at = 0.5 * (u[:, :, 0 : nz - 1] + u[:, :, 1:nz])  # (nx+1,ny,nz-1)
+        Fe = u_at[1 : nx + 1, :, :] * Ax
         Fw = u_at[0:nx, :, :] * Ax
-        v_at = 0.5 * (v[:, :, 0:nz - 1] + v[:, :, 1:nz])        # (nx,ny+1,nz-1)
-        Fn = v_at[:, 1:ny + 1, :] * Ay
+        v_at = 0.5 * (v[:, :, 0 : nz - 1] + v[:, :, 1:nz])  # (nx,ny+1,nz-1)
+        Fn = v_at[:, 1 : ny + 1, :] * Ay
         Fs = v_at[:, 0:ny, :] * Ay
-        wf = 0.5 * (w[:, :, 1:nz] + w[:, :, 2:nz + 1])
-        wb = 0.5 * (w[:, :, 0:nz - 1] + w[:, :, 1:nz])
+        wf = 0.5 * (w[:, :, 1:nz] + w[:, :, 2 : nz + 1])
+        wb = 0.5 * (w[:, :, 0 : nz - 1] + w[:, :, 1:nz])
         Ff = wf * Az[:, :, None]
         Fb = wb * Az[:, :, None]
 
@@ -1169,15 +1245,15 @@ class Solver:
         # transverse (x-, y-) faces sit at the w-node.
         ne = self._nue
         ne_f = ne[:, :, 1:nz]
-        ne_b = ne[:, :, 0:nz - 1]
+        ne_b = ne[:, :, 0 : nz - 1]
         ne_w2 = 0.5 * (ne_f + ne_b)
 
-        De = ne_w2 * Ax / dxc[1:nx + 1][:, None, None]
+        De = ne_w2 * Ax / dxc[1 : nx + 1][:, None, None]
         Dw = ne_w2 * Ax / dxc[0:nx][:, None, None]
-        Dn = ne_w2 * Ay / dyc[1:ny + 1][None, :, None]
+        Dn = ne_w2 * Ay / dyc[1 : ny + 1][None, :, None]
         Ds = ne_w2 * Ay / dyc[0:ny][None, :, None]
         Df = ne_f * Az[:, :, None] / dz[1:nz][None, None, :]
-        Db = ne_b * Az[:, :, None] / dz[0:nz - 1][None, None, :]
+        Db = ne_b * Az[:, :, None] / dz[0 : nz - 1][None, None, :]
 
         AE = De + np.maximum(-Fe, 0.0)
         AW = Dw + np.maximum(Fw, 0.0)
@@ -1190,21 +1266,27 @@ class Solver:
         conv = Fe - Fw + Fn - Fs + Ff - Fb
         AP = AE + AW + AN + AS + AF + AB + AP0 + conv
         B = AP0 * w[:, :, 1:nz]
-        if source is not None:                                  # buoyancy S*Vol
+        if source is not None:  # buoyancy S*Vol
             B = B + source[:, :, 1:nz] * Vol
 
-        self._apply_tangential_bcs("w", AP, B, (
-            ("xlo", AW, (0, slice(None), slice(None))),
-            ("xhi", AE, (nx - 1, slice(None), slice(None))),
-            ("ylo", AS, (slice(None), 0, slice(None))),
-            ("yhi", AN, (slice(None), ny - 1, slice(None)))))
+        self._apply_tangential_bcs(
+            "w",
+            AP,
+            B,
+            (
+                ("xlo", AW, (0, slice(None), slice(None))),
+                ("xhi", AE, (nx - 1, slice(None), slice(None))),
+                ("ylo", AS, (slice(None), 0, slice(None))),
+                ("yhi", AN, (slice(None), ny - 1, slice(None))),
+            ),
+        )
 
-        return self._pack(w.shape, AP, AE, AW, AN, AS, AF, AB, B,
-                          kslice=slice(1, nz))
+        return self._pack(w.shape, AP, AE, AW, AN, AS, AF, AB, B, kslice=slice(1, nz))
 
     @staticmethod
-    def _pack(shape, AP, AE, AW, AN, AS, AF, AB, B,
-              islice=None, jslice=None, kslice=None):
+    def _pack(
+        shape, AP, AE, AW, AN, AS, AF, AB, B, islice=None, jslice=None, kslice=None
+    ):
         """Scatter interior coefficient blocks into full-shape arrays; boundary
         (fixed) nodes get aP=1 so the Jacobi divide is safe."""
         sl = [slice(None), slice(None), slice(None)]
@@ -1218,9 +1300,12 @@ class Solver:
         out = {n: np.zeros(shape) for n in ("aE", "aW", "aN", "aS", "aF", "aB", "b")}
         aP = np.ones(shape)
         aP[sl] = AP
-        out["aE"][sl] = AE; out["aW"][sl] = AW
-        out["aN"][sl] = AN; out["aS"][sl] = AS
-        out["aF"][sl] = AF; out["aB"][sl] = AB
+        out["aE"][sl] = AE
+        out["aW"][sl] = AW
+        out["aN"][sl] = AN
+        out["aS"][sl] = AS
+        out["aF"][sl] = AF
+        out["aB"][sl] = AB
         out["b"][sl] = B
         return aP, out
 
@@ -1250,9 +1335,9 @@ class Solver:
         ae = self._alpha_eff
         S = self.solid
 
-        Ax = np.multiply.outer(dy, dz)           # (ny,nz) x-face area
-        Ay = np.multiply.outer(dx, dz)           # (nx,nz) y-face area
-        Az = np.multiply.outer(dx, dy)           # (nx,ny) z-face area
+        Ax = np.multiply.outer(dy, dz)  # (ny,nz) x-face area
+        Ay = np.multiply.outer(dx, dz)  # (nx,nz) y-face area
+        Az = np.multiply.outer(dx, dy)  # (nx,ny) z-face area
         Vol = g.cell_volumes()
 
         # Convective volume fluxes on all six faces of every cell.
@@ -1264,9 +1349,12 @@ class Solver:
         Fb = w[:, :, :-1] * Az[:, :, None]
 
         # Interior (fluid-fluid) neighbour coefficients: diffusion + upwind.
-        aE = np.zeros((nx, ny, nz)); aW = np.zeros_like(aE)
-        aN = np.zeros_like(aE); aS = np.zeros_like(aE)
-        aF = np.zeros_like(aE); aB = np.zeros_like(aE)
+        aE = np.zeros((nx, ny, nz))
+        aW = np.zeros_like(aE)
+        aN = np.zeros_like(aE)
+        aS = np.zeros_like(aE)
+        aF = np.zeros_like(aE)
+        aB = np.zeros_like(aE)
 
         aexf = 0.5 * (ae[:-1, :, :] + ae[1:, :, :])
         Dx = aexf * Ax[None, :, :] / dxc[1:nx][:, None, None]
@@ -1297,11 +1385,17 @@ class Solver:
 
         # Domain boundary layers (half distances are exactly dxc[0], dxc[nx], ...).
         add_domain("xlo", (0, slice(None), slice(None)), Ax, dxc[0], Fw[0, :, :])
-        add_domain("xhi", (nx - 1, slice(None), slice(None)), Ax, dxc[nx], -Fe[nx - 1, :, :])
+        add_domain(
+            "xhi", (nx - 1, slice(None), slice(None)), Ax, dxc[nx], -Fe[nx - 1, :, :]
+        )
         add_domain("ylo", (slice(None), 0, slice(None)), Ay, dyc[0], Fs[:, 0, :])
-        add_domain("yhi", (slice(None), ny - 1, slice(None)), Ay, dyc[ny], -Fn[:, ny - 1, :])
+        add_domain(
+            "yhi", (slice(None), ny - 1, slice(None)), Ay, dyc[ny], -Fn[:, ny - 1, :]
+        )
         add_domain("zlo", (slice(None), slice(None), 0), Az, dzc[0], Fb[:, :, 0])
-        add_domain("zhi", (slice(None), slice(None), nz - 1), Az, dzc[nz], -Ff[:, :, nz - 1])
+        add_domain(
+            "zhi", (slice(None), slice(None), nz - 1), Az, dzc[nz], -Ff[:, :, nz - 1]
+        )
 
         # Internal solid interfaces: a fluid cell facing a solid neighbour gets
         # a half-cell Dirichlet at the solid's surface temperature. `flux_in`
@@ -1310,7 +1404,7 @@ class Solver:
         # other (non-rack) solid it is 0, so this is unchanged from before.
         def add_solid(nbr_solid, Ts_nbr, coeff, area, half, flux_in):
             fluid_face = nbr_solid & ~S
-            coeff[fluid_face] = 0.0                       # drop fluid-fluid guess
+            coeff[fluid_face] = 0.0  # drop fluid-fluid guess
             dir_face = fluid_face & ~np.isnan(Ts_nbr)
             D = ae * area / half
             a_bc = D + np.maximum(flux_in, 0.0)
@@ -1331,31 +1425,49 @@ class Solver:
             Ts = np.full((nx, ny, nz), np.nan)
             src = slice(1, None) if up else slice(None, -1)
             dst = slice(None, -1) if up else slice(1, None)
-            sl_dst = [slice(None)] * 3; sl_dst[axis] = dst
-            sl_src = [slice(None)] * 3; sl_src[axis] = src
+            sl_dst = [slice(None)] * 3
+            sl_dst[axis] = dst
+            sl_src = [slice(None)] * 3
+            sl_src[axis] = src
             nbr[tuple(sl_dst)] = S[tuple(sl_src)]
             Ts[tuple(sl_dst)] = ST[tuple(sl_src)]
             return nbr, Ts
 
-        nbrE, TsE = shift_solid(0, up=True);  add_solid(nbrE, TsE, aE, Axb, half_x, -Fe)
-        nbrW, TsW = shift_solid(0, up=False); add_solid(nbrW, TsW, aW, Axb, half_x, Fw)
-        nbrN, TsN = shift_solid(1, up=True);  add_solid(nbrN, TsN, aN, Ayb, half_y, -Fn)
-        nbrS, TsS = shift_solid(1, up=False); add_solid(nbrS, TsS, aS, Ayb, half_y, Fs)
-        nbrF, TsF = shift_solid(2, up=True);  add_solid(nbrF, TsF, aF, Azb, half_z, -Ff)
-        nbrB, TsB = shift_solid(2, up=False); add_solid(nbrB, TsB, aB, Azb, half_z, Fb)
+        nbrE, TsE = shift_solid(0, up=True)
+        add_solid(nbrE, TsE, aE, Axb, half_x, -Fe)
+        nbrW, TsW = shift_solid(0, up=False)
+        add_solid(nbrW, TsW, aW, Axb, half_x, Fw)
+        nbrN, TsN = shift_solid(1, up=True)
+        add_solid(nbrN, TsN, aN, Ayb, half_y, -Fn)
+        nbrS, TsS = shift_solid(1, up=False)
+        add_solid(nbrS, TsS, aS, Ayb, half_y, Fs)
+        nbrF, TsF = shift_solid(2, up=True)
+        add_solid(nbrF, TsF, aF, Azb, half_z, -Ff)
+        nbrB, TsB = shift_solid(2, up=False)
+        add_solid(nbrB, TsB, aB, Azb, half_z, Fb)
 
         AP0 = Vol / dt
         conv = Fe - Fw + Fn - Fs + Ff - Fb
         aP = aE + aW + aN + aS + aF + aB + AP0 + conv + wall_aP
         b = AP0 * self.T + wall_b
-        return aP, {"aE": aE, "aW": aW, "aN": aN, "aS": aS,
-                    "aF": aF, "aB": aB, "b": b}
+        return aP, {"aE": aE, "aW": aW, "aN": aN, "aS": aS, "aF": aF, "aB": aB, "b": b}
 
     def solve_energy_step(self):
         c = self._assemble_T()
         aP, co = c
-        jacobi(self.T, aP, co["aE"], co["aW"], co["aN"], co["aS"], co["aF"],
-               co["aB"], co["b"], self.solid, self.cfg.n_energy_sweeps)
+        jacobi(
+            self.T,
+            aP,
+            co["aE"],
+            co["aW"],
+            co["aN"],
+            co["aS"],
+            co["aF"],
+            co["aB"],
+            co["b"],
+            self.solid,
+            self.cfg.n_energy_sweeps,
+        )
 
     def buoyancy_source(self):
         """Boussinesq body force (kinematic) on the w-momentum control volumes:
@@ -1373,14 +1485,47 @@ class Solver:
     def momentum_predict(self, source=None):
         ns = self.cfg.n_mom_sweeps
         aP, c = self._assemble_u()
-        jacobi(self.u, aP, c["aE"], c["aW"], c["aN"], c["aS"], c["aF"], c["aB"],
-               c["b"], self.u_fixed, ns)
+        jacobi(
+            self.u,
+            aP,
+            c["aE"],
+            c["aW"],
+            c["aN"],
+            c["aS"],
+            c["aF"],
+            c["aB"],
+            c["b"],
+            self.u_fixed,
+            ns,
+        )
         aP, c = self._assemble_v()
-        jacobi(self.v, aP, c["aE"], c["aW"], c["aN"], c["aS"], c["aF"], c["aB"],
-               c["b"], self.v_fixed, ns)
+        jacobi(
+            self.v,
+            aP,
+            c["aE"],
+            c["aW"],
+            c["aN"],
+            c["aS"],
+            c["aF"],
+            c["aB"],
+            c["b"],
+            self.v_fixed,
+            ns,
+        )
         aP, c = self._assemble_w(source=source)
-        jacobi(self.w, aP, c["aE"], c["aW"], c["aN"], c["aS"], c["aF"], c["aB"],
-               c["b"], self.w_fixed, ns)
+        jacobi(
+            self.w,
+            aP,
+            c["aE"],
+            c["aW"],
+            c["aN"],
+            c["aS"],
+            c["aF"],
+            c["aB"],
+            c["b"],
+            self.w_fixed,
+            ns,
+        )
         self.apply_velocity_bcs()
 
     def residuals(self):
@@ -1399,15 +1544,28 @@ class Solver:
         of the under-converged per-step operator rather than of the discrete
         equations. Uses the frozen turbulence/diffusivity state from the last
         step (does not mutate anything)."""
+
         def _one(field, fixed, assembled):
             aP, c = assembled
-            r = linf_residual(field, aP, c["aE"], c["aW"], c["aN"], c["aS"],
-                              c["aF"], c["aB"], c["b"], fixed)
+            r = linf_residual(
+                field,
+                aP,
+                c["aE"],
+                c["aW"],
+                c["aN"],
+                c["aS"],
+                c["aF"],
+                c["aB"],
+                c["b"],
+                fixed,
+            )
             scale = np.abs(aP * field)[~fixed].max()
             return float(r / scale) if scale > 0 else float(r)
 
-        out = {"u": _one(self.u, self.u_fixed, self._assemble_u()),
-               "v": _one(self.v, self.v_fixed, self._assemble_v())}
+        out = {
+            "u": _one(self.u, self.u_fixed, self._assemble_u()),
+            "v": _one(self.v, self.v_fixed, self._assemble_v()),
+        }
         src = None
         if self.cfg.solve_energy:
             out["T"] = _one(self.T, self.solid, self._assemble_T())
@@ -1452,8 +1610,7 @@ class Solver:
         return history
 
     def _velocity_scale(self):
-        return max(np.abs(self.u).max(), np.abs(self.v).max(),
-                   np.abs(self.w).max())
+        return max(np.abs(self.u).max(), np.abs(self.v).max(), np.abs(self.w).max())
 
     # ------------------------------------------------------------------
     # Output helpers

@@ -2,6 +2,7 @@
 Scalars (p, T) live at cell center. (u, v, w) lives on (x, y, z)-faces
 Coordinate convention for the room cases: x = length, y = width, z = height.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -16,16 +17,16 @@ class Axis1D:
             raise ValueError("faces must be a 1-D array with >= 2 entries")
         if np.any(np.diff(faces) <= 0):
             raise ValueError("face coordinates must be strictly increasing")
-        self.f = faces                           # (n+1,) face coordinates
-        self.n = faces.size - 1                  # number of cells
+        self.f = faces  # (n+1,) face coordinates
+        self.n = faces.size - 1  # number of cells
         self.c = 0.5 * (faces[:-1] + faces[1:])
-        self.d = np.diff(faces)                
+        self.d = np.diff(faces)
 
         centers_ext = np.empty(self.n + 2)
         centers_ext[0] = faces[0]
         centers_ext[1:-1] = self.c
         centers_ext[-1] = faces[-1]
-        self.dc = np.diff(centers_ext)           # (n+1,) center-to-center distances
+        self.dc = np.diff(centers_ext)  # (n+1,) center-to-center distances
 
     @property
     def length(self) -> float:
@@ -106,9 +107,7 @@ class Grid:
     def cell_volumes(self) -> np.ndarray:
         """(nx, ny, nz) array of cell volumes dx*dy*dz."""
         return (
-            self.x.d[:, None, None]
-            * self.y.d[None, :, None]
-            * self.z.d[None, None, :]
+            self.x.d[:, None, None] * self.y.d[None, :, None] * self.z.d[None, None, :]
         )
 
     def __repr__(self) -> str:

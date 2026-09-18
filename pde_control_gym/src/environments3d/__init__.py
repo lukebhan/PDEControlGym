@@ -9,5 +9,6 @@ def __getattr__(name):
     # never trigger it, but `from ...environments3d import DataCenter3D` works.
     if name == "DataCenter3D":
         from pde_control_gym.src.environments3d.datacenter3d import DataCenter3D
+
         return DataCenter3D
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

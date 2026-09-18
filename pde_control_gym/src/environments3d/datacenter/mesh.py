@@ -23,6 +23,7 @@ fixed 6-in cells leaves the shallow 305 mm plenum at 2 layers, badly
 under-resolving the wall-jet dynamic pressure and under-predicting tile-flow
 non-uniformity by ~35 %, while over-predicting the deep plenums).
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -35,8 +36,10 @@ from .racks import rack_flow_m3s
 PLENUM_NZ = 6  # Han's fixed plenum layer count (dz = depth / PLENUM_NZ)
 
 _RACK_AXIS_FRONT = {
-    "+x": ("x", "hi"), "-x": ("x", "lo"),
-    "+y": ("y", "hi"), "-y": ("y", "lo"),
+    "+x": ("x", "hi"),
+    "-x": ("x", "lo"),
+    "+y": ("y", "hi"),
+    "-y": ("y", "lo"),
 }
 
 
@@ -101,7 +104,7 @@ def tile_cell_mask(grid: Grid, layout, tiles) -> np.ndarray:
     for t in tiles:
         x0 = off_x + t.tile_ix * cpt
         y0 = off_y + t.tile_iy * cpt
-        mask[x0:x0 + cpt, y0:y0 + cpt] = True
+        mask[x0 : x0 + cpt, y0 : y0 + cpt] = True
     return mask
 
 
@@ -113,7 +116,7 @@ def tile_cell_index(grid: Grid, layout) -> np.ndarray:
     for i, t in enumerate(layout.tiles):
         x0 = off_x + t.tile_ix * cpt
         y0 = off_y + t.tile_iy * cpt
-        idx[x0:x0 + cpt, y0:y0 + cpt] = i
+        idx[x0 : x0 + cpt, y0 : y0 + cpt] = i
     return idx
 
 
@@ -131,7 +134,8 @@ def solids_from_layout(layout, grid: Grid, powers_kW: dict | None = None):
         raise NotImplementedError(
             "solids_from_layout only supports 1x1-tile rack footprints "
             f"(layout '{layout.name}' has {layout.rack_width_tiles}x"
-            f"{layout.rack_depth_tiles})")
+            f"{layout.rack_depth_tiles})"
+        )
 
     solids = []
     for r in layout.racks:
@@ -143,9 +147,12 @@ def solids_from_layout(layout, grid: Grid, powers_kW: dict | None = None):
         if powers_kW is not None and not r.empty:
             axis, front = _RACK_AXIS_FRONT[r.facing]
             power_kW = powers_kW[r.id]
-            rack_spec = RackSpec(axis=axis, front=front,
-                                  Q_m3s=rack_flow_m3s(power_kW),
-                                  power_W=power_kW * 1000.0)
+            rack_spec = RackSpec(
+                axis=axis,
+                front=front,
+                Q_m3s=rack_flow_m3s(power_kW),
+                power_W=power_kW * 1000.0,
+            )
         solids.append(Solid(bounds=bounds, temp=None, rack=rack_spec))
 
     for b in layout.blocks:

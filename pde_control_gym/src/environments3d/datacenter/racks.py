@@ -4,6 +4,7 @@ Pure functions. assign_powers accepts any sequence of objects exposing
 `.id` and `.u_height` (the future `layout.Rack` dataclass satisfies this, and
 so does a plain namedtuple used in tests).
 """
+
 from .units import RHO, CP, RACK_FLOW_M3H_PER_KW, m3h_to_m3s
 
 

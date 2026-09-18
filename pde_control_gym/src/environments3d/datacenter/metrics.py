@@ -5,6 +5,7 @@ Pure post-processing: every function here takes a solved `Solver`/`grid`/
 `layout` (or, for the RCI/PRD/count functions, plain arrays) and returns
 numbers -- no solving happens in this module.
 """
+
 from __future__ import annotations
 
 import csv
@@ -55,13 +56,18 @@ def rack_inlet_csv(solver, grid, layout, out_path, heights=RCI_HEIGHTS_M):
     the "rack-inlet CSV" `whitespace.run_whitespace` saves alongside its npz."""
     with open(out_path, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["id", "row", "number", "empty"]
-                   + [f"T_{h:.2f}" for h in heights] + ["T_inlet_mean"])
+        w.writerow(
+            ["id", "row", "number", "empty"]
+            + [f"T_{h:.2f}" for h in heights]
+            + ["T_inlet_mean"]
+        )
         for r in layout.racks:
             profile = rack_inlet_profile(solver, grid, layout, r, heights)
-            w.writerow([r.id, r.row, r.number, int(r.empty)]
-                       + [f"{t:.4f}" for t in profile]
-                       + [f"{np.mean(profile):.4f}"])
+            w.writerow(
+                [r.id, r.row, r.number, int(r.empty)]
+                + [f"{t:.4f}" for t in profile]
+                + [f"{np.mean(profile):.4f}"]
+            )
     return out_path
 
 
@@ -161,7 +167,9 @@ def energy_closure(solver, grid, layout, powers_kW):
 
     T_ceil = solver.T[:, :, -1]
     W_ceil = solver.w[:, :, -1]
-    closure_W = RHO * CP * float((W_ceil[ceiling_mask] * A_cell * T_ceil[ceiling_mask]).sum())
+    closure_W = (
+        RHO * CP * float((W_ceil[ceiling_mask] * A_cell * T_ceil[ceiling_mask]).sum())
+    )
     closure_W -= RHO * CP * Q_sup * layout.supply_T_C
 
     total_P_W = sum(powers_kW.values()) * 1000.0
