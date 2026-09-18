@@ -45,6 +45,36 @@ pip install pdecontrolgym[datacenter]
 - [x] `PDEEnv3D` base class.
 - [x] Vendored FFD-Upwind solver + data-center modules (importable as a
       sub-package; plenum solve verified end-to-end).
-- [ ] Concrete `DataCenter3D` gym environment on `PDEEnv3D`
-      (action = supply flow rate + supply temperature; observation = whitespace
-      field).
+- [x] Concrete `DataCenter3D` gym environment on `PDEEnv3D`
+      (`datacenter3d.py`) + default `DataCenterReward`
+      (`../rewards/dc_reward.py`). Registered as `PDEControlGym-DataCenter3D`.
+- [ ] Time-varying IT load (per-step rack-power updates) for richer sequential
+      dynamics; regression tests; validation harness wiring.
+
+### `DataCenter3D` at a glance
+
+One env step = one **steady** white-space solve for the current action (warm
+started), so only converged fields are observed (see the rationale above).
+
+- **Action** `Box(2)` in [-1, 1] → (supply flow, supply temperature), mapped to
+  physical ranges (`flow_bounds_m3h`, `temp_bounds_C`).
+- **Coupling** `plenum_mode="scaled"`: the plenum is solved once; per-tile flow
+  *fractions* are cached and rescaled by supply flow each step. `"full"`
+  re-solves the plenum every step.
+- **Observation** `sensing="rack_inlet"` (default): per-rack inlet temps +
+  setpoints + IT load; `"full"`: the whole `(nx, ny, nz, 4)` field.
+- **Cost knobs**: `max_solve_steps` (per-step budget), `solve_tol`, `warm_start`.
+
+```python
+import gymnasium as gym
+env = gym.make("PDEControlGym-DataCenter3D", layout="mini", cells_per_tile=2,
+               max_solve_steps=300, episode_steps=3)
+obs, info = env.reset(seed=0)
+obs, reward, term, trunc, info = env.step(env.action_space.sample())
+```
+
+**Tractability (measured):** warm-started steady solves run ~seconds/step at
+toy (`mini`) scale but ~minutes/step at `han_reference` (cpt=2, ~89k cells) —
+tractable for classical control episodes and toy-scale RL, but realistic-scale
+RL needs a coarser grid, looser tolerance, a bounded `max_solve_steps`, or a
+surrogate.
