@@ -24,7 +24,22 @@ class PDEEnv3D(gym.Env):
     :param normalize: Chooses whether to take action inputs between -1 and 1 and normalize them to between (``-max_control_value``, ``max_control_value``) or to leave inputs unaltered. ``max_control_value`` is environment specific so please see the environment for details.
     :param state_dim: The number of state components stored per grid cell in the observation (e.g. 3 for velocity ``(u, v, w)``, or 5 to also carry pressure and temperature). Defaults to 3.
     """
-    def __init__(self, T: float, dt: float, X: float, dx: float, Y: float, dy: float, Z: float, dz: float, action_dim: int, reward_class: Type[BaseReward], normalize: bool = False, state_dim: int = 3):
+
+    def __init__(
+        self,
+        T: float,
+        dt: float,
+        X: float,
+        dx: float,
+        Y: float,
+        dy: float,
+        Z: float,
+        dz: float,
+        action_dim: int,
+        reward_class: Type[BaseReward],
+        normalize: bool = False,
+        state_dim: int = 3,
+    ):
         super(PDEEnv3D, self).__init__()
         # Build parameters for number of time steps and number of spatial steps
         self.nt = int(round(T / dt))
@@ -53,11 +68,14 @@ class PDEEnv3D(gym.Env):
         # Interpretation (boundary control, setpoints, etc.) is environment-specific;
         # pass max_value as a scalar or per-component array to normalize().
         self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(action_dim, ), dtype=np.float32)
+            low=-1.0, high=1.0, shape=(action_dim,), dtype=np.float32
+        )
         if normalize:
-            self.normalize = lambda action, max_value : (action + 1)*max_value - max_value
+            self.normalize = (
+                lambda action, max_value: (action + 1) * max_value - max_value
+            )
         else:
-            self.normalize = lambda action, max_value : action
+            self.normalize = lambda action, max_value: action
 
         # Holds entire system state. Note: for large 3D grids the full
         # (nt, nx, ny, nz, state_dim) history can be memory-heavy; an

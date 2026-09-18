@@ -1,0 +1,22 @@
+{
+  "name": "han_reference",
+  "room_tiles": [50, 37],
+  "tile_m": 0.6096,
+  "height_m": 3.3528,
+  "plenum_depth_m": 0.9144,
+  "plenum_margin_tiles": 0,
+  "plenum_inlets": [
+    {"face": "xlo", "fraction": 0.5},
+    {"face": "xhi", "fraction": 0.5}
+  ],
+  "tile_open_area": 0.25,
+  "ceiling_tile_open_area": 0.83,
+  "supply_flow_m3h": 152000,
+  "supply_T_C": 22.0,
+  "total_it_power_kW": 344,
+  "power_mode": "u_proportional",
+  "rack_height_m": {"42": 1.9812, "45": 2.1336},
+  "rack_depth_tiles": 1,
+  "rack_width_tiles": 1,
+  "pdu_height_m": 2.1336
+}

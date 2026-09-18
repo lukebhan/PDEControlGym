@@ -5,3 +5,6 @@
 **/*.ipynb_checkpoints/
 .python-version
 *.egg-info/
+
+# Generated data-center study/env output (plenum & whitespace solves)
+results/
