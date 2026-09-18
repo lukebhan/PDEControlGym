@@ -331,7 +331,13 @@ class Solver:
         vel[axis_slice(front_face)][footprint] = sign * V
         vel[axis_slice(rear_face)][footprint] = sign * V
 
-        return (spec, ax, front_idx, rear_idx, footprint, V)
+        return (spec, ax, front_idx, rear_idx, footprint, V,
+                front_face, rear_face, sign, A_front)
+
+    def _axis_slice(self, ax, idx):
+        sl = [slice(None)] * 3
+        sl[ax] = idx
+        return tuple(sl)
 
     def _update_rack_exhaust(self):
         """Carry the front-face inlet temperature through to the rear-face
@@ -340,13 +346,38 @@ class Solver:
         power_W / (rho * cp * Q_m3s)`.
         """
         rho, cp = self.cfg.rho, self.cfg.cp
-        for spec, ax, front_idx, rear_idx, footprint, _V in self._racks:
+        for spec, ax, front_idx, rear_idx, footprint, *_ in self._racks:
             sl = [slice(None)] * 3
             sl[ax] = front_idx
             T_front = self.T[tuple(sl)]
             sl[ax] = rear_idx
             dT = spec.power_W / (rho * cp * spec.Q_m3s)
             self.solid_temp[tuple(sl)][footprint] = T_front[footprint] + dT
+
+    def set_rack_powers(self, powers_W, flows_m3s):
+        """Update every flow-through rack's IT power and intake flow in place,
+        re-prescribing its front/rear face velocities, so a warm-started field
+        can be driven with a time-varying load without rebuilding the solver.
+
+        `powers_W[k]`/`flows_m3s[k]` are the new power [W] and airflow [m^3/s]
+        of the k-th rack, indexed in `self._racks` order (the order racks appear
+        in `cfg.solids`). The new power feeds the Eq. 12 exhaust rise on the next
+        `_update_rack_exhaust`; the new flow re-freezes the front/rear face
+        velocities here (the momentum solve holds those solid faces fixed, so
+        rewriting the array is enough)."""
+        if len(powers_W) != len(self._racks) or len(flows_m3s) != len(self._racks):
+            raise ValueError(
+                f"set_rack_powers: expected {len(self._racks)} racks, got "
+                f"{len(powers_W)} powers / {len(flows_m3s)} flows")
+        for (spec, ax, front_idx, rear_idx, footprint, _V,
+             front_face, rear_face, sign, A_front), P, Q in zip(
+                self._racks, powers_W, flows_m3s):
+            spec.power_W = float(P)
+            spec.Q_m3s = float(Q)
+            V = float(Q) / A_front
+            vel = self._rack_velocity_array(spec.axis)
+            vel[self._axis_slice(ax, front_face)][footprint] = sign * V
+            vel[self._axis_slice(ax, rear_face)][footprint] = sign * V
 
     # ------------------------------------------------------------------
     # Turbulence: Chen & Xu (1998) zero-equation eddy viscosity

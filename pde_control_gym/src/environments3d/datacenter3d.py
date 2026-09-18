@@ -41,7 +41,7 @@ from pde_control_gym.src.environments3d.datacenter.whitespace import build_white
 from pde_control_gym.src.environments3d.datacenter.mesh import (
     whitespace_grid, tile_cell_index, tile_cell_mask)
 from pde_control_gym.src.environments3d.datacenter.tiles import body_force
-from pde_control_gym.src.environments3d.datacenter.racks import assign_powers
+from pde_control_gym.src.environments3d.datacenter.racks import assign_powers, rack_flow_m3s
 from pde_control_gym.src.environments3d.datacenter.units import m3h_to_m3s
 from pde_control_gym.src.environments3d.datacenter import metrics
 
@@ -117,6 +117,11 @@ class DataCenter3D(PDEEnv3D):
             self.layout.racks, self.layout.total_it_power_kW, self.layout.power_mode)
         self.p_it_nom_kW = float(sum(self._base_powers.values()))
         self.load_profile = load_profile
+        # Powered racks in the order the solver's flow-through racks are built
+        # (non-empty racks in layout order -- see datacenter.mesh.solids_from_layout);
+        # used to push a time-varying load into the live warm-started solver.
+        self._powered_racks = [r for r in self.layout.racks
+                               if not getattr(r, "empty", False)]
 
         # Precompute the plenum tile-flow fractions (self-similar in supply flow).
         pr = run_plenum(self.layout, cells_per_tile, self.layout.plenum_depth_m,
@@ -254,6 +259,19 @@ class DataCenter3D(PDEEnv3D):
         scale = total_kW / self.p_it_nom_kW if self.p_it_nom_kW else 1.0
         return {k: v * scale for k, v in self._base_powers.items()}, total_kW
 
+    def _apply_load(self, powers):
+        """Push a new IT-load distribution into the live (warm-started) solver.
+
+        A rack's airflow is power-proportional (Han Eq. 11) and its exhaust rise
+        is ``P/(rho cp Q)`` (Eq. 12), so a time-varying load must update both the
+        power and the intake flow in place; otherwise a warm-started step keeps
+        the field frozen at reset's load and only the observation/reward scalar
+        moves. (The cold-restart path rebuilds the solver from ``powers`` and so
+        needs no in-place update.)"""
+        powers_W = [powers[r.id] * 1000.0 for r in self._powered_racks]
+        flows = [rack_flow_m3s(powers[r.id]) for r in self._powered_racks]
+        self._solver.set_rack_powers(powers_W, flows)
+
     # ---- gym API -------------------------------------------------------------------
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
@@ -290,6 +308,9 @@ class DataCenter3D(PDEEnv3D):
                 self.layout, self.cells_per_tile, self._tile_flows(Q_sup),
                 T_sup, Q_sup, powers)
             self._tile_index = tile_cell_index(self._grid, self.layout)
+        elif self.load_profile is not None:
+            # Warm start: the solver is not rebuilt, so push the new load in place.
+            self._apply_load(powers)
 
         self._apply_action(Q_sup, T_sup)
         converged, nsteps = self._march_to_steady()
