@@ -14,7 +14,7 @@
 This repository provides implementations of various PDEs including hyperbolic PDEs(Burger's Equation) and parabolic PDEs (Reaction-Diffusion/Heat Equations), and 2-D Navier Stokes PDEs that are all wrapped under a <a href=https://github.com/Farama-Foundation/Gymnasium>gym</a> designed for **boundary control problems**. These problems are particularly challenging because one has to handle nonlinearity across the entire domain with only a single value at each timestep requiring the solution of PDEs in the feedback loop. See the <a href=https://arxiv.org/abs/2405.11401>full paper</a> presented at L4DC 2024 for more details (Note the reward function implemented in the paper has been improved in the current version. See documentation reward for details). 
 
 ## Getting Started
-To get started, we strongly suggest the user follows the <a href=https://pdecontrolgym.readthedocs.io/en/latest/guide/tutorials.html>documentation tutorial</a> for learning in a 1D environment once installation is complete. 
+To get started, we strongly suggest the user follows the <a href=https://pdecontrolgym.readthedocs.io/en/latest>documentation tutorial</a> for learning in a 1D environment once installation is complete. 
 
 ## Installation
 Installing PDE Control Gym is simple, requires few dependencies, and is set to work with most Python Environments (Installation guide can be found in <a href=https://pdecontrolgym.readthedocs.io/en/latest/guide/install.html>docuementation</a> as well). This installation guide assumes you are familiar with either <a href=https://www.anaconda.com/>conda</a> or <a href=https://docs.python.org/3/library/venv.html>virtual env</a> in creating and installing python modules.
